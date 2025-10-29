@@ -1,0 +1,23 @@
+# APEX DIRECTOR Core System Requirements
+
+# Core dependencies
+asyncio-mqtt>=0.11.0          # Async MQTT client
+aiofiles>=23.0.0             # Async file operations
+aiohttp>=3.8.0               # Async HTTP client/server
+pydantic>=2.0.0              # Data validation
+python-multipart>=0.0.6     # Multipart form data
+
+# Development and testing
+pytest>=7.4.0               # Testing framework
+pytest-asyncio>=0.21.0      # Async testing support
+black>=23.0.0               # Code formatting
+flake8>=6.0.0               # Linting
+mypy>=1.5.0                 # Type checking
+
+# Optional backend integrations
+# google-cloud-vision>=3.4.0  # Google Imagen
+# openai>=0.27.0             # OpenAI API
+# stability-sdk>=2.0.0       # Stability AI SDXL
+# redis>=5.0.0               # Redis caching
+# sqlalchemy>=2.0.0          # Database ORM
+# structlog>=23.1.0         # Structured logging

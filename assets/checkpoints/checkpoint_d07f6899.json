@@ -1,0 +1,118 @@
+{
+  "checkpoint_id": "d07f6899",
+  "timestamp": "2025-10-29T02:09:18.916976",
+  "version": "1.0",
+  "orchestrator_state": {
+    "active_jobs_count": 0,
+    "queued_jobs_count": 0,
+    "system_uptime": "N/A",
+    "last_cleanup": "2025-10-29T02:09:18.910599"
+  },
+  "job_states": {},
+  "backend_states": {
+    "nano_banana": {
+      "name": "Nano Banana",
+      "status": "online",
+      "last_health_check": "2025-10-29T02:09:18.910425",
+      "response_time_ms": 307,
+      "success_rate": 0.972746864546581,
+      "queue_length": 0,
+      "rate_limit_remaining": 27,
+      "error_count_24h": 0,
+      "current_load": 0.1635865669556046,
+      "last_error": null,
+      "capabilities": [
+        "image_generation",
+        "fast_generation"
+      ]
+    },
+    "imagen": {
+      "name": "Google Imagen",
+      "status": "online",
+      "last_health_check": "2025-10-29T02:09:18.910458",
+      "response_time_ms": 272,
+      "success_rate": 0.9394988065547056,
+      "queue_length": 10,
+      "rate_limit_remaining": 58,
+      "error_count_24h": 0,
+      "current_load": 0.2486405314427551,
+      "last_error": null,
+      "capabilities": [
+        "image_generation",
+        "high_quality"
+      ]
+    },
+    "minimax": {
+      "name": "MiniMax",
+      "status": "online",
+      "last_health_check": "2025-10-29T02:09:18.910475",
+      "response_time_ms": 425,
+      "success_rate": 0.9391114961261258,
+      "queue_length": 5,
+      "rate_limit_remaining": 40,
+      "error_count_24h": 0,
+      "current_load": 0.36425999403819853,
+      "last_error": null,
+      "capabilities": [
+        "image_generation",
+        "fast_generation",
+        "high_quality"
+      ]
+    },
+    "sdxl": {
+      "name": "SDXL",
+      "status": "online",
+      "last_health_check": "2025-10-29T02:09:18.910487",
+      "response_time_ms": 254,
+      "success_rate": 0.930540830338687,
+      "queue_length": 4,
+      "rate_limit_remaining": 18,
+      "error_count_24h": 0,
+      "current_load": 0.48743342074562257,
+      "last_error": null,
+      "capabilities": [
+        "image_generation",
+        "ultra_quality",
+        "detailed"
+      ]
+    }
+  },
+  "asset_inventory": {
+    "total_files": 0,
+    "total_size_mb": 0.0,
+    "format_breakdown": {},
+    "directory_stats": {
+      "images": {
+        "file_count": 1,
+        "size_mb": 0.0
+      },
+      "thumbnails": {
+        "file_count": 1,
+        "size_mb": 0.0
+      },
+      "variants": {
+        "file_count": 1,
+        "size_mb": 0.0
+      }
+    },
+    "projects_count": 0
+  },
+  "performance_metrics": {
+    "jobs_completed_24h": 0,
+    "average_job_time": 0.0,
+    "backend_statistics": {
+      "total_backends": 4,
+      "online_backends": 4,
+      "availability_percent": 100.0,
+      "average_response_time_ms": 314.5,
+      "average_success_rate": 0.9454744993915248,
+      "total_queue_length": 19,
+      "fallback_chain": [
+        "nano_banana",
+        "imagen",
+        "minimax",
+        "sdxl"
+      ]
+    }
+  }
+}

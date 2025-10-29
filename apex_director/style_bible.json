@@ -1,0 +1,173 @@
+{
+  "version": "1.0",
+  "project_name": "Cinematic Image Generation Pipeline",
+  "description": "Professional cinematic style bible for consistent image generation",
+  
+  "overall_style": {
+    "visual_style": "cinematic realism with dramatic flair",
+    "color_grading": "natural with subtle warmth, slightly desaturated for drama",
+    "lighting_style": "three-point lighting with practical accents, volumetric fog for depth",
+    "composition_style": "rule of thirds with dynamic framing, leading lines for storytelling"
+  },
+  
+  "color_palette": {
+    "primary_colors": ["#2C3E50", "#ECF0F1", "#E74C3C"],
+    "secondary_colors": ["#3498DB", "#F39C12", "#27AE60"],
+    "accent_colors": ["#9B59B6", "#E67E22", "#1ABC9C"],
+    "neutral_colors": ["#2C3E50", "#7F8C8D", "#BDC3C7"],
+    "skin_tones": ["#FDBCB4", "#F1C27D", "#E0AC69", "#C68642", "#8D5524"],
+    "cinematic_palette": [
+      "deep blues for night scenes",
+      "warm oranges for golden hour",
+      "cool teals for futuristic/sci-fi",
+      "earth tones for natural/grounded scenes",
+      "rich burgundy for dramatic emphasis"
+    ]
+  },
+  
+  "lighting_profile": {
+    "key_light_intensity": "medium to high, 45-degree angle",
+    "shadow_quality": "soft with defined edges, not harsh",
+    "color_temperature": "5600K daylight balanced for realism",
+    "practical_lights": "warm tungsten accents, visible light sources",
+    "rim_lighting": "subtle backlight for character separation",
+    "mood_lighting": {
+      "dramatic": "high contrast, directional shadows",
+      "romantic": "soft, warm, diffused light",
+      "thriller": "low-key lighting, stark shadows",
+      "sci_fi": "cool blues, neon accents, volumetric lighting",
+      "natural": "even, realistic lighting with subtle shadows"
+    }
+  },
+  
+  "camera_profile": {
+    "preferred_lenses": ["35mm", "50mm", "85mm"],
+    "aperture_range": "f/2.8 to f/5.6 for shallow to medium depth of field",
+    "depth_of_field": "shallow for subject isolation, deep for environmental context",
+    "shutter_speed": "1/125 standard, faster for action/freeze motion",
+    "iso_range": "400-1600 with minimal noise",
+    "lens_characteristics": {
+      "24mm": "wide environmental shots, expansive landscapes",
+      "35mm": "narrative framing, environmental portraits",
+      "50mm": "natural perspective, human eye view",
+      "85mm": "portrait lens, shallow depth of field",
+      "135mm": "telephoto compression, background separation"
+    }
+  },
+  
+  "mood_descriptors": [
+    "cinematic",
+    "professional cinematography",
+    "film-like quality",
+    "engaging visual storytelling",
+    "polished production value",
+    "dramatic lighting",
+    "atmospheric",
+    "moody",
+    "dynamic composition"
+  ],
+  
+  "quality_standards": {
+    "resolution": "minimum 1920x1080, preferred 4K for broadcast",
+    "sharpness": "critically sharp focus on subjects,适度模糊背景",
+    "noise": "minimal sensor noise, natural film grain acceptable",
+    "dynamic_range": "preserves highlight and shadow detail",
+    "color_accuracy": "sRGB color space, professional color grading",
+    "compression": "minimal artifacts, high quality encoding"
+  },
+  
+  "composition_rules": {
+    "rule_of_thirds": true,
+    "leading_lines": true,
+    "symmetry": "use selectively for dramatic effect",
+    "framing": "natural framing with foreground elements",
+    "depth_layers": "foreground, middle ground, background separation",
+    "negative_space": "use for breathing room and emphasis",
+    "balance": "visual weight balance for stability"
+  },
+  
+  "style_variations": {
+    "film_noir": {
+      "lighting": "high contrast, dramatic shadows, chiaroscuro",
+      "color_palette": "black and white with selective color",
+      "composition": "low angle shots, geometric compositions",
+      "mood": "mysterious, atmospheric, dramatic"
+    },
+    "modern_drama": {
+      "lighting": "natural window light, practical sources",
+      "color_palette": "warm earth tones, subtle color grading",
+      "composition": "intimate framing, emotional closeness",
+      "mood": "realistic, emotional, grounded"
+    },
+    "sci_fi": {
+      "lighting": "neon lights, volumetric lighting, futuristic glow",
+      "color_palette": "blue, purple, cyan, neon green",
+      "composition": "wide shots, architectural elements, technology",
+      "mood": "futuristic, clean, technological"
+    },
+    "horror": {
+      "lighting": "low-key lighting, harsh shadows, practical lights",
+      "color_palette": "dark blues, deep reds, muted earth tones",
+      "composition": "Dutch angles, tight shots, negative space",
+      "mood": "ominous, unsettling, claustrophobic"
+    },
+    "action": {
+      "lighting": "high contrast, dynamic lighting, rim lighting",
+      "color_palette": "vibrant, saturated colors",
+      "composition": "wide shots, dynamic angles, motion",
+      "mood": "energetic, intense, fast-paced"
+    }
+  },
+  
+  "character_consistency": {
+    "facial_features": "maintain consistent facial structure and proportions",
+    "clothing_style": "consistent wardrobe and styling",
+    "hair_and_makeup": "consistent hair color/style, natural makeup",
+    "body_proportions": "maintain realistic human proportions",
+    "age_consistency": "consistent apparent age across shots"
+  },
+  
+  "scene_styles": {},
+  
+  "technical_specifications": {
+    "aspect_ratios": {
+      "widescreen": "16:9 for cinematic scenes",
+      "portrait": "2:3 for character focus",
+      "square": "1:1 for social media compatibility"
+    },
+    "color_spaces": {
+      "primary": "sRGB for web display",
+      "professional": "Rec. 709 for broadcast",
+      "extended": "DCI-P3 for digital cinema"
+    },
+    "render_quality": {
+      "preview": "medium quality for quick iteration",
+      "draft": "high quality for review",
+      "final": "broadcast quality for delivery"
+    }
+  },
+  
+  "production_notes": {
+    "consistency_monitoring": "regular style drift checks using CLIP embeddings",
+    "quality_gates": "aesthetic, composition, style, and artifact scoring",
+    "approval_process": "multi-criteria selection with human oversight",
+    "backup_generation": "maintain multiple high-quality variants"
+  },
+  
+  "color_grading_guidelines": {
+    "primary_correction": "exposure and white balance correction",
+    "secondary_correction": "selective color adjustments",
+    "creative_grading": "mood-appropriate color treatment",
+    "skin_tone_priority": "maintain natural skin tone rendering",
+    "highlight_rolloff": "smooth highlight recovery",
+    "shadow_detail": "preserve shadow information"
+  },
+  
+  "lens_effects": {
+    "bokeh": "pleasant circular bokeh from fast lenses",
+    "chromatic_aberration": "minimal, realistic levels",
+    "vignetting": "subtle, natural edge darkening",
+    "depth_of_field": "smooth, realistic falloff",
+    "lens_flare": "use sparingly for dramatic effect"
+  }
+}
