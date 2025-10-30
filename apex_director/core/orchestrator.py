@@ -36,7 +36,30 @@ class JobStatus(Enum):
 
 @dataclass
 class GenerationJob:
-    """Complete generation job definition"""
+    """Represents a single image generation job and its state.
+
+    Attributes:
+        id: Unique identifier for the job.
+        prompt: The text prompt for image generation.
+        negative_prompt: An optional text prompt to guide the generation away
+            from certain concepts.
+        priority: Job priority (1-5), with 5 being the highest.
+        status: The current status of the job.
+        created_at: Timestamp when the job was created.
+        started_at: Timestamp when the job processing started.
+        completed_at: Timestamp when the job was completed or failed.
+        backend_preference: The preferred generation backend.
+        estimated_cost: The estimated cost to run the job.
+        estimated_time: The estimated time in seconds to run the job.
+        actual_cost: The actual cost after the job is completed.
+        actual_time: The actual time in seconds it took to run the job.
+        retry_count: The number of times the job has been retried.
+        error_message: The last error message if the job failed.
+        asset_id: The ID of the generated asset after completion.
+        metadata: A dictionary for arbitrary metadata.
+        generation_params: A dictionary of parameters for the generation
+            backend.
+    """
     id: str
     prompt: str
     negative_prompt: Optional[str] = None
@@ -57,6 +80,11 @@ class GenerationJob:
     generation_params: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the GenerationJob to a dictionary.
+
+        Returns:
+            A dictionary representation of the job.
+        """
         data = asdict(self)
         data['status'] = self.status.value
         data['created_at'] = self.created_at.isoformat()
@@ -68,6 +96,14 @@ class GenerationJob:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'GenerationJob':
+        """Creates a GenerationJob from a dictionary.
+
+        Args:
+            data: A dictionary containing job data.
+
+        Returns:
+            A GenerationJob instance.
+        """
         if 'created_at' in data and isinstance(data['created_at'], str):
             data['created_at'] = datetime.fromisoformat(data['created_at'])
         if 'started_at' in data and isinstance(data['started_at'], str):
@@ -80,21 +116,38 @@ class GenerationJob:
 
 
 class JobQueue:
-    """Priority-based job queue"""
+    """A thread-safe, priority-based queue for managing GenerationJobs.
+
+    This queue manages jobs based on a priority level from 1 to 5, where 5 is
+    the highest priority.
+    """
     
     def __init__(self):
+        """Initializes the priority-based job queue."""
         self._queues: Dict[int, List[GenerationJob]] = {i: [] for i in range(1, 6)}
         self._lock = threading.Lock()
     
     def add_job(self, job: GenerationJob):
-        """Add job to appropriate priority queue"""
+        """Adds a job to the appropriate priority queue.
+
+        Args:
+            job: The GenerationJob to add to the queue.
+        """
         with self._lock:
             priority = max(1, min(5, job.priority))
             self._queues[priority].append(job)
             logger.debug(f"Added job {job.id} to priority queue {priority}")
     
     def get_next_job(self) -> Optional[GenerationJob]:
-        """Get next job from highest priority non-empty queue"""
+        """Retrieves the next job from the highest-priority non-empty queue.
+
+        Jobs are retrieved in a FIFO manner from the highest priority queue
+        that contains jobs.
+
+        Returns:
+            The next GenerationJob to be processed, or None if the queue is
+            empty.
+        """
         with self._lock:
             for priority in range(5, 0, -1):  # 5 to 1 (highest to lowest)
                 if self._queues[priority]:
@@ -102,7 +155,14 @@ class JobQueue:
             return None
     
     def remove_job(self, job_id: str) -> bool:
-        """Remove job from queue (if still queued)"""
+        """Removes a job from the queue.
+
+        Args:
+            job_id: The ID of the job to remove.
+
+        Returns:
+            True if the job was found and removed, False otherwise.
+        """
         with self._lock:
             for priority_queue in self._queues.values():
                 for i, job in enumerate(priority_queue):
@@ -112,20 +172,40 @@ class JobQueue:
             return False
     
     def get_queue_size(self) -> int:
-        """Get total number of jobs in queue"""
+        """Gets the total number of jobs in the queue.
+
+        Returns:
+            The total number of jobs across all priority queues.
+        """
         with self._lock:
             return sum(len(queue) for queue in self._queues.values())
     
     def get_priority_sizes(self) -> Dict[int, int]:
-        """Get queue sizes by priority"""
+        """Gets the number of jobs in each priority queue.
+
+        Returns:
+            A dictionary mapping priority levels to the number of jobs in
+            that queue.
+        """
         with self._lock:
             return {priority: len(queue) for priority, queue in self._queues.items()}
 
 
 class APEXOrchestrator:
-    """Main orchestrator coordinating the entire system"""
+    """The main orchestrator for the APEX DIRECTOR system.
+
+    This class is responsible for managing the entire image generation
+    pipeline, including job submission, queuing, processing, and state
+    management. It coordinates all other components of the system.
+    """
     
     def __init__(self, custom_config: Optional[OrchestratorConfig] = None):
+        """Initializes the APEXOrchestrator.
+
+        Args:
+            custom_config: An optional OrchestratorConfig to override the
+                default configuration.
+        """
         self.config = custom_config or get_config().get_orchestrator_config()
         
         # Initialize components
@@ -158,7 +238,11 @@ class APEXOrchestrator:
         logger.info("APEX Orchestrator initialized")
     
     async def start(self):
-        """Start the orchestrator and begin processing jobs"""
+        """Starts the orchestrator and begins processing jobs.
+
+        This method initializes and starts the job processor tasks and the
+        health monitoring loop.
+        """
         if self.is_running:
             logger.warning("Orchestrator already running")
             return
@@ -177,7 +261,12 @@ class APEXOrchestrator:
         logger.info(f"Orchestrator started with {self.config.max_concurrent_jobs} processors")
     
     async def stop(self, wait_for_completion: bool = True):
-        """Stop the orchestrator"""
+        """Stops the orchestrator and its background tasks.
+
+        Args:
+            wait_for_completion: If True, waits for all processor tasks to
+                finish their current jobs before stopping.
+        """
         if not self.is_running:
             return
         
@@ -200,11 +289,20 @@ class APEXOrchestrator:
                         backend_preference: Optional[str] = None,
                         metadata: Optional[Dict[str, Any]] = None,
                         generation_params: Optional[Dict[str, Any]] = None) -> str:
-        """
-        Submit a new generation job
-        
+        """Submits a new generation job to the orchestrator.
+
+        Args:
+            prompt: The text prompt for image generation.
+            negative_prompt: An optional text prompt to guide the generation
+                away from certain concepts.
+            priority: Job priority (1-5), with 5 being the highest.
+            backend_preference: The preferred generation backend.
+            metadata: A dictionary for arbitrary metadata.
+            generation_params: A dictionary of parameters for the generation
+                backend.
+
         Returns:
-            Job ID
+            The unique ID of the submitted job.
         """
         job_id = str(uuid.uuid4())
         
@@ -244,7 +342,15 @@ class APEXOrchestrator:
         return job_id
     
     async def submit_batch(self, jobs: List[Dict[str, Any]]) -> List[str]:
-        """Submit multiple jobs as a batch"""
+        """Submits multiple jobs as a batch.
+
+        Args:
+            jobs: A list of dictionaries, where each dictionary contains the
+                parameters for a single job.
+
+        Returns:
+            A list of the unique IDs of the submitted jobs.
+        """
         job_ids = []
         
         for job_data in jobs:
@@ -255,7 +361,14 @@ class APEXOrchestrator:
         return job_ids
     
     async def cancel_job(self, job_id: str) -> bool:
-        """Cancel a job if still in queue"""
+        """Cancels a job if it is still in the queue or being processed.
+
+        Args:
+            job_id: The ID of the job to cancel.
+
+        Returns:
+            True if the job was successfully cancelled, False otherwise.
+        """
         # Try to remove from queue
         if self.job_queue.remove_job(job_id):
             job = next((job for job in self.active_jobs.values() if job.id == job_id), None)
@@ -283,7 +396,15 @@ class APEXOrchestrator:
         return False
     
     async def get_job_status(self, job_id: str) -> Optional[Dict[str, Any]]:
-        """Get status of a specific job"""
+        """Gets the status of a specific job.
+
+        Args:
+            job_id: The ID of the job to check.
+
+        Returns:
+            A dictionary containing the job's status and details, or None if
+            the job is not found.
+        """
         # Check active jobs
         if job_id in self.active_jobs:
             job = self.active_jobs[job_id]
@@ -302,7 +423,12 @@ class APEXOrchestrator:
         return None
     
     def get_queue_status(self) -> Dict[str, Any]:
-        """Get current queue status"""
+        """Gets the current status of the job queue.
+
+        Returns:
+            A dictionary with statistics about the job queue, including the
+            number of queued, active, completed, and failed jobs.
+        """
         return {
             "total_queued": self.job_queue.get_queue_size(),
             "active_jobs": len(self.active_jobs),
@@ -312,7 +438,14 @@ class APEXOrchestrator:
         }
     
     def get_system_status(self) -> Dict[str, Any]:
-        """Get comprehensive system status"""
+        """Gets a comprehensive status of the entire system.
+
+        This includes the orchestrator status, job queue statistics,
+        performance metrics, and backend and asset information.
+
+        Returns:
+            A dictionary containing a snapshot of the system's status.
+        """
         uptime = datetime.utcnow() - self.start_time
         
         backend_stats = self.backend_manager.get_statistics()
@@ -336,7 +469,13 @@ class APEXOrchestrator:
         }
     
     async def _job_processor(self, processor_id: str):
-        """Main job processing loop"""
+        """The main loop for a single job processor task.
+
+        This method continuously fetches jobs from the queue and processes them.
+
+        Args:
+            processor_id: A unique identifier for the processor.
+        """
         logger.info(f"Job processor {processor_id} started")
         
         while self.is_running:
@@ -359,7 +498,15 @@ class APEXOrchestrator:
         logger.info(f"Job processor {processor_id} stopped")
     
     async def _process_job(self, job: GenerationJob, processor_id: str):
-        """Process a single job"""
+        """Processes a single generation job.
+
+        This method handles the entire lifecycle of a job, from sending it to
+        the backend to saving the asset and recording the history.
+
+        Args:
+            job: The GenerationJob to process.
+            processor_id: The ID of the processor handling the job.
+        """
         job.status = JobStatus.PROCESSING
         job.started_at = datetime.utcnow()
         self.active_jobs[job.id] = job
@@ -431,7 +578,14 @@ class APEXOrchestrator:
             await self.checkpoint_manager.create_checkpoint(f"job_completed_{job.id}")
     
     async def _estimate_job_cost_time(self, job: GenerationJob) -> CostEstimate:
-        """Estimate cost and time for a job"""
+        """Estimates the cost and time for a given job.
+
+        Args:
+            job: The GenerationJob to estimate.
+
+        Returns:
+            A CostEstimate object with the estimated cost and time.
+        """
         # Prepare job parameters for estimation
         job_params = {
             "width": job.generation_params.get('width', 512),
@@ -445,7 +599,18 @@ class APEXOrchestrator:
         return estimate
     
     async def _save_generated_asset(self, job: GenerationJob, response: GenerationResponse) -> str:
-        """Save generated asset to storage"""
+        """Saves the generated asset to storage.
+
+        This method creates a placeholder for the generated image and
+        registers it with the AssetManager.
+
+        Args:
+            job: The job that generated the asset.
+            response: The response from the generation backend.
+
+        Returns:
+            The ID of the newly registered asset.
+        """
         try:
             # In a real implementation, this would save the actual image data
             # For now, we'll create a placeholder
@@ -478,7 +643,16 @@ class APEXOrchestrator:
             raise
     
     async def _handle_job_failure(self, job: GenerationJob, response: Optional[GenerationResponse], error_msg: Optional[str] = None):
-        """Handle job failure and potentially retry"""
+        """Handles a job failure, with potential for retries.
+
+        If the job has not exceeded its retry limit, it is re-queued.
+        Otherwise, it is marked as failed.
+
+        Args:
+            job: The job that failed.
+            response: The backend response, if available.
+            error_msg: An optional error message.
+        """
         error_message = error_msg or response.error if response else "Unknown error"
         
         # Check if we should retry
@@ -524,7 +698,12 @@ class APEXOrchestrator:
                     logger.error(f"Job failed handler error: {e}")
     
     async def _record_generation_history(self, job: GenerationJob, response: GenerationResponse):
-        """Record generation data for future estimation"""
+        """Records the details of a completed job for future estimations.
+
+        Args:
+            job: The completed job.
+            response: The successful response from the backend.
+        """
         try:
             record = HistoricalRecord(
                 timestamp=job.completed_at or datetime.utcnow(),
@@ -546,7 +725,11 @@ class APEXOrchestrator:
             logger.warning(f"Failed to record generation history: {e}")
     
     async def _health_monitor_loop(self):
-        """Monitor system health"""
+        """A background task that periodically monitors the system's health.
+
+        This method checks backend statuses, system resources, and triggers
+        periodic checkpoints.
+        """
         logger.info("Health monitor started")
         
         while self.is_running:
@@ -577,19 +760,33 @@ class APEXOrchestrator:
         logger.info("Health monitor stopped")
     
     def add_job_completed_handler(self, handler: Callable):
-        """Add handler for job completion events"""
+        """Adds a callback handler for job completion events.
+
+        Args:
+            handler: A callable that will be invoked when a job is
+                successfully completed.
+        """
         self.job_completed_handlers.append(handler)
     
     def add_job_failed_handler(self, handler: Callable):
-        """Add handler for job failure events"""
+        """Adds a callback handler for job failure events.
+
+        Args:
+            handler: A callable that will be invoked when a job fails.
+        """
         self.job_failed_handlers.append(handler)
     
     async def force_checkpoint(self):
-        """Force immediate checkpoint creation"""
+        """Forces the CheckpointManager to create a checkpoint immediately."""
         await self.checkpoint_manager.force_checkpoint()
     
     async def get_statistics(self) -> Dict[str, Any]:
-        """Get detailed processing statistics"""
+        """Gets detailed statistics about the orchestrator's performance.
+
+        Returns:
+            A dictionary containing performance metrics such as jobs per hour,
+            costs, success rate, and backend usage.
+        """
         # Calculate rates
         uptime_hours = (datetime.utcnow() - self.start_time).total_seconds() / 3600
         jobs_per_hour = self.total_jobs_processed / uptime_hours if uptime_hours > 0 else 0
@@ -619,7 +816,14 @@ _orchestrator: Optional[APEXOrchestrator] = None
 
 
 def get_orchestrator() -> APEXOrchestrator:
-    """Get the global orchestrator instance"""
+    """Gets the global instance of the APEXOrchestrator.
+
+    This function implements a singleton pattern to ensure that only one
+    instance of the orchestrator exists.
+
+    Returns:
+        The global APEXOrchestrator instance.
+    """
     global _orchestrator
     if _orchestrator is None:
         _orchestrator = APEXOrchestrator()
@@ -628,19 +832,29 @@ def get_orchestrator() -> APEXOrchestrator:
 
 # Convenience functions
 async def start_orchestrator():
-    """Start the global orchestrator"""
+    """Starts the global APEXOrchestrator instance."""
     orchestrator = get_orchestrator()
     await orchestrator.start()
 
 
 async def stop_orchestrator():
-    """Stop the global orchestrator"""
+    """Stops the global APEXOrchestrator instance."""
     orchestrator = get_orchestrator()
     await orchestrator.stop()
 
 
 async def submit_generation_job(*args, **kwargs) -> str:
-    """Submit a generation job"""
+    """Convenience function to submit a job to the global orchestrator.
+
+    Args:
+        *args: Positional arguments to be passed to the
+            APEXOrchestrator.submit_job method.
+        **kwargs: Keyword arguments to be passed to the
+            APEXOrchestrator.submit_job method.
+
+    Returns:
+        The unique ID of the submitted job.
+    """
     orchestrator = get_orchestrator()
     return await orchestrator.submit_job(*args, **kwargs)
 

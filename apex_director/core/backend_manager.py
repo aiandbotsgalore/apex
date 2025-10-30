@@ -22,7 +22,22 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class BackendStatus:
-    """Real-time status of a backend service"""
+    """Represents the real-time status of a backend service.
+
+    Attributes:
+        name: The name of the backend.
+        status: The current status of the backend (e.g., "online", "offline").
+        last_health_check: Timestamp of the last health check.
+        response_time_ms: The average response time in milliseconds.
+        success_rate: The success rate of the backend (0.0 to 1.0).
+        queue_length: The number of jobs currently in the backend's queue.
+        rate_limit_remaining: The number of requests remaining in the current
+            rate limit window.
+        error_count_24h: The number of errors in the last 24 hours.
+        current_load: The current load of the backend (0.0 to 1.0).
+        last_error: A description of the last error, if any.
+        capabilities: A list of capabilities supported by the backend.
+    """
     name: str
     status: str = "offline"  # online, offline, maintenance, overloaded
     last_health_check: datetime = field(default_factory=datetime.utcnow)
@@ -36,7 +51,11 @@ class BackendStatus:
     capabilities: List[str] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization"""
+        """Converts the BackendStatus to a dictionary.
+
+        Returns:
+            A dictionary representation of the backend status.
+        """
         data = {
             "name": self.name,
             "status": self.status,
@@ -55,7 +74,24 @@ class BackendStatus:
 
 @dataclass
 class GenerationRequest:
-    """Request for image generation"""
+    """Represents a request for image generation.
+
+    Attributes:
+        job_id: The unique ID of the job this request belongs to.
+        prompt: The text prompt for image generation.
+        negative_prompt: An optional text prompt to guide the generation
+            away from certain concepts.
+        width: The width of the desired image.
+        height: The height of the desired image.
+        steps: The number of generation steps.
+        guidance_scale: The guidance scale for the generation process.
+        seed: An optional seed for reproducibility.
+        model_variant: An optional model variant to use.
+        style_preset: An optional style preset to apply.
+        quality_level: The desired quality level (1-5).
+        timeout: The timeout in seconds for this request.
+        metadata: A dictionary for arbitrary metadata.
+    """
     job_id: str
     prompt: str
     negative_prompt: Optional[str] = None
@@ -73,7 +109,19 @@ class GenerationRequest:
 
 @dataclass
 class GenerationResponse:
-    """Response from image generation"""
+    """Represents the response from a generation backend.
+
+    Attributes:
+        success: True if the generation was successful, False otherwise.
+        image_data: The generated image data, typically Base64 encoded.
+        image_url: A URL to the generated image, if applicable.
+        backend_used: The name of the backend that processed the request.
+        generation_time: The time in seconds it took to generate the image.
+        cost: The cost of the generation.
+        error: A description of the error, if any.
+        error_code: A specific error code, if any.
+        metadata: A dictionary for arbitrary metadata from the backend.
+    """
     success: bool
     image_data: Optional[str] = None  # Base64 encoded or URL
     image_url: Optional[str] = None
@@ -86,33 +134,70 @@ class GenerationResponse:
 
 
 class BackendInterface(ABC):
-    """Abstract interface for backend services"""
+    """An abstract base class for backend image generation services.
+
+    All backend implementations must inherit from this class and implement
+    its abstract methods.
+    """
     
     @abstractmethod
     async def generate_image(self, request: GenerationRequest) -> GenerationResponse:
-        """Generate image based on request"""
+        """Generates an image based on the provided request.
+
+        Args:
+            request: The GenerationRequest containing the generation
+                parameters.
+
+        Returns:
+            A GenerationResponse with the result of the generation.
+        """
         pass
     
     @abstractmethod
     async def health_check(self) -> BackendStatus:
-        """Check health status of backend"""
+        """Performs a health check on the backend.
+
+        Returns:
+            A BackendStatus object with the current status of the backend.
+        """
         pass
     
-    @abstractmethod
+    @abstracte
     def get_capabilities(self) -> List[str]:
-        """Get list of backend capabilities"""
+        """Gets a list of the backend's capabilities.
+
+        Returns:
+            A list of strings representing the backend's capabilities.
+        """
         pass
     
     @abstractmethod
     def get_estimated_cost(self, request: GenerationRequest) -> float:
-        """Get estimated cost for generation request"""
+        """Gets the estimated cost for a given generation request.
+
+        Args:
+            request: The GenerationRequest to estimate the cost for.
+
+        Returns:
+            The estimated cost as a float.
+        """
         pass
 
 
 class MockBackend(BackendInterface):
-    """Mock backend for testing and development"""
+    """A mock backend for testing and development purposes.
+
+    This class simulates the behavior of a real backend, including processing
+    times, occasional failures, and varying performance based on quality.
+    """
     
     def __init__(self, name: str, config: BackendConfig):
+        """Initializes the MockBackend.
+
+        Args:
+            name: The name of the mock backend.
+            config: The configuration for the mock backend.
+        """
         self.name = name
         self.config = config
         self.status = BackendStatus(
@@ -131,6 +216,18 @@ class MockBackend(BackendInterface):
         }
     
     async def generate_image(self, request: GenerationRequest) -> GenerationResponse:
+        """Simulates generating an image.
+
+        This method simulates processing time, occasional failures, and returns
+        a mock response.
+
+        Args:
+            request: The GenerationRequest containing the generation
+                parameters.
+
+        Returns:
+            A GenerationResponse with the simulated result.
+        """
         start_time = time.time()
         
         try:
@@ -184,7 +281,14 @@ class MockBackend(BackendInterface):
             )
     
     async def health_check(self) -> BackendStatus:
-        """Simulate health check"""
+        """Simulates a health check.
+
+        This method simulates occasional offline status and fluctuating
+        performance metrics.
+
+        Returns:
+            A BackendStatus object with the simulated status.
+        """
         # Simulate occasional offline status
         if random.random() < 0.02:  # 2% chance of being offline
             self.status.status = "offline"
@@ -203,9 +307,25 @@ class MockBackend(BackendInterface):
         return self.status
     
     def get_capabilities(self) -> List[str]:
+        """Gets the capabilities of the mock backend.
+
+        Returns:
+            A list of strings representing the backend's capabilities.
+        """
         return self.config.capabilities.copy()
     
     def get_estimated_cost(self, request: GenerationRequest) -> float:
+        """Gets the estimated cost for a given request.
+
+        The cost is calculated based on the base cost, image size, and
+        quality level.
+
+        Args:
+            request: The GenerationRequest to estimate the cost for.
+
+        Returns:
+            The estimated cost.
+        """
         base_cost = self.config.cost_per_image
         # Adjust cost based on image size and quality
         size_multiplier = (request.width * request.height) / (512 * 512)
@@ -214,9 +334,20 @@ class MockBackend(BackendInterface):
 
 
 class BackendManager:
-    """Manages multiple backend services with automatic fallback"""
+    """Manages multiple backend services with automatic fallback.
+
+    This class is responsible for initializing, monitoring, and selecting
+    appropriate backends for generation requests. It also handles fallback
+    logic when a primary backend fails.
+    """
     
     def __init__(self, custom_configs: Optional[List[BackendConfig]] = None):
+        """Initializes the BackendManager.
+
+        Args:
+            custom_configs: An optional list of BackendConfig to override the
+                default configuration.
+        """
         self.config_manager = get_config()
         self.configs = custom_configs or self.config_manager.get_backend_configs()
         self.backends: Dict[str, BackendInterface] = {}
@@ -231,7 +362,11 @@ class BackendManager:
         self._start_health_monitoring()
     
     def _initialize_backends(self):
-        """Initialize backend instances"""
+        """Initializes backend instances based on the loaded configuration.
+
+        This method creates and registers backend instances and builds the
+        fallback chain.
+        """
         for config in self.configs:
             if config.enabled:
                 try:
@@ -251,7 +386,18 @@ class BackendManager:
         logger.info(f"Fallback chain: {self.fallback_chain}")
     
     def _create_backend_instance(self, config: BackendConfig) -> Optional[BackendInterface]:
-        """Create backend instance based on configuration"""
+        """Creates a backend instance from a BackendConfig.
+
+        In a production environment, this method would instantiate real
+        backend clients. For now, it creates MockBackend instances.
+
+        Args:
+            config: The configuration for the backend to create.
+
+        Returns:
+            An instance of a BackendInterface, or None if the backend
+            type is unknown.
+        """
         # For this implementation, we'll use MockBackend for all backends
         # In production, this would create real backend instances
         
@@ -267,13 +413,17 @@ class BackendManager:
             return MockBackend(config.name, config)
     
     def _start_health_monitoring(self):
-        """Start background health monitoring tasks"""
+        """Starts the background health monitoring tasks for each backend."""
         for backend_name in self.backends.keys():
             task = asyncio.create_task(self._health_monitor_loop(backend_name))
             self.health_check_tasks.append(task)
     
     async def _health_monitor_loop(self, backend_name: str):
-        """Background health monitoring loop"""
+        """The background loop for monitoring the health of a single backend.
+
+        Args:
+            backend_name: The name of the backend to monitor.
+        """
         while True:
             try:
                 backend = self.backends.get(backend_name)
@@ -293,8 +443,17 @@ class BackendManager:
                 await asyncio.sleep(30)  # Retry sooner on error
     
     async def generate_with_fallback(self, request: GenerationRequest) -> GenerationResponse:
-        """
-        Generate image with automatic fallback to backup backends
+        """Generates an image with automatic fallback to backup backends.
+
+        This method iterates through the fallback chain, attempting to
+        generate the image with each backend until one succeeds.
+
+        Args:
+            request: The GenerationRequest for the image.
+
+        Returns:
+            A GenerationResponse, either successful or with an error indicating
+            that all backends failed.
         """
         attempted_backends = []
         
@@ -354,7 +513,18 @@ class BackendManager:
         )
     
     async def generate_parallel(self, requests: List[GenerationRequest]) -> List[GenerationResponse]:
-        """Generate multiple images in parallel using available backends"""
+        """Generates multiple images in parallel using available backends.
+
+        This method distributes the generation requests across available
+        backends and processes them concurrently.
+
+        Args:
+            requests: A list of GenerationRequest objects.
+
+        Returns:
+            A list of GenerationResponse objects corresponding to the
+            requests.
+        """
         if not requests:
             return []
         
@@ -382,15 +552,38 @@ class BackendManager:
         return responses
     
     def get_backend_status(self, backend_name: str) -> Optional[BackendStatus]:
-        """Get current status of a specific backend"""
+        """Gets the current status of a specific backend.
+
+        Args:
+            backend_name: The name of the backend to get the status for.
+
+        Returns:
+            A BackendStatus object, or None if the backend is not found.
+        """
         return self.status_tracker.get(backend_name)
     
     def get_all_backend_status(self) -> Dict[str, BackendStatus]:
-        """Get status of all backends"""
+        """Gets the status of all managed backends.
+
+        Returns:
+            A dictionary mapping backend names to their BackendStatus objects.
+        """
         return self.status_tracker.copy()
     
     def get_best_backend(self, requirements: Dict[str, Any]) -> Optional[str]:
-        """Get the best backend for given requirements"""
+        """Selects the best backend based on a set of requirements.
+
+        This method scores available backends based on factors like quality,
+        cost, and current load.
+
+        Args:
+            requirements: A dictionary of requirements, such as "min_quality"
+                or "max_cost".
+
+        Returns:
+            The name of the best backend, or None if no suitable backend is
+            found.
+        """
         # Score backends based on requirements
         scores = {}
         
@@ -433,7 +626,14 @@ class BackendManager:
         return None
     
     async def benchmark_backends(self, test_request: GenerationRequest) -> Dict[str, Dict[str, Any]]:
-        """Benchmark all available backends"""
+        """Benchmarks all available backends with a test request.
+
+        Args:
+            test_request: The GenerationRequest to use for benchmarking.
+
+        Returns:
+            A dictionary with the benchmark results for each backend.
+        """
         results = {}
         
         for backend_name in self.backends.keys():
@@ -479,7 +679,12 @@ class BackendManager:
         return results
     
     def update_backend_config(self, backend_name: str, updates: Dict[str, Any]):
-        """Update configuration for a backend"""
+        """Updates the configuration for a specific backend.
+
+        Args:
+            backend_name: The name of the backend to update.
+            updates: A dictionary of configuration updates.
+        """
         self.config_manager.update_backend_config(backend_name, updates)
         
         # Update local config if exists
@@ -490,7 +695,12 @@ class BackendManager:
                 break
     
     def enable_backend(self, backend_name: str, enabled: bool = True):
-        """Enable or disable a backend"""
+        """Enables or disables a backend.
+
+        Args:
+            backend_name: The name of the backend.
+            enabled: True to enable the backend, False to disable it.
+        """
         self.config_manager.enable_backend(backend_name, enabled)
         
         if enabled and backend_name not in self.backends:
@@ -507,7 +717,12 @@ class BackendManager:
                 self.fallback_chain.remove(backend_name)
     
     def get_statistics(self) -> Dict[str, Any]:
-        """Get overall backend statistics"""
+        """Gets overall statistics for the backend manager.
+
+        Returns:
+            A dictionary of statistics, including the number of online
+            backends, average response time, and success rate.
+        """
         total_backends = len(self.backends)
         online_backends = sum(1 for status in self.status_tracker.values() if status.status == "online")
         
@@ -535,7 +750,10 @@ class BackendManager:
         }
     
     async def shutdown(self):
-        """Gracefully shutdown backend manager"""
+        """Gracefully shuts down the backend manager.
+
+        This method cancels all background health monitoring tasks.
+        """
         # Cancel health monitoring tasks
         for task in self.health_check_tasks:
             task.cancel()
@@ -552,7 +770,14 @@ _backend_manager: Optional[BackendManager] = None
 
 
 def get_backend_manager() -> BackendManager:
-    """Get the global backend manager instance"""
+    """Gets the global instance of the BackendManager.
+
+    This function implements a singleton pattern to ensure that only one
+    instance of the backend manager exists.
+
+    Returns:
+        The global BackendManager instance.
+    """
     global _backend_manager
     if _backend_manager is None:
         _backend_manager = BackendManager()

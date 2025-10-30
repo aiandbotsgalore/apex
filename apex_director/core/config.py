@@ -12,7 +12,20 @@ from pathlib import Path
 
 @dataclass
 class BackendConfig:
-    """Configuration for backend services"""
+    """Represents the configuration for a backend service.
+
+    Attributes:
+        name: The name of the backend.
+        enabled: A boolean indicating whether the backend is enabled.
+        priority: The priority of the backend in the fallback chain.
+        timeout: The request timeout in seconds.
+        max_retries: The maximum number of retries on failure.
+        rate_limit: The rate limit in requests per minute.
+        cost_per_image: The estimated cost per image.
+        quality_level: The quality level of the backend (1-5).
+        resolution_cap: A tuple representing the maximum resolution.
+        capabilities: A list of the backend's capabilities.
+    """
     name: str
     enabled: bool
     priority: int  # Lower number = higher priority
@@ -31,7 +44,18 @@ class BackendConfig:
 
 @dataclass
 class AssetConfig:
-    """Configuration for asset management"""
+    """Represents the configuration for asset management.
+
+    Attributes:
+        base_dir: The base directory for storing assets.
+        subdirs: A dictionary mapping asset types to subdirectories.
+        max_file_size: The maximum allowed file size in bytes.
+        supported_formats: A list of supported file formats.
+        metadata_backup: A boolean indicating whether to create metadata
+            backups.
+        auto_cleanup: A boolean indicating whether to automatically clean up
+            orphaned files.
+    """
     base_dir: str = "assets"
     subdirs: Dict[str, str] = None
     max_file_size: int = 50 * 1024 * 1024  # 50MB
@@ -53,7 +77,23 @@ class AssetConfig:
 
 @dataclass
 class OrchestratorConfig:
-    """Configuration for main orchestrator"""
+    """Represents the configuration for the main orchestrator.
+
+    Attributes:
+        max_concurrent_jobs: The maximum number of jobs to process
+            concurrently.
+        checkpoint_interval: The interval in seconds for automatic
+            checkpointing.
+        failure_threshold: The number of failures before a job is marked as
+            failed.
+        auto_retry: A boolean indicating whether to automatically retry
+            failed jobs.
+        retry_delay: The delay in seconds between retries.
+        cleanup_on_exit: A boolean indicating whether to perform cleanup on
+            exit.
+        health_check_interval: The interval in seconds for system health
+            checks.
+    """
     max_concurrent_jobs: int = 5
     checkpoint_interval: int = 300  # seconds
     failure_threshold: int = 3
@@ -65,7 +105,15 @@ class OrchestratorConfig:
 
 @dataclass
 class EstimatorConfig:
-    """Configuration for cost and time estimation"""
+    """Represents the configuration for the cost and time estimator.
+
+    Attributes:
+        cache_estimates: A boolean indicating whether to cache estimates.
+        estimate_tolerance: A tolerance factor to add to time estimates.
+        historical_data_retention: The number of days to retain historical
+            data.
+        cost_buffer: A buffer to add to cost estimates.
+    """
     cache_estimates: bool = True
     estimate_tolerance: float = 0.2  # 20% tolerance
     historical_data_retention: int = 30  # days
@@ -73,7 +121,11 @@ class EstimatorConfig:
 
 
 class ConfigManager:
-    """Centralized configuration management"""
+    """A centralized class for managing system configuration.
+
+    This class handles loading, saving, and providing access to configuration
+    settings for all components of the system.
+    """
     
     DEFAULT_CONFIG = {
         "backends": {
@@ -151,12 +203,21 @@ class ConfigManager:
     }
     
     def __init__(self, config_path: Optional[str] = None):
+        """Initializes the ConfigManager.
+
+        Args:
+            config_path: An optional path to the configuration file.
+        """
         self.config_path = config_path or "apex_config.json"
         self._config = self._load_config()
         self._validate_config()
     
     def _load_config(self) -> Dict[str, Any]:
-        """Load configuration from file or use defaults"""
+        """Loads the configuration from a file or uses the default.
+
+        Returns:
+            A dictionary containing the configuration.
+        """
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, 'r') as f:
@@ -169,7 +230,7 @@ class ConfigManager:
         return self.DEFAULT_CONFIG.copy()
     
     def _save_config(self):
-        """Save current configuration to file"""
+        """Saves the current configuration to a file."""
         try:
             with open(self.config_path, 'w') as f:
                 json.dump(self._config, f, indent=2)
@@ -177,7 +238,15 @@ class ConfigManager:
             print(f"Warning: Failed to save config to {self.config_path}: {e}")
     
     def _deep_merge(self, base: Dict, update: Dict) -> Dict:
-        """Deep merge two dictionaries"""
+        """Deep merges two dictionaries.
+
+        Args:
+            base: The base dictionary.
+            update: The dictionary with updates.
+
+        Returns:
+            The merged dictionary.
+        """
         result = base.copy()
         for key, value in update.items():
             if key in result and isinstance(result[key], dict) and isinstance(value, dict):
@@ -187,7 +256,7 @@ class ConfigManager:
         return result
     
     def _validate_config(self):
-        """Validate configuration structure"""
+        """Validates the configuration structure."""
         required_sections = ['backends', 'assets', 'orchestrator', 'estimator']
         for section in required_sections:
             if section not in self._config:
@@ -202,7 +271,11 @@ class ConfigManager:
                     raise ValueError(f"Invalid backend config for {backend_name}: {e}")
     
     def get_backend_configs(self) -> List[BackendConfig]:
-        """Get list of backend configurations"""
+        """Gets a list of backend configurations.
+
+        Returns:
+            A list of BackendConfig objects, sorted by priority.
+        """
         configs = []
         for name, config in self._config['backends'].items():
             config['name'] = name  # Ensure name is set
@@ -210,19 +283,36 @@ class ConfigManager:
         return sorted(configs, key=lambda x: x.priority)
     
     def get_asset_config(self) -> AssetConfig:
-        """Get asset management configuration"""
+        """Gets the asset management configuration.
+
+        Returns:
+            An AssetConfig object.
+        """
         return AssetConfig(**self._config['assets'])
     
     def get_orchestrator_config(self) -> OrchestratorConfig:
-        """Get orchestrator configuration"""
+        """Gets the orchestrator configuration.
+
+        Returns:
+            An OrchestratorConfig object.
+        """
         return OrchestratorConfig(**self._config['orchestrator'])
     
     def get_estimator_config(self) -> EstimatorConfig:
-        """Get estimator configuration"""
+        """Gets the estimator configuration.
+
+        Returns:
+            An EstimatorConfig object.
+        """
         return EstimatorConfig(**self._config['estimator'])
     
     def update_backend_config(self, backend_name: str, updates: Dict[str, Any]):
-        """Update configuration for a specific backend"""
+        """Updates the configuration for a specific backend.
+
+        Args:
+            backend_name: The name of the backend to update.
+            updates: A dictionary of configuration updates.
+        """
         if backend_name not in self._config['backends']:
             raise ValueError(f"Unknown backend: {backend_name}")
         
@@ -231,28 +321,47 @@ class ConfigManager:
         self._save_config()
     
     def enable_backend(self, backend_name: str, enabled: bool = True):
-        """Enable or disable a backend"""
+        """Enables or disables a backend.
+
+        Args:
+            backend_name: The name of the backend.
+            enabled: True to enable the backend, False to disable it.
+        """
         if backend_name in self._config['backends']:
             self._config['backends'][backend_name]['enabled'] = enabled
             self._save_config()
     
     def set_cost_for_backend(self, backend_name: str, cost_per_image: float):
-        """Update cost per image for a backend"""
+        """Updates the cost per image for a specific backend.
+
+        Args:
+            backend_name: The name of the backend.
+            cost_per_image: The new cost per image.
+        """
         if backend_name in self._config['backends']:
             self._config['backends'][backend_name]['cost_per_image'] = cost_per_image
             self._save_config()
     
     def get_enabled_backends(self) -> List[str]:
-        """Get list of enabled backend names"""
+        """Gets a list of the names of all enabled backends.
+
+        Returns:
+            A list of strings, where each string is the name of an enabled
+            backend.
+        """
         return [name for name, config in self._config['backends'].items() 
                 if config.get('enabled', True)]
     
     def to_dict(self) -> Dict[str, Any]:
-        """Return configuration as dictionary"""
+        """Returns the entire configuration as a dictionary.
+
+        Returns:
+            A dictionary representing the current configuration.
+        """
         return self._config.copy()
     
     def reset_to_defaults(self):
-        """Reset configuration to defaults"""
+        """Resets the configuration to the default settings."""
         self._config = self.DEFAULT_CONFIG.copy()
         self._save_config()
 
@@ -263,17 +372,33 @@ config_manager = ConfigManager()
 
 # Convenience functions for accessing configuration
 def get_config() -> ConfigManager:
-    """Get the global configuration manager"""
+    """Gets the global instance of the ConfigManager.
+
+    Returns:
+        The global ConfigManager instance.
+    """
     return config_manager
 
 
 def get_enabled_backends() -> List[str]:
-    """Get list of enabled backend names"""
+    """A convenience function to get the names of all enabled backends.
+
+    Returns:
+        A list of strings, where each string is the name of an enabled
+        backend.
+    """
     return config_manager.get_enabled_backends()
 
 
 def get_backend_config(backend_name: str) -> BackendConfig:
-    """Get configuration for a specific backend"""
+    """A convenience function to get the configuration for a specific backend.
+
+    Args:
+        backend_name: The name of the backend.
+
+    Returns:
+        A BackendConfig object.
+    """
     backend_configs = config_manager.get_backend_configs()
     for config in backend_configs:
         if config.name == backend_name:
@@ -282,15 +407,27 @@ def get_backend_config(backend_name: str) -> BackendConfig:
 
 
 def get_asset_config() -> AssetConfig:
-    """Get asset management configuration"""
+    """A convenience function to get the asset management configuration.
+
+    Returns:
+        An AssetConfig object.
+    """
     return config_manager.get_asset_config()
 
 
 def get_orchestrator_config() -> OrchestratorConfig:
-    """Get orchestrator configuration"""
+    """A convenience function to get the orchestrator configuration.
+
+    Returns:
+        An OrchestratorConfig object.
+    """
     return config_manager.get_orchestrator_config()
 
 
 def get_estimator_config() -> EstimatorConfig:
-    """Get estimator configuration"""
+    """A convenience function to get the estimator configuration.
+
+    Returns:
+        An EstimatorConfig object.
+    """
     return config_manager.get_estimator_config()
