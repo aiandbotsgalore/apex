@@ -29,7 +29,16 @@ class ValidationSeverity(Enum):
 
 @dataclass
 class ValidationResult:
-    """Result of input validation"""
+    """Represents the result of an input validation check.
+
+    Attributes:
+        is_valid: Whether the validation check passed.
+        severity: The severity of the validation result.
+        message: A message describing the validation result.
+        field_name: The name of the field that was validated.
+        suggested_fix: A suggested fix for the validation error.
+        details: A dictionary of additional details about the validation result.
+    """
     is_valid: bool
     severity: ValidationSeverity
     message: str
@@ -40,7 +49,21 @@ class ValidationResult:
 
 @dataclass
 class ProcessedInput:
-    """Validated and processed input data"""
+    """Represents validated and processed input data.
+
+    Attributes:
+        project_name: The name of the project.
+        audio_file: The path to the audio file.
+        concept_description: A description of the concept.
+        visual_style: The visual style to be used.
+        duration_seconds: The duration of the video in seconds.
+        output_resolution: The output resolution of the video.
+        frame_rate: The frame rate of the video.
+        generation_parameters: A dictionary of generation parameters.
+        metadata: A dictionary of metadata.
+        validation_notes: A list of validation notes.
+        raw_input: The raw input data.
+    """
     project_name: str
     audio_file: str
     concept_description: str
@@ -55,9 +78,16 @@ class ProcessedInput:
 
 
 class InputValidator:
-    """Comprehensive input validation and processing system"""
+    """A comprehensive system for validating and processing user inputs.
+
+    This class provides functionality for:
+    - Validating project input data against a set of rules
+    - Processing validated input data into a standardized format
+    - Generating validation summaries and suggested fixes
+    """
     
     def __init__(self):
+        """Initializes the InputValidator."""
         self.config = get_config()
         self.validation_rules = self._initialize_validation_rules()
         self.supported_formats = self._get_supported_formats()
@@ -65,7 +95,11 @@ class InputValidator:
         logger.info("Input Validator initialized")
     
     def _initialize_validation_rules(self) -> Dict[str, Dict[str, Any]]:
-        """Initialize validation rules and constraints"""
+        """Initializes the validation rules and constraints.
+
+        Returns:
+            A dictionary of validation rules.
+        """
         return {
             'project_name': {
                 'min_length': 3,
@@ -109,7 +143,11 @@ class InputValidator:
         }
     
     def _get_supported_formats(self) -> Dict[str, List[str]]:
-        """Get supported file formats"""
+        """Gets the supported file formats.
+
+        Returns:
+            A dictionary of supported file formats.
+        """
         return {
             'audio': ['.mp3', '.wav', '.flac', '.m4a', '.ogg'],
             'image': ['.png', '.jpg', '.jpeg', '.webp'],
@@ -118,14 +156,14 @@ class InputValidator:
         }
     
     async def validate_project_input(self, input_data: Dict[str, Any]) -> Tuple[bool, List[ValidationResult]]:
-        """
-        Validate complete project input data
-        
+        """Validates the complete project input data.
+
         Args:
-            input_data: Raw input data dictionary
-            
+            input_data: The raw input data dictionary.
+
         Returns:
-            Tuple of (is_valid, list_of_validation_results)
+            A tuple containing a boolean indicating whether the input is valid, and a
+            list of validation results.
         """
         results = []
         
@@ -520,14 +558,13 @@ class InputValidator:
         return results
     
     async def process_validated_input(self, input_data: Dict[str, Any]) -> ProcessedInput:
-        """
-        Process validated input data into standardized format
-        
+        """Processes validated input data into a standardized format.
+
         Args:
-            input_data: Raw input data (assumed to be validated)
-            
+            input_data: The raw input data (assumed to be validated).
+
         Returns:
-            ProcessedInput object with standardized data
+            A ProcessedInput object with standardized data.
         """
         try:
             # Extract and standardize fields
@@ -598,7 +635,14 @@ class InputValidator:
             raise ValueError(f"Failed to process input data: {str(e)}")
     
     def get_validation_summary(self, results: List[ValidationResult]) -> Dict[str, Any]:
-        """Get comprehensive validation summary"""
+        """Gets a comprehensive summary of the validation results.
+
+        Args:
+            results: A list of validation results.
+
+        Returns:
+            A dictionary containing a summary of the validation results.
+        """
         if not results:
             return {'summary': 'No validation results', 'is_valid': False}
         
@@ -623,7 +667,14 @@ class InputValidator:
         return summary
     
     def suggest_fixes(self, results: List[ValidationResult]) -> List[str]:
-        """Extract suggested fixes from validation results"""
+        """Extracts suggested fixes from a list of validation results.
+
+        Args:
+            results: A list of validation results.
+
+        Returns:
+            A list of suggested fixes.
+        """
         suggestions = []
         
         for result in results:

@@ -188,26 +188,32 @@ class AssetManager:
     def _load_metadata(self):
         """Loads asset and project metadata from disk into memory."""
         try:
-            if self.metadata_db.exists():
+            if self.metadata_db.exists() and self.metadata_db.stat().st_size > 0:
                 with open(self.metadata_db, 'r') as f:
-                    data = json.load(f)
-                    self.assets_index = {
-                        asset_id: AssetMetadata.from_dict(asset_data)
-                        for asset_id, asset_data in data.items()
-                    }
-                logger.info(f"Loaded metadata for {len(self.assets_index)} assets")
-            
-            if self.projects_db.exists():
+                    try:
+                        data = json.load(f)
+                        self.assets_index = {
+                            asset_id: AssetMetadata.from_dict(asset_data)
+                            for asset_id, asset_data in data.items()
+                        }
+                        logger.info(f"Loaded metadata for {len(self.assets_index)} assets")
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Could not decode JSON from {self.metadata_db.name}: {e}")
+
+            if self.projects_db.exists() and self.projects_db.stat().st_size > 0:
                 with open(self.projects_db, 'r') as f:
-                    data = json.load(f)
-                    self.projects_index = {
-                        project_id: ProjectInfo(**project_data)
-                        for project_id, project_data in data.items()
-                    }
-                logger.info(f"Loaded metadata for {len(self.projects_index)} projects")
+                    try:
+                        data = json.load(f)
+                        self.projects_index = {
+                            project_id: ProjectInfo(**project_data)
+                            for project_id, project_data in data.items()
+                        }
+                        logger.info(f"Loaded metadata for {len(self.projects_index)} projects")
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Could not decode JSON from {self.projects_db.name}: {e}")
         
         except Exception as e:
-            logger.error(f"Failed to load metadata: {e}")
+            logger.error(f"Failed to load metadata during object creation: {e}")
     
     def _save_metadata(self):
         """Saves the in-memory asset and project metadata to disk."""

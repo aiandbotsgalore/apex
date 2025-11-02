@@ -21,24 +21,24 @@ import librosa
 
 
 class HarmonicAnalyzer:
-    """
-    Harmonic analysis using essentia (preferred) or librosa (fallback).
-    
-    Features:
-    - Key detection (major/minor with confidence)
-    - Chord progression tracking
-    - Harmonic rhythm analysis
-    - Pitch class distribution
-    - Chord complexity metrics
+    """Analyzes the harmonic content of an audio signal.
+
+    This class provides functionalities for key detection, chord progression
+    analysis, and other harmonic features. It uses Essentia if available,
+    falling back to Librosa.
+
+    Attributes:
+        sample_rate: The sample rate to use for audio processing.
+        hop_length: The hop length for feature extraction.
+        use_essentia: A boolean indicating whether Essentia is being used.
     """
     
     def __init__(self, sample_rate: int = 44100, hop_length: int = 512):
-        """
-        Initialize harmonic analyzer.
-        
+        """Initializes the HarmonicAnalyzer.
+
         Args:
-            sample_rate: Audio sample rate
-            hop_length: Analysis hop length
+            sample_rate: The sample rate to use for audio processing.
+            hop_length: The hop length for feature extraction.
         """
         self.sample_rate = sample_rate
         self.hop_length = hop_length
@@ -49,15 +49,14 @@ class HarmonicAnalyzer:
         self.chroma_features = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
         
     def analyze(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Perform comprehensive harmonic analysis.
-        
+        """Performs a comprehensive harmonic analysis on the audio data.
+
         Args:
-            audio_data: Audio signal array
-            beat_results: Results from beat detection
-            
+            audio_data: A NumPy array of the audio signal.
+            beat_results: The results from the beat detection analysis.
+
         Returns:
-            Dictionary containing harmonic analysis results
+            A dictionary containing the detailed harmonic analysis results.
         """
         try:
             # Basic validation
@@ -107,15 +106,14 @@ class HarmonicAnalyzer:
             }
     
     def _essentia_analysis(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Perform harmonic analysis using Essentia.
-        
+        """Performs harmonic analysis using Essentia.
+
         Args:
-            audio_data: Audio signal
-            beat_results: Beat detection results
-            
+            audio_data: The audio signal.
+            beat_results: The results from the beat detection.
+
         Returns:
-            Essentia-based harmonic analysis results
+            A dictionary with the Essentia-based harmonic analysis results.
         """
         try:
             results = {}
@@ -166,15 +164,14 @@ class HarmonicAnalyzer:
             return self._librosa_analysis(audio_data, beat_results)
     
     def _librosa_analysis(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Perform harmonic analysis using Librosa (fallback).
-        
+        """Performs harmonic analysis using Librosa as a fallback.
+
         Args:
-            audio_data: Audio signal
-            beat_results: Beat detection results
-            
+            audio_data: The audio signal.
+            beat_results: The results from the beat detection.
+
         Returns:
-            Librosa-based harmonic analysis results
+            A dictionary with the Librosa-based harmonic analysis results.
         """
         try:
             results = {}
@@ -218,14 +215,13 @@ class HarmonicAnalyzer:
             }
     
     def _compute_chroma_librosa(self, audio_data: np.ndarray) -> np.ndarray:
-        """
-        Compute chroma features using librosa.
-        
+        """Computes chroma features using Librosa.
+
         Args:
-            audio_data: Audio signal
-            
+            audio_data: The audio signal.
+
         Returns:
-            Average chroma vector
+            The average chroma vector.
         """
         try:
             chroma = librosa.feature.chroma_stft(
@@ -238,14 +234,13 @@ class HarmonicAnalyzer:
             return np.zeros(12)
     
     def _estimate_key_from_chroma(self, chroma_vector: np.ndarray) -> Dict[str, Any]:
-        """
-        Estimate musical key from chroma vector.
-        
+        """Estimates the musical key from a chroma vector.
+
         Args:
-            chroma_vector: 12-element chroma vector
-            
+            chroma_vector: A 12-element chroma vector.
+
         Returns:
-            Key estimation results
+            A dictionary with the key estimation results.
         """
         try:
             # Normalize chroma vector
@@ -303,15 +298,14 @@ class HarmonicAnalyzer:
             }
     
     def _analyze_harmonic_rhythm(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Analyze harmonic rhythm (rate of chord changes).
-        
+        """Analyzes the harmonic rhythm (rate of chord changes).
+
         Args:
-            audio_data: Audio signal
-            beat_results: Beat detection results
-            
+            audio_data: The audio signal.
+            beat_results: The results from the beat detection.
+
         Returns:
-            List of harmonic events with timing
+            A list of harmonic events with their timing.
         """
         try:
             harmonic_events = []
@@ -360,15 +354,14 @@ class HarmonicAnalyzer:
             return []
     
     def _estimate_chord_progression(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Estimate chord progression throughout the song.
-        
+        """Estimates the chord progression of the audio.
+
         Args:
-            audio_data: Audio signal
-            beat_results: Beat detection results
-            
+            audio_data: The audio signal.
+            beat_results: The results from the beat detection.
+
         Returns:
-            List of chord changes with timing
+            A list of chord changes with their timing.
         """
         try:
             # Use harmonic rhythm as a basis for chord progression
@@ -392,14 +385,13 @@ class HarmonicAnalyzer:
             return []
     
     def _estimate_chord_from_chroma(self, chroma_vector: np.ndarray) -> Dict[str, Any]:
-        """
-        Estimate chord from chroma vector.
-        
+        """Estimates the chord from a chroma vector.
+
         Args:
-            chroma_vector: 12-element chroma vector
-            
+            chroma_vector: A 12-element chroma vector.
+
         Returns:
-            Chord estimation results
+            A dictionary with the chord estimation results.
         """
         try:
             # Normalize chroma vector
@@ -442,14 +434,13 @@ class HarmonicAnalyzer:
             }
     
     def _calculate_harmonic_confidence(self, results: Dict[str, Any]) -> float:
-        """
-        Calculate confidence score for harmonic analysis.
-        
+        """Calculates the confidence score for the harmonic analysis.
+
         Args:
-            results: Harmonic analysis results
-            
+            results: The harmonic analysis results.
+
         Returns:
-            Confidence score (0.0 to 1.0)
+            A confidence score between 0.0 and 1.0.
         """
         confidence_factors = []
         
@@ -485,15 +476,14 @@ class HarmonicAnalyzer:
 
 
 def detect_key(audio_data: np.ndarray, sample_rate: int = 44100) -> Dict[str, Any]:
-    """
-    Convenience function to detect key from audio data.
-    
+    """A convenience function to detect the key from audio data.
+
     Args:
-        audio_data: Audio signal array
-        sample_rate: Audio sample rate
-        
+        audio_data: A NumPy array of the audio signal.
+        sample_rate: The sample rate of the audio.
+
     Returns:
-        Key detection results
+        A dictionary containing the key detection results.
     """
     analyzer = HarmonicAnalyzer(sample_rate=sample_rate)
     results = analyzer.analyze(audio_data, {})

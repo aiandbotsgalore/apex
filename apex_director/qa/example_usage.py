@@ -19,7 +19,7 @@ from apex_director.qa import (
 
 
 def setup_logging():
-    """Setup logging for QA operations"""
+    """Sets up logging for QA operations."""
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -31,7 +31,11 @@ def setup_logging():
 
 
 def create_sample_video_data():
-    """Create sample video data for demonstration"""
+    """Creates sample video data for demonstration purposes.
+
+    Returns:
+        A list of sample video frames.
+    """
     import numpy as np
     import cv2
     
@@ -57,7 +61,7 @@ def create_sample_video_data():
 
 
 def demonstrate_qa_workflow():
-    """Demonstrate the complete QA workflow"""
+    """Demonstrates the complete QA workflow."""
     print("=" * 60)
     print("APEX DIRECTOR QA FRAMEWORK DEMONSTRATION")
     print("=" * 60)
@@ -288,7 +292,7 @@ def demonstrate_qa_workflow():
 
 
 def demonstrate_individual_components():
-    """Demonstrate individual QA components in isolation"""
+    """Demonstrates the individual QA components in isolation."""
     print("\n" + "=" * 60)
     print("INDIVIDUAL COMPONENT DEMONSTRATION")
     print("=" * 60)
@@ -368,7 +372,7 @@ def demonstrate_individual_components():
 
 
 def main():
-    """Main demonstration function"""
+    """The main function for the demonstration."""
     print("APEX DIRECTOR QA FRAMEWORK")
     print("Comprehensive Quality Assurance System")
     print("Version 1.0.0")

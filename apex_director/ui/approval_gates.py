@@ -50,7 +50,26 @@ class ApprovalPriority(Enum):
 
 @dataclass
 class ApprovalGate:
-    """Individual approval gate"""
+    """Represents an individual approval gate in a workflow.
+
+    Attributes:
+        id: The unique identifier for the approval gate.
+        approval_type: The type of approval.
+        name: The name of the approval gate.
+        description: A description of the approval gate.
+        status: The current status of the approval gate.
+        priority: The priority of the approval gate.
+        created_at: The timestamp when the approval gate was created.
+        assigned_to: The person or team assigned to the approval gate.
+        deadline: The deadline for the approval gate.
+        submitted_at: The timestamp when the approval gate was submitted.
+        reviewed_at: The timestamp when the approval gate was reviewed.
+        reviewer_comments: Comments from the reviewer.
+        submitter_comments: Comments from the submitter.
+        attachments: A list of file paths for attachments.
+        dependencies: A list of approval gate IDs that must be completed before this one.
+        metadata: A dictionary of additional metadata.
+    """
     id: str
     approval_type: ApprovalType
     name: str
@@ -69,6 +88,11 @@ class ApprovalGate:
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the ApprovalGate to a dictionary.
+
+        Returns:
+            A dictionary representation of the ApprovalGate.
+        """
         data = asdict(self)
         data['approval_type'] = self.approval_type.value
         data['status'] = self.status.value
@@ -84,29 +108,49 @@ class ApprovalGate:
     
     @property
     def is_approved(self) -> bool:
-        """Check if approval is approved"""
+        """Checks if the approval gate is approved.
+
+        Returns:
+            True if the approval gate is approved, False otherwise.
+        """
         return self.status == ApprovalStatus.APPROVED
     
     @property
     def is_rejected(self) -> bool:
-        """Check if approval is rejected"""
+        """Checks if the approval gate is rejected.
+
+        Returns:
+            True if the approval gate is rejected, False otherwise.
+        """
         return self.status == ApprovalStatus.REJECTED
     
     @property
     def is_pending(self) -> bool:
-        """Check if approval is pending"""
+        """Checks if the approval gate is pending.
+
+        Returns:
+            True if the approval gate is pending, False otherwise.
+        """
         return self.status == ApprovalStatus.PENDING
     
     @property
     def is_overdue(self) -> bool:
-        """Check if approval is overdue"""
+        """Checks if the approval gate is overdue.
+
+        Returns:
+            True if the approval gate is overdue, False otherwise.
+        """
         return (self.deadline and 
                 self.status == ApprovalStatus.PENDING and 
                 datetime.utcnow() > self.deadline)
     
     @property
     def days_until_deadline(self) -> Optional[int]:
-        """Get days until deadline"""
+        """Gets the number of days until the deadline.
+
+        Returns:
+            The number of days until the deadline, or None if there is no deadline.
+        """
         if not self.deadline:
             return None
         delta = self.deadline - datetime.utcnow()
@@ -115,7 +159,18 @@ class ApprovalGate:
 
 @dataclass
 class ApprovalWorkflow:
-    """Complete approval workflow for a project"""
+    """Represents a complete approval workflow for a project.
+
+    Attributes:
+        id: The unique identifier for the approval workflow.
+        project_name: The name of the project.
+        gates: A list of approval gates in the workflow.
+        created_at: The timestamp when the workflow was created.
+        started_at: The timestamp when the workflow was started.
+        completed_at: The timestamp when the workflow was completed.
+        overall_status: The overall status of the workflow.
+        metadata: A dictionary of additional metadata.
+    """
     id: str
     project_name: str
     gates: List[ApprovalGate]
@@ -126,6 +181,11 @@ class ApprovalWorkflow:
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the ApprovalWorkflow to a dictionary.
+
+        Returns:
+            A dictionary representation of the ApprovalWorkflow.
+        """
         data = asdict(self)
         data['overall_status'] = self.overall_status.value
         data['gates'] = [gate.to_dict() for gate in self.gates]
@@ -138,22 +198,38 @@ class ApprovalWorkflow:
     
     @property
     def approved_gates(self) -> List[ApprovalGate]:
-        """Get approved gates"""
+        """Gets the approved gates in the workflow.
+
+        Returns:
+            A list of approved gates.
+        """
         return [gate for gate in self.gates if gate.status == ApprovalStatus.APPROVED]
     
     @property
     def pending_gates(self) -> List[ApprovalGate]:
-        """Get pending gates"""
+        """Gets the pending gates in the workflow.
+
+        Returns:
+            A list of pending gates.
+        """
         return [gate for gate in self.gates if gate.status == ApprovalStatus.PENDING]
     
     @property
     def rejected_gates(self) -> List[ApprovalGate]:
-        """Get rejected gates"""
+        """Gets the rejected gates in the workflow.
+
+        Returns:
+            A list of rejected gates.
+        """
         return [gate for gate in self.gates if gate.status == ApprovalStatus.REJECTED]
     
     @property
     def next_gate(self) -> Optional[ApprovalGate]:
-        """Get the next gate that needs approval"""
+        """Gets the next gate that needs approval.
+
+        Returns:
+            The next gate that needs approval, or None if there are no pending gates.
+        """
         # Find first pending gate whose dependencies are all approved
         for gate in self.gates:
             if gate.status == ApprovalStatus.PENDING:
@@ -163,12 +239,20 @@ class ApprovalWorkflow:
     
     @property
     def is_completed(self) -> bool:
-        """Check if workflow is completed"""
+        """Checks if the workflow is completed.
+
+        Returns:
+            True if the workflow is completed, False otherwise.
+        """
         return all(gate.status in [ApprovalStatus.APPROVED, ApprovalStatus.SKIPPED] for gate in self.gates)
     
     @property
     def progress_percentage(self) -> float:
-        """Get workflow progress percentage"""
+        """Gets the progress percentage of the workflow.
+
+        Returns:
+            The progress percentage of the workflow.
+        """
         if not self.gates:
             return 0.0
         approved_count = len(self.approved_gates)
@@ -177,9 +261,22 @@ class ApprovalWorkflow:
 
 
 class ApprovalGateSystem:
-    """Comprehensive approval gate management system"""
+    """A comprehensive system for managing approval gates and workflows.
+
+    This class provides functionality for creating, managing, and tracking
+    approval workflows for projects. It includes features such as:
+    - Creating and managing approval gates and workflows
+    - Submitting, approving, rejecting, and skipping gates
+    - Requesting revisions for gates
+    - Tracking the status of gates and workflows
+    - Exporting workflow reports
+    - Event handling for approval events
+    - Assigning gates to reviewers and extending deadlines
+    - Calculating workflow statistics
+    """
     
     def __init__(self):
+        """Initializes the ApprovalGateSystem."""
         self.workflows: Dict[str, ApprovalWorkflow] = {}
         self.gates: Dict[str, ApprovalGate] = {}
         self.event_handlers: Dict[str, List[Callable]] = {
@@ -197,7 +294,11 @@ class ApprovalGateSystem:
         logger.info("Approval Gate System initialized")
     
     def _initialize_auto_approval_rules(self) -> Dict[ApprovalType, Dict[str, Any]]:
-        """Initialize auto-approval rules"""
+        """Initializes the auto-approval rules.
+
+        Returns:
+            A dictionary of auto-approval rules.
+        """
         return {
             ApprovalType.INITIAL_CONCEPT: {
                 'auto_approve': False,
@@ -229,15 +330,14 @@ class ApprovalGateSystem:
     def create_approval_workflow(self, 
                                project_name: str,
                                gate_configs: Optional[List[Dict[str, Any]]] = None) -> str:
-        """
-        Create a new approval workflow for a project
-        
+        """Creates a new approval workflow for a project.
+
         Args:
-            project_name: Name of the project
-            gate_configs: Optional custom gate configurations
-            
+            project_name: The name of the project.
+            gate_configs: Optional custom gate configurations.
+
         Returns:
-            Workflow ID
+            The ID of the newly created workflow.
         """
         workflow_id = str(uuid.uuid4())
         
@@ -272,7 +372,11 @@ class ApprovalGateSystem:
         return workflow_id
     
     def _get_default_gate_configs(self) -> List[Dict[str, Any]]:
-        """Get default gate configurations"""
+        """Gets the default gate configurations.
+
+        Returns:
+            A list of default gate configurations.
+        """
         return [
             {
                 'type': ApprovalType.INITIAL_CONCEPT.value,
@@ -319,7 +423,15 @@ class ApprovalGateSystem:
         ]
     
     def _calculate_deadline(self, approval_type: ApprovalType, hours: Optional[int] = None) -> datetime:
-        """Calculate deadline for an approval gate"""
+        """Calculates the deadline for an approval gate.
+
+        Args:
+            approval_type: The type of approval.
+            hours: The number of hours until the deadline.
+
+        Returns:
+            The deadline for the approval gate.
+        """
         if hours is None:
             rule = self.auto_approval_rules.get(approval_type, {})
             hours = rule.get('timeout_hours', 72)  # Default 3 days
@@ -331,17 +443,16 @@ class ApprovalGateSystem:
                            submitter: str,
                            comments: Optional[str] = None,
                            attachments: Optional[List[str]] = None) -> bool:
-        """
-        Submit a gate for approval
-        
+        """Submits a gate for approval.
+
         Args:
-            gate_id: ID of the gate to submit
-            submitter: Person submitting the gate
-            comments: Optional submission comments
-            attachments: Optional list of attachment paths
-            
+            gate_id: The ID of the gate to submit.
+            submitter: The person submitting the gate.
+            comments: Optional submission comments.
+            attachments: Optional list of attachment paths.
+
         Returns:
-            Success status
+            True if the gate was successfully submitted, False otherwise.
         """
         with self._lock:
             if gate_id not in self.gates:
@@ -367,17 +478,16 @@ class ApprovalGateSystem:
                     reviewer: str,
                     comments: Optional[str] = None,
                     metadata: Optional[Dict[str, Any]] = None) -> bool:
-        """
-        Approve a gate
-        
+        """Approves a gate.
+
         Args:
-            gate_id: ID of the gate to approve
-            reviewer: Person approving the gate
-            comments: Optional approval comments
-            metadata: Optional additional metadata
-            
+            gate_id: The ID of the gate to approve.
+            reviewer: The person approving the gate.
+            comments: Optional approval comments.
+            metadata: Optional additional metadata.
+
         Returns:
-            Success status
+            True if the gate was successfully approved, False otherwise.
         """
         with self._lock:
             if gate_id not in self.gates:
@@ -402,17 +512,16 @@ class ApprovalGateSystem:
                    reviewer: str,
                    reason: str,
                    comments: Optional[str] = None) -> bool:
-        """
-        Reject a gate
-        
+        """Rejects a gate.
+
         Args:
-            gate_id: ID of the gate to reject
-            reviewer: Person rejecting the gate
-            reason: Reason for rejection
-            comments: Optional additional comments
-            
+            gate_id: The ID of the gate to reject.
+            reviewer: The person rejecting the gate.
+            reason: The reason for rejection.
+            comments: Optional additional comments.
+
         Returns:
-            Success status
+            True if the gate was successfully rejected, False otherwise.
         """
         with self._lock:
             if gate_id not in self.gates:
@@ -436,17 +545,16 @@ class ApprovalGateSystem:
                         reviewer: str,
                         revision_notes: str,
                         new_deadline: Optional[datetime] = None) -> bool:
-        """
-        Request revision for a gate
-        
+        """Requests a revision for a gate.
+
         Args:
-            gate_id: ID of the gate to request revision for
-            reviewer: Person requesting revision
-            revision_notes: Notes about required revisions
-            new_deadline: Optional new deadline
-            
+            gate_id: The ID of the gate to request a revision for.
+            reviewer: The person requesting the revision.
+            revision_notes: Notes about the required revisions.
+            new_deadline: An optional new deadline for the revision.
+
         Returns:
-            Success status
+            True if the revision was successfully requested, False otherwise.
         """
         with self._lock:
             if gate_id not in self.gates:
@@ -473,16 +581,17 @@ class ApprovalGateSystem:
                  gate_id: str,
                  reason: str,
                  skipper: str) -> bool:
-        """
-        Skip a gate (e.g., for time constraints or testing)
-        
+        """Skips a gate.
+
+        This can be used for time constraints or testing purposes.
+
         Args:
-            gate_id: ID of the gate to skip
-            reason: Reason for skipping
-            skipper: Person skipping the gate
-            
+            gate_id: The ID of the gate to skip.
+            reason: The reason for skipping the gate.
+            skipper: The person skipping the gate.
+
         Returns:
-            Success status
+            True if the gate was successfully skipped, False otherwise.
         """
         with self._lock:
             if gate_id not in self.gates:
@@ -502,7 +611,11 @@ class ApprovalGateSystem:
             return True
     
     def _update_workflow_status(self, gate: ApprovalGate):
-        """Update workflow status based on gate changes"""
+        """Updates the workflow status based on gate changes.
+
+        Args:
+            gate: The gate that was changed.
+        """
         # Find workflow containing this gate
         for workflow in self.workflows.values():
             if gate.id in [g.id for g in workflow.gates]:
@@ -517,7 +630,14 @@ class ApprovalGateSystem:
                 break
     
     def get_gate_status(self, gate_id: str) -> Optional[Dict[str, Any]]:
-        """Get status of a specific gate"""
+        """Gets the status of a specific gate.
+
+        Args:
+            gate_id: The ID of the gate.
+
+        Returns:
+            A dictionary with the gate's status, or None if the gate is not found.
+        """
         gate = self.gates.get(gate_id)
         if not gate:
             return None
@@ -539,7 +659,14 @@ class ApprovalGateSystem:
         }
     
     def get_workflow_status(self, workflow_id: str) -> Optional[Dict[str, Any]]:
-        """Get status of a specific workflow"""
+        """Gets the status of a specific workflow.
+
+        Args:
+            workflow_id: The ID of the workflow.
+
+        Returns:
+            A dictionary with the workflow's status, or None if the workflow is not found.
+        """
         workflow = self.workflows.get(workflow_id)
         if not workflow:
             return None
@@ -561,7 +688,14 @@ class ApprovalGateSystem:
         }
     
     def get_pending_gates(self, reviewer: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Get all pending gates"""
+        """Gets all pending gates.
+
+        Args:
+            reviewer: An optional reviewer to filter by.
+
+        Returns:
+            A list of pending gates.
+        """
         pending_gates = []
         
         for gate in self.gates.values():
@@ -572,7 +706,11 @@ class ApprovalGateSystem:
         return pending_gates
     
     def get_overdue_gates(self) -> List[Dict[str, Any]]:
-        """Get all overdue gates"""
+        """Gets all overdue gates.
+
+        Returns:
+            A list of overdue gates.
+        """
         overdue_gates = []
         
         for gate in self.gates.values():
@@ -582,7 +720,15 @@ class ApprovalGateSystem:
         return overdue_gates
     
     def export_workflow_report(self, workflow_id: str, file_path: str) -> bool:
-        """Export detailed workflow report"""
+        """Exports a detailed workflow report to a file.
+
+        Args:
+            workflow_id: The ID of the workflow to export.
+            file_path: The path to the file to export the report to.
+
+        Returns:
+            True if the report was successfully exported, False otherwise.
+        """
         try:
             workflow = self.workflows.get(workflow_id)
             if not workflow:
@@ -609,7 +755,12 @@ class ApprovalGateSystem:
             return False
     
     def add_event_handler(self, event_type: str, handler: Callable):
-        """Add event handler for approval events"""
+        """Adds an event handler for approval events.
+
+        Args:
+            event_type: The type of event to handle.
+            handler: The event handler function.
+        """
         if event_type in self.event_handlers:
             self.event_handlers[event_type].append(handler)
             logger.info(f"Added event handler for {event_type}")
@@ -617,7 +768,12 @@ class ApprovalGateSystem:
             logger.warning(f"Unknown event type: {event_type}")
     
     def _trigger_event(self, event_type: str, data: Any):
-        """Trigger event handlers"""
+        """Triggers event handlers for a given event type.
+
+        Args:
+            event_type: The type of event to trigger.
+            data: The data to pass to the event handlers.
+        """
         handlers = self.event_handlers.get(event_type, [])
         for handler in handlers:
             try:
@@ -626,7 +782,15 @@ class ApprovalGateSystem:
                 logger.error(f"Error in approval event handler for {event_type}: {e}")
     
     def set_gate_assignee(self, gate_id: str, assignee: str) -> bool:
-        """Assign a gate to a specific reviewer"""
+        """Assigns a gate to a specific reviewer.
+
+        Args:
+            gate_id: The ID of the gate to assign.
+            assignee: The person or team to assign the gate to.
+
+        Returns:
+            True if the gate was successfully assigned, False otherwise.
+        """
         with self._lock:
             if gate_id not in self.gates:
                 return False
@@ -636,7 +800,15 @@ class ApprovalGateSystem:
             return True
     
     def extend_deadline(self, gate_id: str, additional_hours: int) -> bool:
-        """Extend the deadline for a gate"""
+        """Extends the deadline for a gate.
+
+        Args:
+            gate_id: The ID of the gate to extend the deadline for.
+            additional_hours: The number of additional hours to add to the deadline.
+
+        Returns:
+            True if the deadline was successfully extended, False otherwise.
+        """
         with self._lock:
             if gate_id not in self.gates:
                 return False
@@ -649,7 +821,14 @@ class ApprovalGateSystem:
             return False
     
     def get_workflow_statistics(self, workflow_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed statistics for a workflow"""
+        """Gets detailed statistics for a workflow.
+
+        Args:
+            workflow_id: The ID of the workflow.
+
+        Returns:
+            A dictionary of workflow statistics, or None if the workflow is not found.
+        """
         workflow = self.workflows.get(workflow_id)
         if not workflow:
             return None

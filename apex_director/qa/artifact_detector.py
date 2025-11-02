@@ -13,7 +13,7 @@ import re
 
 
 class ArtifactType(Enum):
-    """Types of artifacts to detect"""
+    """Enumeration of the types of artifacts that can be detected."""
     FACE = "face"
     TEXT = "text"
     WATERMARK = "watermark"
@@ -32,7 +32,16 @@ class ArtifactType(Enum):
 
 @dataclass
 class ArtifactDetection:
-    """Artifact detection result"""
+    """Represents the result of an artifact detection.
+
+    Attributes:
+        artifact_type: The type of artifact detected.
+        confidence: The confidence of the detection.
+        bounding_box: The bounding box of the detected artifact.
+        severity: The severity of the artifact (low, medium, or high).
+        description: A description of the artifact.
+        action_required: The action required to address the artifact.
+    """
     artifact_type: ArtifactType
     confidence: float
     bounding_box: Optional[Tuple[int, int, int, int]] = None
@@ -42,19 +51,20 @@ class ArtifactDetection:
 
 
 class ArtifactDetector:
-    """
-    Quality Issue Artifact Detector
-    
-    Identifies various types of artifacts in video content:
-    - Face detection and privacy concerns
-    - Text and watermark identification
-    - Logo and branding detection
-    - Compression and encoding artifacts
-    - Technical quality issues
+    """A class for detecting various types of artifacts in video content.
+
+    This class can detect a variety of artifacts, including faces, text,
+    watermarks, logos, and compression artifacts. It also provides a score for
+    the overall quality of the video content, as well as recommendations for
+    addressing any detected artifacts.
     """
     
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize artifact detector"""
+        """Initializes the ArtifactDetector.
+
+        Args:
+            config: A dictionary of configuration parameters.
+        """
         self.config = config or self._default_config()
         self.logger = logging.getLogger('apex_director.qa.artifact_detector')
         
@@ -92,14 +102,13 @@ class ArtifactDetector:
         self.branding_keywords = self._initialize_branding_keywords()
     
     def detect_artifacts(self, sample_frames: List[np.ndarray]) -> Dict:
-        """
-        Detect artifacts in sample frames
-        
+        """Detects artifacts in a list of sample frames.
+
         Args:
-            sample_frames: List of sample frames from video
-            
+            sample_frames: A list of sample frames from a video.
+
         Returns:
-            Dictionary with artifact detection results
+            A dictionary with the artifact detection results.
         """
         self.logger.info(f"Detecting artifacts in {len(sample_frames)} frames")
         
@@ -188,7 +197,7 @@ class ArtifactDetector:
             }
     
     def _initialize_detectors(self):
-        """Initialize detection models"""
+        """Initializes the detection models."""
         try:
             # Initialize face detector (Haar cascades as fallback)
             self.face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -208,7 +217,14 @@ class ArtifactDetector:
             self.logo_detector = None
     
     def _detect_faces(self, frames: List[np.ndarray]) -> List[ArtifactDetection]:
-        """Detect faces in frames"""
+        """Detects faces in a list of frames.
+
+        Args:
+            frames: A list of frames to detect faces in.
+
+        Returns:
+            A list of ArtifactDetection objects for each detected face.
+        """
         artifacts = []
         
         try:
@@ -267,7 +283,14 @@ class ArtifactDetector:
         return artifacts
     
     def _detect_text(self, frames: List[np.ndarray]) -> List[ArtifactDetection]:
-        """Detect text in frames"""
+        """Detects text in a list of frames.
+
+        Args:
+            frames: A list of frames to detect text in.
+
+        Returns:
+            A list of ArtifactDetection objects for each detected text element.
+        """
         artifacts = []
         
         try:
@@ -315,7 +338,15 @@ class ArtifactDetector:
         return artifacts
     
     def _detect_watermarks(self, frames: List[np.ndarray]) -> List[ArtifactDetection]:
-        """Detect watermarks and logos"""
+        """Detects watermarks and logos in a list of frames.
+
+        Args:
+            frames: A list of frames to detect watermarks and logos in.
+
+        Returns:
+            A list of ArtifactDetection objects for each detected watermark or
+            logo.
+        """
         artifacts = []
         
         try:
@@ -353,7 +384,15 @@ class ArtifactDetector:
         return artifacts
     
     def _detect_logos(self, frames: List[np.ndarray]) -> List[ArtifactDetection]:
-        """Detect logos and branding elements"""
+        """Detects logos and branding elements in a list of frames.
+
+        Args:
+            frames: A list of frames to detect logos and branding elements in.
+
+        Returns:
+            A list of ArtifactDetection objects for each detected logo or
+            branding element.
+        """
         artifacts = []
         
         try:
@@ -389,7 +428,16 @@ class ArtifactDetector:
         return artifacts
     
     def _detect_compression_artifacts(self, frames: List[np.ndarray]) -> List[ArtifactDetection]:
-        """Detect compression and encoding artifacts"""
+        """Detects compression and encoding artifacts in a list of frames.
+
+        Args:
+            frames: A list of frames to detect compression and encoding
+                artifacts in.
+
+        Returns:
+            A list of ArtifactDetection objects for each detected compression
+            or encoding artifact.
+        """
         artifacts = []
         
         try:
@@ -438,7 +486,14 @@ class ArtifactDetector:
         return artifacts
     
     def _detect_quality_issues(self, frames: List[np.ndarray]) -> List[ArtifactDetection]:
-        """Detect general quality issues"""
+        """Detects general quality issues in a list of frames.
+
+        Args:
+            frames: A list of frames to detect quality issues in.
+
+        Returns:
+            A list of ArtifactDetection objects for each detected quality issue.
+        """
         artifacts = []
         
         try:
@@ -475,7 +530,14 @@ class ArtifactDetector:
         return artifacts
     
     def _detect_text_regions_morphological(self, gray_image: np.ndarray) -> List[Tuple[int, int, int, int]]:
-        """Detect text regions using morphological operations"""
+        """Detects text regions using morphological operations.
+
+        Args:
+            gray_image: A grayscale image to detect text regions in.
+
+        Returns:
+            A list of bounding boxes for each detected text region.
+        """
         try:
             # Apply morphological operations to detect text-like structures
             kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
@@ -506,7 +568,14 @@ class ArtifactDetector:
             return []
     
     def _detect_potential_watermarks(self, frame: np.ndarray) -> List[Tuple[int, int, int, int]]:
-        """Detect potential watermark regions"""
+        """Detects potential watermark regions in a frame.
+
+        Args:
+            frame: The frame to detect potential watermark regions in.
+
+        Returns:
+            A list of bounding boxes for each potential watermark region.
+        """
         try:
             # Look for semi-transparent overlays in corners and edges
             regions = []
@@ -544,7 +613,14 @@ class ArtifactDetector:
             return []
     
     def _detect_potential_logos(self, frame: np.ndarray) -> List[Tuple[int, int, int, int]]:
-        """Detect potential logo regions"""
+        """Detects potential logo regions in a frame.
+
+        Args:
+            frame: The frame to detect potential logo regions in.
+
+        Returns:
+            A list of bounding boxes for each potential logo region.
+        """
         try:
             regions = []
             height, width = frame.shape[:2]
@@ -577,7 +653,14 @@ class ArtifactDetector:
             return []
     
     def _detect_blocking_artifacts(self, frame: np.ndarray) -> float:
-        """Detect blocking artifacts in compressed video"""
+        """Detects blocking artifacts in a compressed video frame.
+
+        Args:
+            frame: The frame to detect blocking artifacts in.
+
+        Returns:
+            A score indicating the severity of the blocking artifacts.
+        """
         try:
             # Convert to grayscale
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -619,7 +702,14 @@ class ArtifactDetector:
             return 0.0
     
     def _detect_banding_artifacts(self, frame: np.ndarray) -> float:
-        """Detect color banding artifacts"""
+        """Detects color banding artifacts in a frame.
+
+        Args:
+            frame: The frame to detect color banding artifacts in.
+
+        Returns:
+            A score indicating the severity of the color banding artifacts.
+        """
         try:
             # Convert to different color spaces to detect banding
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -645,7 +735,14 @@ class ArtifactDetector:
             return 0.0
     
     def _detect_ringing_artifacts(self, frame: np.ndarray) -> float:
-        """Detect ringing artifacts around edges"""
+        """Detects ringing artifacts around edges in a frame.
+
+        Args:
+            frame: The frame to detect ringing artifacts in.
+
+        Returns:
+            A score indicating the severity of the ringing artifacts.
+        """
         try:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             
@@ -669,7 +766,14 @@ class ArtifactDetector:
             return 0.0
     
     def _detect_noise(self, frame: np.ndarray) -> float:
-        """Detect noise level in frame"""
+        """Detects the noise level in a frame.
+
+        Args:
+            frame: The frame to detect noise in.
+
+        Returns:
+            A score indicating the severity of the noise.
+        """
         try:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             
@@ -689,7 +793,14 @@ class ArtifactDetector:
             return 0.0
     
     def _detect_motion_blur(self, frame: np.ndarray) -> float:
-        """Detect motion blur"""
+        """Detects motion blur in a frame.
+
+        Args:
+            frame: The frame to detect motion blur in.
+
+        Returns:
+            A score indicating the severity of the motion blur.
+        """
         try:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             
@@ -707,7 +818,14 @@ class ArtifactDetector:
             return 0.0
     
     def _is_potential_watermark_region(self, roi: np.ndarray) -> bool:
-        """Check if region has watermark characteristics"""
+        """Checks if a region has watermark characteristics.
+
+        Args:
+            roi: The region of interest to check.
+
+        Returns:
+            True if the region has watermark characteristics, False otherwise.
+        """
         try:
             # Convert to different color spaces
             hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
@@ -732,7 +850,15 @@ class ArtifactDetector:
             return False
     
     def _check_watermark_patterns(self, roi: np.ndarray) -> float:
-        """Check for watermark patterns"""
+        """Checks for watermark patterns in a region of interest.
+
+        Args:
+            roi: The region of interest to check.
+
+        Returns:
+            A score indicating the likelihood of watermark patterns being
+            present.
+        """
         try:
             # Look for semi-transparent text patterns
             gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
@@ -757,7 +883,15 @@ class ArtifactDetector:
             return 0.0
     
     def _analyze_text_confidence(self, roi: np.ndarray, region: Tuple[int, int, int, int]) -> float:
-        """Analyze text detection confidence"""
+        """Analyzes the confidence of a text detection.
+
+        Args:
+            roi: The region of interest containing the text.
+            region: The bounding box of the text.
+
+        Returns:
+            The confidence of the text detection.
+        """
         try:
             # Simple confidence based on region characteristics
             x, y, w, h = region
@@ -783,7 +917,15 @@ class ArtifactDetector:
             return 0.0
     
     def _analyze_watermark_confidence(self, frame: np.ndarray, region: Tuple[int, int, int, int]) -> float:
-        """Analyze watermark detection confidence"""
+        """Analyzes the confidence of a watermark detection.
+
+        Args:
+            frame: The frame containing the watermark.
+            region: The bounding box of the watermark.
+
+        Returns:
+            The confidence of the watermark detection.
+        """
         try:
             x, y, w, h = region
             roi = frame[y:y+h, x:x+w]
@@ -811,7 +953,15 @@ class ArtifactDetector:
             return 0.0
     
     def _analyze_logo_confidence(self, frame: np.ndarray, region: Tuple[int, int, int, int]) -> float:
-        """Analyze logo detection confidence"""
+        """Analyzes the confidence of a logo detection.
+
+        Args:
+            frame: The frame containing the logo.
+            region: The bounding box of the logo.
+
+        Returns:
+            The confidence of the logo detection.
+        """
         try:
             x, y, w, h = region
             roi = frame[y:y+h, x:x+w]
@@ -837,7 +987,14 @@ class ArtifactDetector:
             return 0.0
     
     def _check_transparency(self, roi: np.ndarray) -> float:
-        """Check for semi-transparency characteristics"""
+        """Checks for semi-transparency characteristics in a region of interest.
+
+        Args:
+            roi: The region of interest to check.
+
+        Returns:
+            A score indicating the likelihood of semi-transparency.
+        """
         try:
             # Look for mid-range values that suggest transparency
             gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
@@ -853,7 +1010,14 @@ class ArtifactDetector:
             return 0.0
     
     def _check_symmetry(self, roi: np.ndarray) -> float:
-        """Check for symmetry (common in logos)"""
+        """Checks for symmetry in a region of interest.
+
+        Args:
+            roi: The region of interest to check.
+
+        Returns:
+            A score indicating the degree of symmetry.
+        """
         try:
             gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
             h, w = gray.shape
@@ -891,7 +1055,15 @@ class ArtifactDetector:
             return 0.0
     
     def _classify_text_type(self, roi: np.ndarray, region: Tuple[int, int, int, int]) -> str:
-        """Classify type of text detected"""
+        """Classifies the type of text detected.
+
+        Args:
+            roi: The region of interest containing the text.
+            region: The bounding box of the text.
+
+        Returns:
+            The classified text type.
+        """
         try:
             x, y, w, h = region
             aspect_ratio = w / h if h > 0 else 0
@@ -913,7 +1085,15 @@ class ArtifactDetector:
             return "Unknown Text"
     
     def _classify_watermark_type(self, frame: np.ndarray, region: Tuple[int, int, int, int]) -> str:
-        """Classify type of watermark"""
+        """Classifies the type of watermark detected.
+
+        Args:
+            frame: The frame containing the watermark.
+            region: The bounding box of the watermark.
+
+        Returns:
+            The classified watermark type.
+        """
         try:
             x, y, w, h = region
             height, width = frame.shape[:2]
@@ -933,7 +1113,16 @@ class ArtifactDetector:
             return "Unknown Watermark"
     
     def _determine_face_severity(self, confidence: float, face_area: int, frame_area: int) -> str:
-        """Determine severity of face detection"""
+        """Determines the severity of a face detection.
+
+        Args:
+            confidence: The confidence of the face detection.
+            face_area: The area of the detected face.
+            frame_area: The area of the frame.
+
+        Returns:
+            The severity of the face detection (low, medium, or high).
+        """
         try:
             size_ratio = face_area / frame_area
             
@@ -949,7 +1138,15 @@ class ArtifactDetector:
             return "low"
     
     def _determine_text_severity(self, text_type: str, confidence: float) -> str:
-        """Determine severity of text detection"""
+        """Determines the severity of a text detection.
+
+        Args:
+            text_type: The type of text detected.
+            confidence: The confidence of the text detection.
+
+        Returns:
+            The severity of the text detection (low, medium, or high).
+        """
         try:
             if text_type in ["Copyright Notice", "Credits"] and confidence > 0.8:
                 return "high"
@@ -964,7 +1161,16 @@ class ArtifactDetector:
     
     def _determine_watermark_severity(self, confidence: float, region: Tuple[int, int, int, int], 
                                     frame_shape: Tuple[int, int, int]) -> str:
-        """Determine severity of watermark"""
+        """Determines the severity of a watermark detection.
+
+        Args:
+            confidence: The confidence of the watermark detection.
+            region: The bounding box of the watermark.
+            frame_shape: The shape of the frame.
+
+        Returns:
+            The severity of the watermark detection (low, medium, or high).
+        """
         try:
             if confidence > 0.8:
                 return "high"
@@ -979,7 +1185,16 @@ class ArtifactDetector:
     
     def _determine_logo_severity(self, confidence: float, region: Tuple[int, int, int, int], 
                                frame_shape: Tuple[int, int, int]) -> str:
-        """Determine severity of logo detection"""
+        """Determines the severity of a logo detection.
+
+        Args:
+            confidence: The confidence of the logo detection.
+            region: The bounding box of the logo.
+            frame_shape: The shape of the frame.
+
+        Returns:
+            The severity of the logo detection (minimal, low, or medium).
+        """
         try:
             if confidence > 0.8:
                 return "medium"
@@ -993,7 +1208,14 @@ class ArtifactDetector:
             return "low"
     
     def _determine_blocking_severity(self, score: float) -> str:
-        """Determine severity of blocking artifacts"""
+        """Determines the severity of blocking artifacts.
+
+        Args:
+            score: The blocking artifact score.
+
+        Returns:
+            The severity of the blocking artifacts (low, medium, or high).
+        """
         if score > 0.7:
             return "high"
         elif score > 0.4:
@@ -1002,7 +1224,14 @@ class ArtifactDetector:
             return "low"
     
     def _determine_banding_severity(self, score: float) -> str:
-        """Determine severity of banding artifacts"""
+        """Determines the severity of banding artifacts.
+
+        Args:
+            score: The banding artifact score.
+
+        Returns:
+            The severity of the banding artifacts (low, medium, or high).
+        """
         if score > 0.5:
             return "high"
         elif score > 0.3:
@@ -1011,7 +1240,14 @@ class ArtifactDetector:
             return "low"
     
     def _determine_ringing_severity(self, score: float) -> str:
-        """Determine severity of ringing artifacts"""
+        """Determines the severity of ringing artifacts.
+
+        Args:
+            score: The ringing artifact score.
+
+        Returns:
+            The severity of the ringing artifacts (low, medium, or high).
+        """
         if score > 0.4:
             return "high"
         elif score > 0.2:
@@ -1020,7 +1256,14 @@ class ArtifactDetector:
             return "low"
     
     def _determine_noise_severity(self, score: float) -> str:
-        """Determine severity of noise"""
+        """Determines the severity of noise.
+
+        Args:
+            score: The noise score.
+
+        Returns:
+            The severity of the noise (low, medium, or high).
+        """
         if score > 0.7:
             return "high"
         elif score > 0.4:
@@ -1029,7 +1272,14 @@ class ArtifactDetector:
             return "low"
     
     def _determine_blur_severity(self, score: float) -> str:
-        """Determine severity of motion blur"""
+        """Determines the severity of motion blur.
+
+        Args:
+            score: The motion blur score.
+
+        Returns:
+            The severity of the motion blur (low, medium, or high).
+        """
         if score > 0.7:
             return "high"
         elif score > 0.4:
@@ -1038,7 +1288,14 @@ class ArtifactDetector:
             return "low"
     
     def _get_face_action_required(self, severity: str) -> str:
-        """Get action required for face detection"""
+        """Gets the action required for a face detection.
+
+        Args:
+            severity: The severity of the face detection.
+
+        Returns:
+            The action required for the face detection.
+        """
         actions = {
             "high": "Review privacy compliance and obtain proper releases",
             "medium": "Ensure faces are properly licensed or blurred",
@@ -1047,7 +1304,15 @@ class ArtifactDetector:
         return actions.get(severity, "Review face detection")
     
     def _get_text_action_required(self, text_type: str, severity: str) -> str:
-        """Get action required for text detection"""
+        """Gets the action required for a text detection.
+
+        Args:
+            text_type: The type of text detected.
+            severity: The severity of the text detection.
+
+        Returns:
+            The action required for the text detection.
+        """
         if "copyright" in text_type.lower():
             return "Ensure copyright notices are accurate and current"
         elif "credits" in text_type.lower():
@@ -1058,18 +1323,43 @@ class ArtifactDetector:
             return "Verify text usage rights and licensing"
     
     def _get_watermark_action_required(self, watermark_type: str, severity: str) -> str:
-        """Get action required for watermark detection"""
+        """Gets the action required for a watermark detection.
+
+        Args:
+            watermark_type: The type of watermark detected.
+            severity: The severity of the watermark detection.
+
+        Returns:
+            The action required for the watermark detection.
+        """
         if severity == "high":
             return "Remove unauthorized watermarks or obtain proper licensing"
         else:
             return "Verify watermark ownership and licensing"
     
     def _get_logo_action_required(self, severity: str) -> str:
-        """Get action required for logo detection"""
+        """Gets the action required for a logo detection.
+
+        Args:
+            severity: The severity of the logo detection.
+
+        Returns:
+            The action required for the logo detection.
+        """
         return "Verify logo usage rights and proper attribution"
     
     def _calculate_artifact_score(self, artifacts: List[ArtifactDetection], total_frames: int) -> float:
-        """Calculate overall artifact score (0-1, higher = better)"""
+        """Calculates the overall artifact score.
+
+        The score is between 0 and 1, where a higher score is better.
+
+        Args:
+            artifacts: A list of detected artifacts.
+            total_frames: The total number of frames in the video.
+
+        Returns:
+            The overall artifact score.
+        """
         try:
             if not artifacts:
                 return 1.0  # Perfect score for no artifacts
@@ -1112,7 +1402,14 @@ class ArtifactDetector:
             return 0.5
     
     def _categorize_artifacts(self, artifacts: List[ArtifactDetection]) -> Dict:
-        """Categorize artifacts by type and severity"""
+        """Categorizes a list of artifacts by type and severity.
+
+        Args:
+            artifacts: A list of artifacts to categorize.
+
+        Returns:
+            A dictionary containing a summary of the artifacts.
+        """
         try:
             summary = {
                 'by_type': {},
@@ -1141,7 +1438,14 @@ class ArtifactDetector:
             return {}
     
     def _generate_artifact_recommendations(self, artifacts: List[ArtifactDetection]) -> List[str]:
-        """Generate recommendations based on detected artifacts"""
+        """Generates recommendations based on a list of detected artifacts.
+
+        Args:
+            artifacts: A list of detected artifacts.
+
+        Returns:
+            A list of recommendations.
+        """
         try:
             recommendations = []
             
@@ -1179,7 +1483,14 @@ class ArtifactDetector:
             return ["Artifact analysis failed - manual review recommended"]
     
     def _assess_privacy_concerns(self, artifacts: List[ArtifactDetection]) -> Dict:
-        """Assess privacy-related concerns"""
+        """Assesses privacy-related concerns in a list of artifacts.
+
+        Args:
+            artifacts: A list of artifacts to assess.
+
+        Returns:
+            A dictionary containing a summary of the privacy concerns.
+        """
         try:
             faces = [a for a in artifacts if a.artifact_type == ArtifactType.FACE]
             
@@ -1201,7 +1512,14 @@ class ArtifactDetector:
             return {'error': str(e)}
     
     def _assess_legal_concerns(self, artifacts: List[ArtifactDetection]) -> Dict:
-        """Assess legal-related concerns"""
+        """Assesses legal-related concerns in a list of artifacts.
+
+        Args:
+            artifacts: A list of artifacts to assess.
+
+        Returns:
+            A dictionary containing a summary of the legal concerns.
+        """
         try:
             concerns = {
                 'copyright_text': len([a for a in artifacts if a.artifact_type == ArtifactType.COPYRIGHT_NOTICE]),
@@ -1230,7 +1548,11 @@ class ArtifactDetector:
             return {'error': str(e)}
     
     def _initialize_watermark_patterns(self) -> List[str]:
-        """Initialize watermark detection patterns"""
+        """Initializes the watermark detection patterns.
+
+        Returns:
+            A list of watermark detection patterns.
+        """
         return [
             r"©\s*\d{4}",  # Copyright symbol with year
             r"All rights reserved",
@@ -1243,7 +1565,11 @@ class ArtifactDetector:
         ]
     
     def _initialize_branding_keywords(self) -> List[str]:
-        """Initialize branding keywords for detection"""
+        """Initializes the branding keywords for detection.
+
+        Returns:
+            A list of branding keywords.
+        """
         return [
             "YouTube", "Netflix", "Amazon", "Disney", "Warner", "Universal",
             "Sony", "Paramount", "Fox", "HBO", "BBC", "CNN",
@@ -1252,7 +1578,13 @@ class ArtifactDetector:
         ]
     
     def _register_face_detection(self, frame_idx: int, bounding_box: Tuple[int, int, int, int], confidence: float):
-        """Register face detection for tracking"""
+        """Registers a face detection for tracking.
+
+        Args:
+            frame_idx: The index of the frame in which the face was detected.
+            bounding_box: The bounding box of the detected face.
+            confidence: The confidence of the detection.
+        """
         self.face_registry.append({
             'frame_idx': frame_idx,
             'bounding_box': bounding_box,
@@ -1261,7 +1593,13 @@ class ArtifactDetector:
         })
     
     def _register_text_occurrence(self, frame_idx: int, region: Tuple[int, int, int, int], text_type: str):
-        """Register text occurrence"""
+        """Registers a text occurrence.
+
+        Args:
+            frame_idx: The index of the frame in which the text was detected.
+            region: The bounding box of the detected text.
+            text_type: The type of text detected.
+        """
         self.text_occurrences.append({
             'frame_idx': frame_idx,
             'region': region,
@@ -1270,7 +1608,12 @@ class ArtifactDetector:
         })
     
     def _store_artifact_results(self, results: Dict, artifacts: List[ArtifactDetection]):
-        """Store artifact analysis results"""
+        """Stores the artifact analysis results.
+
+        Args:
+            results: A dictionary of artifact analysis results.
+            artifacts: A list of detected artifacts.
+        """
         self.artifact_history.append({
             'timestamp': str(np.datetime64('now')),
             'results': results,
@@ -1278,7 +1621,11 @@ class ArtifactDetector:
         })
     
     def _default_config(self) -> Dict:
-        """Default configuration for artifact detector"""
+        """Returns the default configuration for the artifact detector.
+
+        Returns:
+            A dictionary of default configuration parameters.
+        """
         return {
             'detect_faces': True,
             'detect_text': True,

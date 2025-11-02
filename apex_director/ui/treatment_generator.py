@@ -38,7 +38,22 @@ class VisualComplexity(Enum):
 
 @dataclass
 class SceneDefinition:
-    """Definition of a single scene in the treatment"""
+    """Represents the definition of a single scene in the treatment.
+
+    Attributes:
+        id: The unique identifier for the scene.
+        start_time: The start time of the scene in seconds.
+        duration: The duration of the scene in seconds.
+        scene_type: The type of scene (e.g., intro, verse, chorus).
+        description: A visual description of the scene.
+        mood: The emotional mood of the scene.
+        color_palette: A list of colors in the scene's color palette.
+        camera_movement: The camera movement for the scene.
+        lighting_style: The lighting style for the scene.
+        visual_elements: A list of visual elements in the scene.
+        transition_to_next: The transition to the next scene.
+        beat_sync_points: A list of specific beats to sync with.
+    """
     id: str
     start_time: float  # Start time in seconds
     duration: float    # Duration in seconds
@@ -55,7 +70,23 @@ class SceneDefinition:
 
 @dataclass
 class VisualTreatment:
-    """Complete visual treatment for a music video"""
+    """Represents a complete visual treatment for a music video.
+
+    Attributes:
+        id: The unique identifier for the treatment.
+        project_name: The name of the project.
+        audio_duration: The duration of the audio in seconds.
+        treatment_type: The type of creative treatment.
+        visual_complexity: The level of visual complexity.
+        overall_concept: The overall concept of the treatment.
+        scenes: A list of scene definitions.
+        color_scheme: A dictionary defining the color scheme.
+        style_keywords: A list of style keywords.
+        technical_specs: A dictionary of technical specifications.
+        creation_timestamp: The timestamp when the treatment was created.
+        version: The version of the treatment.
+        notes: Additional notes for the treatment.
+    """
     id: str
     project_name: str
     audio_duration: float
@@ -71,6 +102,11 @@ class VisualTreatment:
     notes: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the VisualTreatment to a dictionary.
+
+        Returns:
+            A dictionary representation of the VisualTreatment.
+        """
         data = asdict(self)
         data['treatment_type'] = self.treatment_type.value
         data['visual_complexity'] = self.visual_complexity.value
@@ -79,9 +115,16 @@ class VisualTreatment:
 
 
 class TreatmentGenerator:
-    """Creative treatment generation system"""
+    """A system for generating creative treatments for music videos.
+
+    This class provides functionality for:
+    - Generating a complete visual treatment based on input parameters
+    - Saving and loading treatments to and from files
+    - Getting a summary of a treatment
+    """
     
     def __init__(self):
+        """Initializes the TreatmentGenerator."""
         self.style_templates = self._load_style_templates()
         self.color_palettes = self._load_color_palettes()
         self.camera_movements = self._load_camera_movements()
@@ -215,15 +258,14 @@ class TreatmentGenerator:
     async def generate_treatment(self, 
                                 processed_input: ProcessedInput,
                                 custom_requirements: Optional[Dict[str, Any]] = None) -> VisualTreatment:
-        """
-        Generate a complete visual treatment
-        
+        """Generates a complete visual treatment.
+
         Args:
-            processed_input: Validated and processed input data
-            custom_requirements: Optional custom requirements or overrides
-            
+            processed_input: The validated and processed input data.
+            custom_requirements: Optional custom requirements or overrides.
+
         Returns:
-            VisualTreatment object with complete treatment
+            A VisualTreatment object with the complete treatment.
         """
         try:
             logger.info(f"Generating treatment for project: {processed_input.project_name}")
@@ -646,7 +688,15 @@ class TreatmentGenerator:
         return notes
     
     def save_treatment(self, treatment: VisualTreatment, file_path: str) -> bool:
-        """Save treatment to JSON file"""
+        """Saves a treatment to a JSON file.
+
+        Args:
+            treatment: The VisualTreatment object to save.
+            file_path: The path to the file to save the treatment to.
+
+        Returns:
+            True if the treatment was successfully saved, False otherwise.
+        """
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(treatment.to_dict(), f, indent=2, ensure_ascii=False)
@@ -657,7 +707,14 @@ class TreatmentGenerator:
             return False
     
     def load_treatment(self, file_path: str) -> Optional[VisualTreatment]:
-        """Load treatment from JSON file"""
+        """Loads a treatment from a JSON file.
+
+        Args:
+            file_path: The path to the file to load the treatment from.
+
+        Returns:
+            A VisualTreatment object, or None if the treatment could not be loaded.
+        """
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -692,7 +749,14 @@ class TreatmentGenerator:
             return None
     
     def get_treatment_summary(self, treatment: VisualTreatment) -> Dict[str, Any]:
-        """Get summary information about the treatment"""
+        """Gets summary information about a treatment.
+
+        Args:
+            treatment: The VisualTreatment object to get the summary for.
+
+        Returns:
+            A dictionary of summary information.
+        """
         return {
             'id': treatment.id,
             'project_name': treatment.project_name,

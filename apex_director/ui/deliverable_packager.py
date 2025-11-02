@@ -47,7 +47,20 @@ class PackageFormat(Enum):
 
 @dataclass
 class DeliverableFile:
-    """Individual deliverable file"""
+    """Represents an individual deliverable file.
+
+    Attributes:
+        id: The unique identifier for the deliverable file.
+        type: The type of deliverable.
+        name: The name of the file.
+        file_path: The path to the file.
+        size_bytes: The size of the file in bytes.
+        format: The format of the file.
+        description: A description of the file.
+        created_at: The timestamp when the file was created.
+        checksum: The checksum of the file.
+        metadata: A dictionary of additional metadata.
+    """
     id: str
     type: DeliverableType
     name: str
@@ -60,6 +73,11 @@ class DeliverableFile:
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the DeliverableFile to a dictionary.
+
+        Returns:
+            A dictionary representation of the DeliverableFile.
+        """
         data = asdict(self)
         data['type'] = self.type.value
         data['created_at'] = self.created_at.isoformat()
@@ -68,7 +86,21 @@ class DeliverableFile:
 
 @dataclass
 class DeliverablePackage:
-    """Complete deliverable package"""
+    """Represents a complete deliverable package.
+
+    Attributes:
+        id: The unique identifier for the package.
+        project_name: The name of the project.
+        version: The version of the package.
+        deliverables: A list of deliverable files in the package.
+        package_path: The path to the package.
+        format: The format of the package.
+        created_at: The timestamp when the package was created.
+        total_size_bytes: The total size of the package in bytes.
+        file_count: The number of files in the package.
+        metadata: A dictionary of additional metadata.
+        notes: Notes about the package.
+    """
     id: str
     project_name: str
     version: str
@@ -82,6 +114,11 @@ class DeliverablePackage:
     notes: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the DeliverablePackage to a dictionary.
+
+        Returns:
+            A dictionary representation of the DeliverablePackage.
+        """
         data = asdict(self)
         data['format'] = self.format.value
         data['deliverables'] = [deliverable.to_dict() for deliverable in self.deliverables]
@@ -90,18 +127,36 @@ class DeliverablePackage:
     
     @property
     def size_mb(self) -> float:
-        """Get package size in MB"""
+        """Gets the package size in megabytes.
+
+        Returns:
+            The package size in megabytes.
+        """
         return self.total_size_bytes / (1024 * 1024)
     
     @property
     def size_gb(self) -> float:
-        """Get package size in GB"""
+        """Gets the package size in gigabytes.
+
+        Returns:
+            The package size in gigabytes.
+        """
         return self.total_size_bytes / (1024 * 1024 * 1024)
 
 
 @dataclass
 class PackageTemplate:
-    """Template for standard deliverable packages"""
+    """A template for creating standard deliverable packages.
+
+    Attributes:
+        name: The name of the template.
+        description: A description of the template.
+        deliverable_types: A list of deliverable types included in the template.
+        file_structure: A dictionary defining the file structure of the package.
+        naming_convention: The naming convention for the package.
+        metadata_fields: A list of required metadata fields.
+        required_files: A list of required files.
+    """
     name: str
     description: str
     deliverable_types: List[DeliverableType]
@@ -112,9 +167,24 @@ class PackageTemplate:
 
 
 class DeliverablePackager:
-    """Comprehensive deliverable packaging system"""
+    """A comprehensive system for packaging and organizing deliverables.
+
+    This class provides functionality for creating, managing, and validating
+    deliverable packages for projects. It includes features such as:
+    - Creating packages from templates
+    - Adding custom files to packages
+    - Generating package manifests and checksums
+    - Creating package archives
+    - Validating package integrity
+    - Cleaning up package files
+    """
     
     def __init__(self, base_output_dir: str = "deliverables"):
+        """Initializes the DeliverablePackager.
+
+        Args:
+            base_output_dir: The base directory for outputting packages.
+        """
         self.base_output_dir = Path(base_output_dir)
         self.base_output_dir.mkdir(parents=True, exist_ok=True)
         
@@ -133,7 +203,11 @@ class DeliverablePackager:
         logger.info(f"Deliverable Packager initialized with output directory: {self.base_output_dir}")
     
     def _initialize_templates(self) -> Dict[str, PackageTemplate]:
-        """Initialize standard package templates"""
+        """Initializes the standard package templates.
+
+        Returns:
+            A dictionary of standard package templates.
+        """
         return {
             'client_delivery': PackageTemplate(
                 name="Client Delivery Package",
@@ -213,19 +287,18 @@ class DeliverablePackager:
                            template_name: str = 'client_delivery',
                            custom_files: Optional[List[str]] = None,
                            output_name: Optional[str] = None) -> str:
-        """
-        Create a deliverable package
-        
+        """Creates a deliverable package.
+
         Args:
-            project_name: Name of the project
-            treatment: Optional visual treatment
-            storyboard: Optional storyboard
-            template_name: Name of the package template to use
-            custom_files: Optional list of additional file paths
-            output_name: Optional custom output package name
-            
+            project_name: The name of the project.
+            treatment: An optional visual treatment.
+            storyboard: An optional storyboard.
+            template_name: The name of the package template to use.
+            custom_files: An optional list of additional file paths to include.
+            output_name: An optional custom output package name.
+
         Returns:
-            Package ID
+            The ID of the newly created package.
         """
         try:
             logger.info(f"Creating package for project: {project_name}")
@@ -847,7 +920,15 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         output_file.write_text(summary)
     
     def create_package_archive(self, package_id: str, format: PackageFormat = PackageFormat.ZIP) -> bool:
-        """Create archive package from folder"""
+        """Creates an archive of a package.
+
+        Args:
+            package_id: The ID of the package to archive.
+            format: The format of the archive.
+
+        Returns:
+            True if the archive was successfully created, False otherwise.
+        """
         package = self.packages.get(package_id)
         if not package:
             logger.error(f"Package {package_id} not found")
@@ -884,7 +965,14 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             return False
     
     def get_package_info(self, package_id: str) -> Optional[Dict[str, Any]]:
-        """Get information about a package"""
+        """Gets information about a package.
+
+        Args:
+            package_id: The ID of the package.
+
+        Returns:
+            A dictionary of package information, or None if the package is not found.
+        """
         package = self.packages.get(package_id)
         if not package:
             return None
@@ -905,11 +993,22 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         }
     
     def list_packages(self) -> List[Dict[str, Any]]:
-        """List all packages"""
+        """Lists all packages.
+
+        Returns:
+            A list of package information dictionaries.
+        """
         return [self.get_package_info(package_id) for package_id in self.packages.keys()]
     
-    def validate_package(self, package_id: str) -> Dict[str, Any]:
-        """Validate package integrity"""
+    def validate_package(self, package_id: str) -> Dict[str, Any]]:
+        """Validates the integrity of a package.
+
+        Args:
+            package_id: The ID of the package to validate.
+
+        Returns:
+            A dictionary of validation results.
+        """
         package = self.packages.get(package_id)
         if not package:
             return {'valid': False, 'error': 'Package not found'}
@@ -955,7 +1054,15 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         return validation_results
     
     def cleanup_package(self, package_id: str, archive_first: bool = True) -> bool:
-        """Clean up package files"""
+        """Cleans up the files for a package.
+
+        Args:
+            package_id: The ID of the package to clean up.
+            archive_first: Whether to archive the package before cleaning up.
+
+        Returns:
+            True if the package was successfully cleaned up, False otherwise.
+        """
         package = self.packages.get(package_id)
         if not package:
             logger.error(f"Package {package_id} not found")

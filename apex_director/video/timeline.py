@@ -31,7 +31,17 @@ class BeatType(Enum):
 
 @dataclass
 class Frame:
-    """Frame-accurate timeline element"""
+    """Represents a frame-accurate timeline element.
+
+    Attributes:
+        frame_number: The frame number.
+        timestamp: The timestamp of the frame in seconds.
+        duration: The duration of the frame in seconds.
+        source_path: The path to the source file for this frame.
+        frame_rate: The frame rate of the source file.
+        width: The width of the frame.
+        height: The height of the frame.
+    """
     frame_number: int
     timestamp: float
     duration: float
@@ -49,7 +59,25 @@ class Frame:
 
 @dataclass
 class Clip:
-    """Professional clip with metadata"""
+    """Represents a professional clip with metadata.
+
+    Attributes:
+        id: The unique identifier for the clip.
+        source_path: The path to the source file for the clip.
+        in_frame: The in-point of the clip in frames.
+        out_frame: The out-point of the clip in frames.
+        in_time: The in-point of the clip in seconds.
+        out_time: The out-point of the clip in seconds.
+        duration: The duration of the clip in seconds.
+        frame_rate: The frame rate of the clip.
+        width: The width of the clip.
+        height: The height of the clip.
+        audio_streams: A list of audio streams in the clip.
+        video_stream: The video stream in the clip.
+        color_space: The color space of the clip.
+        sample_rate: The audio sample rate of the clip.
+        channels: The number of audio channels in the clip.
+    """
     id: str
     source_path: str
     in_frame: int
@@ -68,16 +96,27 @@ class Clip:
     
     @property
     def frame_count(self) -> int:
+        """Calculates the total number of frames in the clip."""
         return self.out_frame - self.in_frame + 1
     
     @property
     def exact_duration(self) -> float:
+        """Calculates the exact duration of the clip in seconds."""
         return self.frame_count / self.frame_rate
 
 
 @dataclass
 class Transition:
-    """Professional transition definition"""
+    """Represents a professional transition between clips.
+
+    Attributes:
+        type: The type of transition.
+        start_frame: The start frame of the transition.
+        duration_frames: The duration of the transition in frames.
+        source_a_clip: The ID of the first clip in the transition.
+        source_b_clip: The ID of the second clip in the transition.
+        parameters: A dictionary of additional parameters for the transition.
+    """
     type: str  # cut, crossfade, whip_pan, match_dissolve
     start_frame: int
     duration_frames: int
@@ -87,16 +126,26 @@ class Transition:
     
     @property
     def start_time(self) -> float:
+        """Calculates the start time of the transition in seconds."""
         return self.start_frame / 30.0  # Assuming 30fps base
     
     @property
     def end_time(self) -> float:
+        """Calculates the end time of the transition in seconds."""
         return (self.start_frame + self.duration_frames) / 30.0
 
 
 @dataclass
 class Marker:
-    """Timeline marker for beats, cuts, effects"""
+    """Represents a marker on the timeline for beats, cuts, effects, etc.
+
+    Attributes:
+        frame_number: The frame number of the marker.
+        time_stamp: The timestamp of the marker in seconds.
+        type: The type of marker.
+        value: The value of the marker.
+        description: A description of the marker.
+    """
     frame_number: int
     time_stamp: float
     type: str  # beat, cut, effect, note
@@ -105,13 +154,29 @@ class Marker:
     
     @property
     def exact_time(self) -> float:
+        """Calculates the exact time of the marker in seconds."""
         return self.frame_number / 30.0
 
 
 class Timeline:
-    """Professional timeline with beat-locked precision"""
+    """Represents a professional timeline with beat-locked precision.
+
+    This class provides functionality for:
+    - Adding and managing clips, transitions, and markers
+    - Detecting and adding beat-locked markers from an audio file
+    - Finding frame-accurate cut points
+    - Creating beat-locked cuts
+    - Validating the timeline for broadcast standards
+    - Exporting and loading the timeline to and from JSON
+    """
     
     def __init__(self, frame_rate: float = 30.0, resolution: Tuple[int, int] = (1920, 1080)):
+        """Initializes the Timeline.
+
+        Args:
+            frame_rate: The frame rate of the timeline.
+            resolution: The resolution of the timeline.
+        """
         self.frame_rate = frame_rate
         self.resolution = resolution
         self.clips: List[Clip] = []
@@ -127,7 +192,11 @@ class Timeline:
         self.frame_accuracy = True
         
     def add_clip(self, clip: Clip) -> None:
-        """Add clip to timeline with frame validation"""
+        """Adds a clip to the timeline with frame validation.
+
+        Args:
+            clip: The clip to add.
+        """
         # Validate frame rate compatibility
         if abs(clip.frame_rate - self.frame_rate) > 0.01:
             raise ValueError(f"Clip frame rate {clip.frame_rate} incompatible with timeline {self.frame_rate}")
@@ -142,12 +211,24 @@ class Timeline:
         self._recalculate_timeline()
     
     def add_transition(self, transition: Transition) -> None:
-        """Add transition with frame-perfect alignment"""
+        """Adds a transition to the timeline with frame-perfect alignment.
+
+        Args:
+            transition: The transition to add.
+        """
         self.transitions.append(transition)
         self.transitions.sort(key=lambda t: t.start_frame)
     
     def add_beat_markers(self, audio_path: str, beat_type: BeatType = BeatType.BEAT) -> List[Marker]:
-        """Detect and add beat-locked markers"""
+        """Detects and adds beat-locked markers to the timeline.
+
+        Args:
+            audio_path: The path to the audio file.
+            beat_type: The type of beat detection to use.
+
+        Returns:
+            A list of the markers that were added.
+        """
         try:
             # Load audio for beat detection
             y, sr = librosa.load(audio_path, sr=self.audio_sample_rate)
@@ -187,7 +268,14 @@ class Timeline:
             return []
     
     def find_frame_accurate_cut_points(self, source_path: str) -> List[Frame]:
-        """Find optimal cut points using audio-visual analysis"""
+        """Finds optimal cut points in a source file using audio-visual analysis.
+
+        Args:
+            source_path: The path to the source file.
+
+        Returns:
+            A list of frame-accurate cut points.
+        """
         try:
             # Load video to get frame info
             cap = cv2.VideoCapture(source_path)
@@ -232,7 +320,15 @@ class Timeline:
             return []
     
     def _align_to_frame(self, frame_number: int, source_fps: float) -> int:
-        """Align to exact frame with ±1 frame tolerance"""
+        """Aligns a frame number to the timeline's frame rate.
+
+        Args:
+            frame_number: The frame number to align.
+            source_fps: The frame rate of the source video.
+
+        Returns:
+            The aligned frame number.
+        """
         # Convert to seconds
         seconds = frame_number / source_fps
         
@@ -254,7 +350,16 @@ class Timeline:
     
     def create_beat_locked_cut(self, source_path: str, start_marker: Marker, 
                               duration_beats: int = 4) -> Clip:
-        """Create beat-locked cut with frame accuracy"""
+        """Creates a beat-locked cut with frame accuracy.
+
+        Args:
+            source_path: The path to the source file.
+            start_marker: The marker to start the cut from.
+            duration_beats: The duration of the cut in beats.
+
+        Returns:
+            A new Clip object.
+        """
         # Get audio for tempo analysis
         y, sr = librosa.load(source_path, sr=self.audio_sample_rate)
         
@@ -306,7 +411,11 @@ class Timeline:
         return clip
     
     def validate_timeline(self) -> Dict[str, Union[bool, List[str]]]:
-        """Validate timeline for broadcast standards"""
+        """Validates the timeline for broadcast standards.
+
+        Returns:
+            A dictionary containing the validation results.
+        """
         errors = []
         warnings = []
         
@@ -335,7 +444,11 @@ class Timeline:
         }
     
     def _has_audio_gaps(self) -> bool:
-        """Check for audio gaps in timeline"""
+        """Checks for audio gaps in the timeline.
+
+        Returns:
+            True if audio gaps are found, False otherwise.
+        """
         # Simplified check - look for significant gaps
         min_gap_threshold = 1.0 / self.frame_rate  # 1 frame gap
         
@@ -343,7 +456,7 @@ class Timeline:
         return False
     
     def _recalculate_timeline(self) -> None:
-        """Recalculate timeline duration and frame count"""
+        """Recalculates the total duration and frame count of the timeline."""
         if not self.clips:
             self.total_frames = 0
             self.duration = 0.0
@@ -360,7 +473,11 @@ class Timeline:
         self.total_frames = total_frames
     
     def export_timeline_json(self, filepath: Union[str, Path]) -> None:
-        """Export timeline to JSON for persistence"""
+        """Exports the timeline to a JSON file for persistence.
+
+        Args:
+            filepath: The path to the output file.
+        """
         timeline_data = {
             "frame_rate": self.frame_rate,
             "resolution": self.resolution,
@@ -411,7 +528,11 @@ class Timeline:
             json.dump(timeline_data, f, indent=2)
     
     def load_timeline_json(self, filepath: Union[str, Path]) -> None:
-        """Load timeline from JSON"""
+        """Loads a timeline from a JSON file.
+
+        Args:
+            filepath: The path to the input file.
+        """
         with open(filepath, 'r') as f:
             data = json.load(f)
         
@@ -468,7 +589,14 @@ class Timeline:
 
 # Utility functions for professional timeline operations
 def calculate_edit_decision_list(timeline: Timeline) -> List[Dict]:
-    """Generate Edit Decision List (EDL) from timeline"""
+    """Generates an Edit Decision List (EDL) from a timeline.
+
+    Args:
+        timeline: The timeline to generate the EDL from.
+
+    Returns:
+        A list of dictionaries, where each dictionary represents an EDL entry.
+    """
     edl = []
     
     for i, clip in enumerate(timeline.clips):
@@ -499,7 +627,16 @@ def calculate_edit_decision_list(timeline: Timeline) -> List[Dict]:
 
 
 def _get_overlapping_transition(transitions: List[Transition], clip: Clip, clip_index: int) -> Optional[Transition]:
-    """Find transition overlapping with this clip"""
+    """Finds a transition that overlaps with a given clip.
+
+    Args:
+        transitions: A list of transitions in the timeline.
+        clip: The clip to check for overlapping transitions.
+        clip_index: The index of the clip in the timeline.
+
+    Returns:
+        The overlapping transition, or None if no transition overlaps.
+    """
     # Simplified - look for transitions at clip boundaries
     if clip_index < len(transitions):
         # Check if transition starts at end of this clip
@@ -510,7 +647,14 @@ def _get_overlapping_transition(transitions: List[Transition], clip: Clip, clip_
 
 
 def generate_color_correction_list(timeline: Timeline) -> Dict[str, List[Dict]]:
-    """Generate color correction parameters from timeline markers"""
+    """Generates a list of color correction parameters from timeline markers.
+
+    Args:
+        timeline: The timeline to generate the color correction list from.
+
+    Returns:
+        A dictionary of color correction parameters, grouped by stage.
+    """
     color_corrections = {
         "primary": [],
         "secondary": [],

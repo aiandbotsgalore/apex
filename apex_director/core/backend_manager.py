@@ -162,7 +162,7 @@ class BackendInterface(ABC):
         """
         pass
     
-    @abstracte
+    @abstractmethod
     def get_capabilities(self) -> List[str]:
         """Gets a list of the backend's capabilities.
 

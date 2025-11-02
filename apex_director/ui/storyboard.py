@@ -55,7 +55,24 @@ class Framing(Enum):
 
 @dataclass
 class ShotDefinition:
-    """Individual shot definition within a scene"""
+    """Represents an individual shot definition within a scene.
+
+    Attributes:
+        id: The unique identifier for the shot.
+        shot_number: The number of the shot within the scene.
+        start_time: The start time of the shot in seconds.
+        duration: The duration of the shot in seconds.
+        shot_type: The type of camera shot.
+        camera_angle: The camera angle.
+        framing: The framing of the shot.
+        description: A description of the shot.
+        visual_elements: A list of visual elements in the shot.
+        camera_movement: The camera movement for the shot.
+        lighting_notes: Notes about the lighting for the shot.
+        transition_from_previous: The transition from the previous shot.
+        sync_points: A list of audio sync points for the shot.
+        notes: Additional notes for the shot.
+    """
     id: str
     shot_number: int
     start_time: float
@@ -72,6 +89,11 @@ class ShotDefinition:
     notes: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the ShotDefinition to a dictionary.
+
+        Returns:
+            A dictionary representation of the ShotDefinition.
+        """
         data = asdict(self)
         data['shot_type'] = self.shot_type.value
         data['camera_angle'] = self.camera_angle.value
@@ -81,7 +103,20 @@ class ShotDefinition:
 
 @dataclass
 class StoryboardScene:
-    """Complete storyboard for a single scene"""
+    """Represents a complete storyboard for a single scene.
+
+    Attributes:
+        scene_id: The unique identifier for the scene.
+        scene_type: The type of scene.
+        start_time: The start time of the scene in seconds.
+        duration: The duration of the scene in seconds.
+        shots: A list of shot definitions in the scene.
+        scene_overview: An overview of the scene.
+        mood_notes: Notes about the mood of the scene.
+        color_palette: A list of colors in the scene's color palette.
+        audio_sync_notes: Notes about audio synchronization for the scene.
+        special_requirements: A list of special requirements for the scene.
+    """
     scene_id: str
     scene_type: str
     start_time: float
@@ -94,6 +129,11 @@ class StoryboardScene:
     special_requirements: List[str]
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the StoryboardScene to a dictionary.
+
+        Returns:
+            A dictionary representation of the StoryboardScene.
+        """
         data = asdict(self)
         data['shots'] = [shot.to_dict() for shot in self.shots]
         return data
@@ -101,7 +141,19 @@ class StoryboardScene:
 
 @dataclass
 class Storyboard:
-    """Complete storyboard for the entire video"""
+    """Represents a complete storyboard for the entire video.
+
+    Attributes:
+        id: The unique identifier for the storyboard.
+        project_name: The name of the project.
+        treatment_id: The ID of the treatment this storyboard is based on.
+        total_duration: The total duration of the storyboard in seconds.
+        scenes: A list of storyboard scenes.
+        technical_specs: A dictionary of technical specifications.
+        creation_timestamp: The timestamp when the storyboard was created.
+        version: The version of the storyboard.
+        notes: Additional notes for the storyboard.
+    """
     id: str
     project_name: str
     treatment_id: str
@@ -113,6 +165,11 @@ class Storyboard:
     notes: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the Storyboard to a dictionary.
+
+        Returns:
+            A dictionary representation of the Storyboard.
+        """
         data = asdict(self)
         data['scenes'] = [scene.to_dict() for scene in self.scenes]
         data['creation_timestamp'] = self.creation_timestamp.isoformat()
@@ -120,9 +177,16 @@ class Storyboard:
 
 
 class StoryboardCreator:
-    """Storyboard creation and management system"""
+    """A system for creating and managing storyboards.
+
+    This class provides functionality for:
+    - Creating detailed storyboards from visual treatments
+    - Exporting and importing storyboards
+    - Generating production notes and summaries from storyboards
+    """
     
     def __init__(self):
+        """Initializes the StoryboardCreator."""
         self.shot_templates = self._load_shot_templates()
         self.transition_types = self._load_transition_types()
         self.camera_movements = self._load_camera_movements()
@@ -217,15 +281,14 @@ class StoryboardCreator:
     async def create_storyboard(self, 
                                treatment: VisualTreatment,
                                custom_shots: Optional[List[Dict[str, Any]]] = None) -> Storyboard:
-        """
-        Create complete storyboard from visual treatment
-        
+        """Creates a complete storyboard from a visual treatment.
+
         Args:
-            treatment: VisualTreatment object
-            custom_shots: Optional custom shot specifications
-            
+            treatment: The VisualTreatment object to create the storyboard from.
+            custom_shots: Optional custom shot specifications.
+
         Returns:
-            Storyboard object with detailed shots
+            A Storyboard object with detailed shots.
         """
         try:
             logger.info(f"Creating storyboard for project: {treatment.project_name}")
@@ -574,7 +637,16 @@ class StoryboardCreator:
         return '; '.join(notes) if notes else "Standard shot requirements"
     
     def export_storyboard(self, storyboard: Storyboard, file_path: str, format: str = 'json') -> bool:
-        """Export storyboard to file"""
+        """Exports a storyboard to a file.
+
+        Args:
+            storyboard: The Storyboard object to export.
+            file_path: The path to the file to export the storyboard to.
+            format: The format to export the storyboard in.
+
+        Returns:
+            True if the storyboard was successfully exported, False otherwise.
+        """
         try:
             if format.lower() == 'json':
                 with open(file_path, 'w', encoding='utf-8') as f:
@@ -590,7 +662,14 @@ class StoryboardCreator:
             return False
     
     def import_storyboard(self, file_path: str) -> Optional[Storyboard]:
-        """Import storyboard from file"""
+        """Imports a storyboard from a file.
+
+        Args:
+            file_path: The path to the file to import the storyboard from.
+
+        Returns:
+            A Storyboard object, or None if the import failed.
+        """
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -638,7 +717,14 @@ class StoryboardCreator:
             return None
     
     def get_storyboard_summary(self, storyboard: Storyboard) -> Dict[str, Any]:
-        """Get summary of storyboard"""
+        """Gets a summary of a storyboard.
+
+        Args:
+            storyboard: The Storyboard object to get the summary for.
+
+        Returns:
+            A dictionary containing a summary of the storyboard.
+        """
         total_shots = sum(len(scene.shots) for scene in storyboard.scenes)
         
         # Shot type distribution
@@ -667,7 +753,14 @@ class StoryboardCreator:
         }
     
     def generate_production_notes(self, storyboard: Storyboard) -> str:
-        """Generate comprehensive production notes from storyboard"""
+        """Generates comprehensive production notes from a storyboard.
+
+        Args:
+            storyboard: The Storyboard object to generate the notes from.
+
+        Returns:
+            A string of production notes.
+        """
         
         notes = f"PRODUCTION NOTES - {storyboard.project_name}\n"
         notes += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"

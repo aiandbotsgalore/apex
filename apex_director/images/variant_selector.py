@@ -16,7 +16,16 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class QualityScores:
-    """Individual quality scores for an image variant"""
+    """Individual quality scores for an image variant.
+
+    Attributes:
+        clip_aesthetic_score: The CLIP aesthetic quality score.
+        composition_score: The composition quality score.
+        style_consistency_score: The style consistency score.
+        artifacts_score: The technical artifact score.
+        overall_score: The weighted overall score.
+        timestamp: The time when the scores were generated.
+    """
     clip_aesthetic_score: float  # CLIP aesthetic quality
     composition_score: float     # Composition quality
     style_consistency_score: float  # Style consistency
@@ -25,14 +34,36 @@ class QualityScores:
     timestamp: float             # When scored
     
     def to_dict(self) -> Dict[str, float]:
+        """Converts the QualityScores to a dictionary.
+
+        Returns:
+            A dictionary representation of the QualityScores.
+        """
         return asdict(self)
     
     def is_high_quality(self, threshold: float = 0.8) -> bool:
+        """Checks if the overall score is above a certain threshold.
+
+        Args:
+            threshold: The threshold to use for the check.
+
+        Returns:
+            True if the overall score is above the threshold, False otherwise.
+        """
         return self.overall_score >= threshold
 
 @dataclass
 class VariantResult:
-    """Complete variant selection result"""
+    """The complete result of a variant selection.
+
+    Attributes:
+        variant_id: The ID of the variant.
+        image: The variant image.
+        scores: The quality scores for the variant.
+        ranking: The rank of the variant in the selection.
+        selection_reason: The reason why the variant was selected.
+        technical_details: A dictionary of technical details about the variant.
+    """
     variant_id: str
     image: Image.Image
     scores: QualityScores
@@ -41,6 +72,11 @@ class VariantResult:
     technical_details: Dict[str, Any]
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the VariantResult to a dictionary.
+
+        Returns:
+            A dictionary representation of the VariantResult.
+        """
         return {
             "variant_id": self.variant_id,
             "scores": self.scores.to_dict(),
@@ -50,9 +86,15 @@ class VariantResult:
         }
 
 class CLIPScorer:
-    """CLIP-based aesthetic and semantic scoring"""
+    """A class for scoring images using CLIP-based aesthetic and semantic
+    scoring.
+
+    This is a simulated implementation that uses image properties to generate
+    scores. A real implementation would use a pre-trained CLIP model.
+    """
     
     def __init__(self):
+        """Initializes the CLIPScorer."""
         # Placeholder for CLIP model initialization
         # In real implementation, would load CLIP model
         self.model_loaded = False
@@ -64,7 +106,17 @@ class CLIPScorer:
         logger.info("CLIP scorer initialized (simulated)")
     
     def score_aesthetic_quality(self, image: Image.Image) -> float:
-        """Score aesthetic quality using CLIP"""
+        """Scores the aesthetic quality of an image using CLIP.
+
+        This is a placeholder implementation. A real implementation would use
+        CLIP to compare the image against aesthetic prompts.
+
+        Args:
+            image: The image to score.
+
+        Returns:
+            The aesthetic quality score.
+        """
         # Placeholder implementation
         # In reality, would use CLIP to compare image against aesthetic prompts
         
@@ -94,7 +146,18 @@ class CLIPScorer:
         return aesthetic_score
     
     def score_semantic_consistency(self, image: Image.Image, prompt: str) -> float:
-        """Score semantic consistency between image and prompt"""
+        """Scores the semantic consistency between an image and a prompt.
+
+        This is a placeholder implementation. A real implementation would
+        compare the image embedding with the text prompt embedding.
+
+        Args:
+            image: The image to score.
+            prompt: The prompt to compare against.
+
+        Returns:
+            The semantic consistency score.
+        """
         # Placeholder for CLIP semantic scoring
         # Would compare image embedding with text prompt embedding
         
@@ -105,7 +168,14 @@ class CLIPScorer:
         return semantic_score
     
     def _calculate_sharpness_score(self, image: Image.Image) -> float:
-        """Calculate sharpness using edge detection"""
+        """Calculates a sharpness score using edge detection.
+
+        Args:
+            image: The image to calculate the sharpness of.
+
+        Returns:
+            The sharpness score.
+        """
         try:
             # Convert to grayscale for edge detection
             gray = image.convert('L')
@@ -125,7 +195,14 @@ class CLIPScorer:
             return 0.8  # Default score
     
     def _calculate_color_balance_score(self, image: Image.Image) -> float:
-        """Calculate color balance and distribution score"""
+        """Calculates a color balance and distribution score.
+
+        Args:
+            image: The image to calculate the color balance of.
+
+        Returns:
+            The color balance score.
+        """
         try:
             # Convert to RGB if needed
             if image.mode != 'RGB':
@@ -150,9 +227,14 @@ class CLIPScorer:
             return 0.8  # Default score
 
 class CompositionAnalyzer:
-    """Analyzes composition quality"""
+    """A class for analyzing the composition quality of an image.
+
+    This class uses a set of composition rules to score an image. The rules
+    include the rule of thirds, leading lines, symmetry, depth, and framing.
+    """
     
     def __init__(self):
+        """Initializes the CompositionAnalyzer."""
         self.composition_rules = {
             "rule_of_thirds": {"weight": 0.3, "description": "Subject placement on thirds grid"},
             "leading_lines": {"weight": 0.2, "description": "Lines guiding eye to subject"},
@@ -162,7 +244,14 @@ class CompositionAnalyzer:
         }
     
     def score_composition(self, image: Image.Image) -> float:
-        """Score composition quality"""
+        """Scores the composition quality of an image.
+
+        Args:
+            image: The image to score.
+
+        Returns:
+            The composition quality score.
+        """
         composition_scores = []
         
         # Rule of thirds analysis
@@ -191,7 +280,17 @@ class CompositionAnalyzer:
         return total_score
     
     def _analyze_rule_of_thirds(self, image: Image.Image) -> float:
-        """Analyze rule of thirds compliance"""
+        """Analyzes the rule of thirds compliance of an image.
+
+        This is a placeholder implementation. A real implementation would
+        detect the subject's position relative to the thirds grid.
+
+        Args:
+            image: The image to analyze.
+
+        Returns:
+            The rule of thirds score.
+        """
         # Placeholder for rule of thirds analysis
         # Would detect subject position relative to thirds grid
         
@@ -205,7 +304,17 @@ class CompositionAnalyzer:
         return rule_score
     
     def _analyze_leading_lines(self, image: Image.Image) -> float:
-        """Detect and analyze leading lines"""
+        """Detects and analyzes leading lines in an image.
+
+        This is a placeholder implementation. A real implementation would use
+        edge detection and line detection algorithms.
+
+        Args:
+            image: The image to analyze.
+
+        Returns:
+            The leading lines score.
+        """
         # Placeholder for leading lines detection
         # Would use edge detection and line detection algorithms
         
@@ -215,7 +324,14 @@ class CompositionAnalyzer:
         return lines_score
     
     def _analyze_symmetry(self, image: Image.Image) -> float:
-        """Analyze compositional symmetry"""
+        """Analyzes the compositional symmetry of an image.
+
+        Args:
+            image: The image to analyze.
+
+        Returns:
+            The symmetry score.
+        """
         # Placeholder for symmetry analysis
         
         # Convert to grayscale for comparison
@@ -236,7 +352,17 @@ class CompositionAnalyzer:
         return max(0, symmetry_score)
     
     def _analyze_depth(self, image: Image.Image) -> float:
-        """Analyze depth and layering"""
+        """Analyzes the depth and layering of an image.
+
+        This is a placeholder implementation. A real implementation would use
+        more sophisticated techniques to analyze depth.
+
+        Args:
+            image: The image to analyze.
+
+        Returns:
+            The depth score.
+        """
         # Placeholder for depth analysis
         
         # Mock depth score based on sharpness variation
@@ -251,7 +377,17 @@ class CompositionAnalyzer:
         return depth_score
     
     def _analyze_framing(self, image: Image.Image) -> float:
-        """Analyze subject framing"""
+        """Analyzes the subject framing of an image.
+
+        This is a placeholder implementation. A real implementation would
+        detect the subject and its framing.
+
+        Args:
+            image: The image to analyze.
+
+        Returns:
+            The framing score.
+        """
         # Placeholder for framing analysis
         
         # Mock framing score
@@ -260,7 +396,14 @@ class CompositionAnalyzer:
         return framing_score
     
     def _calculate_sharpness_map(self, image: Image.Image) -> np.ndarray:
-        """Calculate sharpness map of the image"""
+        """Calculates a sharpness map of the image.
+
+        Args:
+            image: The image to calculate the sharpness map of.
+
+        Returns:
+            A NumPy array representing the sharpness map.
+        """
         try:
             # Convert to grayscale
             gray = image.convert('L')
@@ -280,16 +423,34 @@ class CompositionAnalyzer:
             return np.ones((image.height//4, image.width//4)) * 0.8
 
 class StyleConsistencyScorer:
-    """Scores style consistency with reference style"""
+    """A class for scoring the style consistency of an image with a reference
+    style.
+
+    This class works by extracting style features from a reference image and
+    then comparing those features to the features of a new image. The style
+    features include the color palette, texture, and lighting characteristics.
+    """
     
     def __init__(self, style_reference: Optional[Image.Image] = None):
+        """Initializes the StyleConsistencyScorer.
+
+        Args:
+            style_reference: The reference image to use for style comparison.
+        """
         self.style_reference = style_reference
         self.style_features = None
         if style_reference:
             self._extract_style_features(style_reference)
     
     def _extract_style_features(self, reference_image: Image.Image):
-        """Extract style features from reference image"""
+        """Extracts style features from a reference image.
+
+        This is a placeholder implementation. A real implementation would
+        extract more sophisticated style features.
+
+        Args:
+            reference_image: The reference image.
+        """
         # Placeholder for style feature extraction
         # Would extract color palette, texture, lighting characteristics
         
@@ -301,7 +462,14 @@ class StyleConsistencyScorer:
         }
     
     def _extract_color_palette(self, img_array: np.ndarray) -> List[Tuple[int, int, int]]:
-        """Extract dominant colors from image"""
+        """Extracts the dominant colors from an image.
+
+        Args:
+            img_array: The image as a NumPy array.
+
+        Returns:
+            A list of the dominant colors.
+        """
         # Simplified color palette extraction
         pixels = img_array.reshape(-1, 3)
         
@@ -318,7 +486,14 @@ class StyleConsistencyScorer:
         return [color[0] for color in top_colors]
     
     def _calculate_texture_stats(self, img_array: np.ndarray) -> Dict[str, float]:
-        """Calculate texture statistics"""
+        """Calculates texture statistics for an image.
+
+        Args:
+            img_array: The image as a NumPy array.
+
+        Returns:
+            A dictionary of texture statistics.
+        """
         # Convert to grayscale for texture analysis
         gray = np.mean(img_array, axis=2)
         
@@ -329,7 +504,14 @@ class StyleConsistencyScorer:
         }
     
     def _calculate_lighting_stats(self, img_array: np.ndarray) -> Dict[str, float]:
-        """Calculate lighting characteristics"""
+        """Calculates lighting characteristics for an image.
+
+        Args:
+            img_array: The image as a NumPy array.
+
+        Returns:
+            A dictionary of lighting statistics.
+        """
         brightness = np.mean(img_array)
         contrast = np.std(img_array)
         
@@ -339,7 +521,14 @@ class StyleConsistencyScorer:
         }
     
     def _calculate_entropy(self, array: np.ndarray) -> float:
-        """Calculate entropy of array"""
+        """Calculates the entropy of an array.
+
+        Args:
+            array: The array to calculate the entropy of.
+
+        Returns:
+            The entropy of the array.
+        """
         hist, _ = np.histogram(array.flatten(), bins=256, range=(0, 255))
         hist = hist[hist > 0]  # Remove zero entries
         hist = hist / np.sum(hist)
@@ -348,7 +537,14 @@ class StyleConsistencyScorer:
         return entropy
     
     def score_style_consistency(self, image: Image.Image) -> float:
-        """Score style consistency against reference"""
+        """Scores the style consistency of an image against a reference.
+
+        Args:
+            image: The image to score.
+
+        Returns:
+            The style consistency score.
+        """
         if not self.style_features:
             return 0.8  # Default score if no reference
         
@@ -370,7 +566,14 @@ class StyleConsistencyScorer:
         return overall_score
     
     def _score_color_consistency(self, img_array: np.ndarray) -> float:
-        """Score color palette consistency"""
+        """Scores the color palette consistency of an image.
+
+        Args:
+            img_array: The image as a NumPy array.
+
+        Returns:
+            The color consistency score.
+        """
         test_palette = self._extract_color_palette(img_array)
         reference_palette = self.style_features["color_palette"]
         
@@ -393,7 +596,14 @@ class StyleConsistencyScorer:
         return color_score
     
     def _score_texture_consistency(self, img_array: np.ndarray) -> float:
-        """Score texture consistency"""
+        """Scores the texture consistency of an image.
+
+        Args:
+            img_array: The image as a NumPy array.
+
+        Returns:
+            The texture consistency score.
+        """
         test_stats = self._calculate_texture_stats(img_array)
         ref_stats = self.style_features["texture_stats"]
         
@@ -408,7 +618,14 @@ class StyleConsistencyScorer:
         return score / 3.0
     
     def _score_lighting_consistency(self, img_array: np.ndarray) -> float:
-        """Score lighting consistency"""
+        """Scores the lighting consistency of an image.
+
+        Args:
+            img_array: The image as a NumPy array.
+
+        Returns:
+            The lighting consistency score.
+        """
         test_stats = self._calculate_lighting_stats(img_array)
         ref_stats = self.style_features["lighting_stats"]
         
@@ -422,9 +639,14 @@ class StyleConsistencyScorer:
         return (brightness_score + contrast_score) / 2.0
 
 class ArtifactDetector:
-    """Detects technical artifacts and quality issues"""
+    """A class for detecting technical artifacts and quality issues in an image.
+
+    This class can detect a variety of artifacts, including noise, compression
+    artifacts, color banding, and blurring.
+    """
     
     def __init__(self):
+        """Initializes the ArtifactDetector."""
         self.artifact_types = {
             "noise": {"weight": 0.3, "threshold": 0.1},
             "compression": {"weight": 0.25, "threshold": 0.15},
@@ -433,7 +655,14 @@ class ArtifactDetector:
         }
     
     def detect_artifacts(self, image: Image.Image) -> Dict[str, float]:
-        """Detect various technical artifacts"""
+        """Detects various technical artifacts in an image.
+
+        Args:
+            image: The image to detect artifacts in.
+
+        Returns:
+            A dictionary of artifact scores.
+        """
         artifact_scores = {}
         
         # Noise detection
@@ -455,7 +684,16 @@ class ArtifactDetector:
         return artifact_scores
     
     def score_artifact_quality(self, image: Image.Image) -> float:
-        """Score overall artifact quality (higher = fewer artifacts)"""
+        """Scores the overall artifact quality of an image.
+
+        A higher score indicates fewer artifacts.
+
+        Args:
+            image: The image to score.
+
+        Returns:
+            The artifact quality score.
+        """
         artifacts = self.detect_artifacts(image)
         
         # Calculate weighted score
@@ -477,7 +715,14 @@ class ArtifactDetector:
         return quality_score
     
     def _detect_noise(self, image: Image.Image) -> float:
-        """Detect noise level in image"""
+        """Detects the noise level in an image.
+
+        Args:
+            image: The image to detect noise in.
+
+        Returns:
+            The noise quality score.
+        """
         try:
             # Convert to grayscale
             gray = image.convert('L')
@@ -505,7 +750,14 @@ class ArtifactDetector:
             return 0.8  # Default quality score
     
     def _detect_compression_artifacts(self, image: Image.Image) -> float:
-        """Detect JPEG compression artifacts"""
+        """Detects JPEG compression artifacts in an image.
+
+        Args:
+            image: The image to detect compression artifacts in.
+
+        Returns:
+            The compression artifact quality score.
+        """
         try:
             # Look for block patterns and edge artifacts
             gray = image.convert('L')
@@ -540,7 +792,14 @@ class ArtifactDetector:
             return 0.8
     
     def _detect_color_banding(self, image: Image.Image) -> float:
-        """Detect color banding artifacts"""
+        """Detects color banding artifacts in an image.
+
+        Args:
+            image: The image to detect color banding in.
+
+        Returns:
+            The color banding quality score.
+        """
         try:
             if image.mode != 'RGB':
                 image = image.convert('RGB')
@@ -570,7 +829,14 @@ class ArtifactDetector:
             return 0.8
     
     def _detect_blurring(self, image: Image.Image) -> float:
-        """Detect excessive blurring"""
+        """Detects excessive blurring in an image.
+
+        Args:
+            image: The image to detect blurring in.
+
+        Returns:
+            The blurring quality score.
+        """
         try:
             # Convert to grayscale
             gray = image.convert('L')
@@ -595,9 +861,19 @@ class ArtifactDetector:
             return 0.8
 
 class VariantSelector:
-    """Main variant selection system with 4-criteria scoring"""
+    """The main variant selection system with 4-criteria scoring.
+
+    This class uses a combination of CLIP-based aesthetic scoring, composition
+    analysis, style consistency scoring, and artifact detection to select the
+    best variants from a list of images.
+    """
     
     def __init__(self, style_reference: Optional[Image.Image] = None):
+        """Initializes the VariantSelector.
+
+        Args:
+            style_reference: The reference image to use for style comparison.
+        """
         self.clip_scorer = CLIPScorer()
         self.composition_analyzer = CompositionAnalyzer()
         self.style_scorer = StyleConsistencyScorer(style_reference)
@@ -619,7 +895,17 @@ class VariantSelector:
         prompt: str,
         num_selections: int = 1
     ) -> List[VariantResult]:
-        """Select best variants using 4-criteria scoring"""
+        """Selects the best variants using 4-criteria scoring.
+
+        Args:
+            variants: A list of tuples, where each tuple contains the variant
+                ID and the variant image.
+            prompt: The prompt that was used to generate the variants.
+            num_selections: The number of variants to select.
+
+        Returns:
+            A list of the best VariantResult objects.
+        """
         
         logger.info(f"Evaluating {len(variants)} variants with 4-criteria scoring")
         
@@ -677,7 +963,15 @@ class VariantSelector:
         return scored_variants[:num_selections]
     
     def _score_variant(self, image: Image.Image, prompt: str) -> QualityScores:
-        """Score a single variant with all criteria"""
+        """Scores a single variant with all criteria.
+
+        Args:
+            image: The image to score.
+            prompt: The prompt that was used to generate the variant.
+
+        Returns:
+            A QualityScores object containing the scores for the variant.
+        """
         
         # CLIP aesthetic scoring
         clip_score = self.clip_scorer.score_aesthetic_quality(image)
@@ -703,7 +997,14 @@ class VariantSelector:
         )
     
     def _generate_selection_reason(self, variant: VariantResult) -> str:
-        """Generate human-readable reason for selection"""
+        """Generates a human-readable reason for the selection of a variant.
+
+        Args:
+            variant: The VariantResult object.
+
+        Returns:
+            A string containing the selection reason.
+        """
         
         reasons = []
         
@@ -745,7 +1046,14 @@ class VariantSelector:
         return "; ".join(reasons)
     
     def get_scoring_explanation(self, variant: VariantResult) -> str:
-        """Get detailed explanation of scoring for a variant"""
+        """Gets a detailed explanation of the scoring for a variant.
+
+        Args:
+            variant: The VariantResult object.
+
+        Returns:
+            A string containing the scoring explanation.
+        """
         
         explanation = [
             f"Variant: {variant.variant_id}",
@@ -777,7 +1085,15 @@ class VariantSelector:
         style_consistency: Optional[float] = None,
         artifacts: Optional[float] = None
     ):
-        """Update scoring weights"""
+        """Updates the scoring weights.
+
+        Args:
+            weights: A dictionary of weights to update.
+            clip_aesthetic: The new weight for the CLIP aesthetic score.
+            composition: The new weight for the composition score.
+            style_consistency: The new weight for the style consistency score.
+            artifacts: The new weight for the artifacts score.
+        """
         
         if weights:
             self.weights.update(weights)
@@ -807,7 +1123,12 @@ class VariantSelector:
         results: List[VariantResult],
         output_path: Path
     ):
-        """Save scoring results to file"""
+        """Saves the scoring results to a file.
+
+        Args:
+            results: A list of VariantResult objects.
+            output_path: The path to save the results to.
+        """
         
         try:
             results_data = {

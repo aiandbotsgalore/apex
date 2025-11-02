@@ -40,7 +40,23 @@ class QualityMode(Enum):
 
 @dataclass
 class AssemblyJob:
-    """Complete video assembly job definition"""
+    """Represents a complete video assembly job.
+
+    Attributes:
+        job_id: The unique identifier for the job.
+        timeline: The timeline to be assembled.
+        output_path: The path to the output file.
+        settings: The export settings for the job.
+        assembly_mode: The assembly mode to use.
+        quality_mode: The quality mode for the assembly.
+        parallel_processing: Whether to use parallel processing.
+        max_workers: The maximum number of workers for parallel processing.
+        validate_broadcast_standards: Whether to validate against broadcast standards.
+        generate_preview: Whether to generate a preview.
+        quality_analysis: Whether to perform quality analysis.
+        progress_callback: An optional callback for progress updates.
+        error_callback: An optional callback for error reporting.
+    """
     job_id: str
     timeline: Timeline
     output_path: str
@@ -64,7 +80,18 @@ class AssemblyJob:
 
 @dataclass
 class ProcessingResult:
-    """Result of video processing"""
+    """Represents the result of a video processing job.
+
+    Attributes:
+        success: Whether the processing was successful.
+        output_path: The path to the output file.
+        duration: The duration of the output video in seconds.
+        processing_time: The time taken for processing in seconds.
+        frame_count: The number of frames in the output video.
+        quality_metrics: A dictionary of quality metrics.
+        errors: A list of errors that occurred during processing.
+        warnings: A list of warnings that occurred during processing.
+    """
     success: bool
     output_path: str
     duration: float
@@ -76,9 +103,17 @@ class ProcessingResult:
 
 
 class VideoAssembler:
-    """Professional video assembly engine"""
+    """A professional video assembly engine.
+
+    This class orchestrates the entire video assembly process, including:
+    - Loading timelines
+    - Assembling videos from timelines
+    - Applying transitions, color grading, and motion effects
+    - Exporting the final video
+    """
     
     def __init__(self):
+        """Initializes the VideoAssembler."""
         self.timeline: Optional[Timeline] = None
         self.transition_engine: Optional[TransitionEngine] = None
         self.color_grader: Optional[ColorGrader] = None
@@ -100,7 +135,11 @@ class VideoAssembler:
         self.thread_pool_size = 4
     
     def load_timeline(self, timeline: Timeline) -> None:
-        """Load timeline and initialize engines"""
+        """Loads a timeline and initializes the processing engines.
+
+        Args:
+            timeline: The timeline to load.
+        """
         self.timeline = timeline
         
         # Initialize engines
@@ -110,7 +149,14 @@ class VideoAssembler:
         self.exporter = BroadcastExporter(timeline)
     
     def assemble_video(self, job: AssemblyJob) -> ProcessingResult:
-        """Assemble complete video from timeline"""
+        """Assembles a complete video from a timeline.
+
+        Args:
+            job: The assembly job to process.
+
+        Returns:
+            A ProcessingResult object with the results of the assembly.
+        """
         start_time = time.time()
         self.current_job = job
         
@@ -531,21 +577,29 @@ class VideoAssembler:
             return {"error": f"Quality analysis failed: {str(e)}"}
     
     def get_processing_statistics(self) -> Dict:
-        """Get assembly processing statistics"""
+        """Gets the processing statistics for the assembly engine.
+
+        Returns:
+            A dictionary of processing statistics.
+        """
         return self.processing_stats.copy()
     
     def clear_cache(self) -> None:
-        """Clear processing cache"""
+        """Clears the processing cache."""
         # Implementation would clear any cached frames, filters, etc.
         pass
 
 
 class AssemblyPreset:
-    """Pre-configured assembly presets for common workflows"""
+    """Provides pre-configured assembly presets for common workflows."""
     
     @staticmethod
     def get_broadcast_preset() -> AssemblyJob:
-        """Get broadcast-quality assembly preset"""
+        """Gets a broadcast-quality assembly preset.
+
+        Returns:
+            An AssemblyJob object with broadcast-quality settings.
+        """
         timeline = Timeline(frame_rate=29.97, resolution=(1920, 1080))
         
         settings = ExportSettings()
@@ -569,7 +623,11 @@ class AssemblyPreset:
     
     @staticmethod
     def get_cinema_preset() -> AssemblyJob:
-        """Get cinema-quality assembly preset"""
+        """Gets a cinema-quality assembly preset.
+
+        Returns:
+            An AssemblyJob object with cinema-quality settings.
+        """
         timeline = Timeline(frame_rate=24.0, resolution=(3840, 2160))
         
         settings = ExportSettings()
@@ -593,7 +651,11 @@ class AssemblyPreset:
     
     @staticmethod
     def get_web_preset() -> AssemblyJob:
-        """Get web-optimized assembly preset"""
+        """Gets a web-optimized assembly preset.
+
+        Returns:
+            An AssemblyJob object with web-optimized settings.
+        """
         timeline = Timeline(frame_rate=30.0, resolution=(1920, 1080))
         
         settings = ExportSettings()
@@ -618,7 +680,11 @@ class AssemblyPreset:
 
 # Utility functions for professional video assembly
 def create_sample_timeline() -> Timeline:
-    """Create a sample timeline for testing"""
+    """Creates a sample timeline for testing.
+
+    Returns:
+        A sample Timeline object.
+    """
     timeline = Timeline(frame_rate=30.0, resolution=(1920, 1080))
     
     # Add sample clips
@@ -641,7 +707,11 @@ def create_sample_timeline() -> Timeline:
 
 
 def setup_professional_color_grading(grader: ColorGrader) -> None:
-    """Setup professional color grading pipeline"""
+    """Sets up a professional color grading pipeline.
+
+    Args:
+        grader: The ColorGrader object to configure.
+    """
     # Stage 1: Primary correction
     grader.primary_correction = ColorCorrection(
         exposure=0.0,
@@ -674,7 +744,11 @@ def setup_professional_color_grading(grader: ColorGrader) -> None:
 
 
 def setup_ken_burns_effect() -> CameraMovement:
-    """Setup Ken Burns camera movement"""
+    """Sets up a Ken Burns camera movement effect.
+
+    Returns:
+        A CameraMovement object configured for a Ken Burns effect.
+    """
     movement = CameraMovement(
         motion_type=MotionType.KEN_BURNS_COMBINED,
         start_time=0.0,

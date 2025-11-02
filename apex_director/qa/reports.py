@@ -17,19 +17,18 @@ from .score_calculator import QualityScoreBreakdown
 
 
 class QualityReportGenerator:
-    """
-    Quality Report Generator
-    
-    Generates comprehensive QA reports in multiple formats:
-    - JSON reports for machine processing
-    - HTML reports for human viewing
-    - CSV reports for data analysis
-    - PDF reports for formal documentation
-    - Executive summaries for stakeholders
+    """A class for generating comprehensive QA reports in multiple formats.
+
+    This class can generate reports in JSON, HTML, CSV, and PDF formats, as
+    well as executive summaries for stakeholders.
     """
     
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize report generator"""
+        """Initializes the QualityReportGenerator.
+
+        Args:
+            config: A dictionary of configuration parameters.
+        """
         self.config = config or self._default_config()
         self.logger = logging.getLogger('apex_director.qa.reports')
         
@@ -56,16 +55,15 @@ class QualityReportGenerator:
     
     def generate_comprehensive_report(self, qa_report: QAReport, breakdown: QualityScoreBreakdown, 
                                     output_dir: str = "qa_reports") -> Dict[str, str]:
-        """
-        Generate comprehensive QA report in multiple formats
-        
+        """Generates a comprehensive QA report in multiple formats.
+
         Args:
-            qa_report: QA validation report
-            breakdown: Detailed quality score breakdown
-            output_dir: Base output directory
-            
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+            output_dir: The base output directory for the reports.
+
         Returns:
-            Dictionary with paths to generated reports
+            A dictionary with paths to the generated reports.
         """
         self.logger.info(f"Generating comprehensive QA reports in {output_dir}")
         
@@ -128,7 +126,17 @@ class QualityReportGenerator:
     
     def _generate_json_report(self, qa_report: QAReport, breakdown: QualityScoreBreakdown,
                             output_dir: str, base_filename: str) -> str:
-        """Generate JSON report for machine processing"""
+        """Generates a JSON report for machine processing.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+            output_dir: The base output directory for the report.
+            base_filename: The base filename for the report.
+
+        Returns:
+            The path to the generated report.
+        """
         try:
             filename = f"{base_filename}.json"
             filepath = os.path.join(output_dir, self.output_dirs['json'], filename)
@@ -166,7 +174,17 @@ class QualityReportGenerator:
     
     def _generate_html_report(self, qa_report: QAReport, breakdown: QualityScoreBreakdown,
                             output_dir: str, base_filename: str) -> str:
-        """Generate HTML report for human viewing"""
+        """Generates an HTML report for human viewing.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+            output_dir: The base output directory for the report.
+            base_filename: The base filename for the report.
+
+        Returns:
+            The path to the generated report.
+        """
         try:
             filename = f"{base_filename}.html"
             filepath = os.path.join(output_dir, self.output_dirs['html'], filename)
@@ -185,7 +203,17 @@ class QualityReportGenerator:
     
     def _generate_csv_report(self, qa_report: QAReport, breakdown: QualityScoreBreakdown,
                            output_dir: str, base_filename: str) -> str:
-        """Generate CSV report for data analysis"""
+        """Generates a CSV report for data analysis.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+            output_dir: The base output directory for the report.
+            base_filename: The base filename for the report.
+
+        Returns:
+            The path to the generated report.
+        """
         try:
             filename = f"{base_filename}.csv"
             filepath = os.path.join(output_dir, self.output_dirs['csv'], filename)
@@ -235,7 +263,17 @@ class QualityReportGenerator:
     
     def _generate_executive_summary(self, qa_report: QAReport, breakdown: QualityScoreBreakdown,
                                   output_dir: str, base_filename: str) -> str:
-        """Generate executive summary report"""
+        """Generates an executive summary report.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+            output_dir: The base output directory for the report.
+            base_filename: The base filename for the report.
+
+        Returns:
+            The path to the generated report.
+        """
         try:
             filename = f"{base_filename}_executive.md"
             filepath = os.path.join(output_dir, self.output_dirs['executive'], filename)
@@ -312,7 +350,17 @@ class QualityReportGenerator:
     
     def _generate_technical_report(self, qa_report: QAReport, breakdown: QualityScoreBreakdown,
                                  output_dir: str, base_filename: str) -> str:
-        """Generate technical detail report"""
+        """Generates a technical detail report.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+            output_dir: The base output directory for the report.
+            base_filename: The base filename for the report.
+
+        Returns:
+            The path to the generated report.
+        """
         try:
             filename = f"{base_filename}_technical.md"
             filepath = os.path.join(output_dir, self.output_dirs['pdf'], filename)
@@ -425,7 +473,18 @@ class QualityReportGenerator:
     
     def _generate_comparison_report(self, qa_report: QAReport, breakdown: QualityScoreBreakdown,
                                   output_dir: str, base_filename: str) -> Optional[str]:
-        """Generate comparison report with historical data"""
+        """Generates a comparison report with historical data.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+            output_dir: The base output directory for the report.
+            base_filename: The base filename for the report.
+
+        Returns:
+            The path to the generated report, or None if it could not be
+            generated.
+        """
         try:
             # Placeholder for historical comparison
             # In a real implementation, would compare with previous QA results
@@ -456,7 +515,15 @@ This section would contain:
             return None
     
     def _create_html_template(self, qa_report: QAReport, breakdown: QualityScoreBreakdown) -> str:
-        """Create comprehensive HTML template"""
+        """Creates a comprehensive HTML template for a QA report.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A string containing the HTML template.
+        """
         try:
             # Color scheme based on quality score
             score_color = self._get_score_color(breakdown.overall_score)
@@ -628,7 +695,15 @@ This section would contain:
             return f"<html><body><h1>Error generating report</h1><p>{str(e)}</p></body></html>"
     
     def _extract_quality_metrics(self, qa_report: QAReport, breakdown: QualityScoreBreakdown) -> Dict:
-        """Extract key quality metrics"""
+        """Extracts key quality metrics from the QA report and breakdown.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A dictionary of key quality metrics.
+        """
         return {
             'overall_quality_score': breakdown.overall_score,
             'component_scores': breakdown.component_scores,
@@ -640,7 +715,14 @@ This section would contain:
         }
     
     def _generate_compliance_status(self, qa_report: QAReport) -> Dict:
-        """Generate compliance status summary"""
+        """Generates a compliance status summary.
+
+        Args:
+            qa_report: The QA validation report.
+
+        Returns:
+            A dictionary containing the compliance status summary.
+        """
         return {
             'broadcast_compliance': qa_report.broadcast_compliance_score > 80,
             'ire_levels': qa_report.broadcast_compliance_score > 75,
@@ -650,7 +732,15 @@ This section would contain:
         }
     
     def _generate_recommendations_summary(self, qa_report: QAReport, breakdown: QualityScoreBreakdown) -> List[str]:
-        """Generate summary of key recommendations"""
+        """Generates a summary of key recommendations.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A list of key recommendations.
+        """
         recommendations = []
         
         if breakdown.critical_issues:
@@ -668,7 +758,14 @@ This section would contain:
         return recommendations[:5]  # Limit to top 5
     
     def _get_status_label(self, score: float) -> str:
-        """Get status label based on score"""
+        """Gets a status label based on a score.
+
+        Args:
+            score: The score to get the status label for.
+
+        Returns:
+            The status label.
+        """
         if score >= 90:
             return "EXCELLENT"
         elif score >= 80:
@@ -681,7 +778,14 @@ This section would contain:
             return "POOR"
     
     def _get_quality_level(self, score: float) -> str:
-        """Get quality level description"""
+        """Gets a quality level description based on a score.
+
+        Args:
+            score: The score to get the quality level for.
+
+        Returns:
+            The quality level description.
+        """
         if score >= 95:
             return "Exceptional"
         elif score >= 85:
@@ -696,7 +800,14 @@ This section would contain:
             return "Poor"
     
     def _get_score_color(self, score: float) -> str:
-        """Get color for score visualization"""
+        """Gets a color for a score visualization.
+
+        Args:
+            score: The score to get the color for.
+
+        Returns:
+            The color for the score visualization.
+        """
         if score >= 90:
             return "#28a745"  # Green
         elif score >= 80:
@@ -709,7 +820,15 @@ This section would contain:
             return "#dc3545"  # Red
     
     def _get_executive_summary(self, score: float, pass_status: bool) -> str:
-        """Generate executive summary text"""
+        """Generates an executive summary text based on a score and pass status.
+
+        Args:
+            score: The overall quality score.
+            pass_status: Whether the content passed the quality check.
+
+        Returns:
+            The executive summary text.
+        """
         if score >= 90 and pass_status:
             return "Content demonstrates exceptional quality and is approved for immediate delivery across all platforms."
         elif score >= 80 and pass_status:
@@ -720,7 +839,17 @@ This section would contain:
             return "Content requires significant quality improvements before delivery approval can be granted."
     
     def _get_delivery_recommendation(self, score: float, pass_status: bool, critical_issues: List[str]) -> str:
-        """Get delivery recommendation"""
+        """Gets a delivery recommendation based on a score, pass status, and
+        critical issues.
+
+        Args:
+            score: The overall quality score.
+            pass_status: Whether the content passed the quality check.
+            critical_issues: A list of critical issues.
+
+        Returns:
+            The delivery recommendation.
+        """
         if not critical_issues and pass_status:
             return "APPROVED FOR IMMEDIATE DELIVERY"
         elif score >= 80:
@@ -731,7 +860,15 @@ This section would contain:
             return "NOT APPROVED - MAJOR REVISIONS REQUIRED"
     
     def _assess_delivery_risk(self, breakdown: QualityScoreBreakdown, qa_report: QAReport) -> str:
-        """Assess delivery risk"""
+        """Assesses the delivery risk of a piece of content.
+
+        Args:
+            breakdown: The detailed quality score breakdown.
+            qa_report: The QA validation report.
+
+        Returns:
+            The delivery risk (LOW RISK, MEDIUM RISK, or HIGH RISK).
+        """
         risk_score = 0
         
         if breakdown.overall_score < 70:
@@ -753,7 +890,15 @@ This section would contain:
             return "LOW RISK"
     
     def _assess_timeline_impact(self, breakdown: QualityScoreBreakdown, pass_status: bool) -> str:
-        """Assess timeline impact"""
+        """Assesses the timeline impact of the quality assessment.
+
+        Args:
+            breakdown: The detailed quality score breakdown.
+            pass_status: Whether the content passed the quality check.
+
+        Returns:
+            A string describing the timeline impact.
+        """
         if pass_status:
             return "NO DELAY - On schedule for delivery"
         elif breakdown.overall_score >= 70:
@@ -762,12 +907,31 @@ This section would contain:
             return "SIGNIFICANT DELAY - 1 week additional time needed"
     
     def _assess_component_detail(self, qa_report: QAReport, component: str) -> str:
-        """Assess component-specific details"""
+        """Assesses the details of a specific component.
+
+        This is a placeholder implementation.
+
+        Args:
+            qa_report: The QA validation report.
+            component: The name of the component to assess.
+
+        Returns:
+            A string describing the component details.
+        """
         # Placeholder for component-specific analysis
         return "Analysis complete"
     
     def _assess_data_completeness(self, qa_report: QAReport, breakdown: QualityScoreBreakdown) -> str:
-        """Assess completeness of analysis data"""
+        """Assesses the completeness of the analysis data.
+
+        Args:
+            qa_report: The QA validation report.
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A string describing the data completeness (PARTIAL, MOSTLY COMPLETE,
+            or COMPLETE).
+        """
         completeness_score = 0
         total_components = 6  # Expected number of components
         
@@ -785,7 +949,14 @@ This section would contain:
             return "PARTIAL"
     
     def _assess_reliability(self, breakdown: QualityScoreBreakdown) -> str:
-        """Assess reliability of measurements"""
+        """Assesses the reliability of the measurements.
+
+        Args:
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A string describing the reliability (LOW, MEDIUM, or HIGH).
+        """
         if breakdown.confidence_level > 0.9:
             return "HIGH"
         elif breakdown.confidence_level > 0.7:
@@ -794,11 +965,27 @@ This section would contain:
             return "LOW"
     
     def _assess_historical_performance(self, breakdown: QualityScoreBreakdown) -> str:
-        """Assess historical performance (placeholder)"""
+        """Assesses the historical performance.
+
+        This is a placeholder implementation.
+
+        Args:
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A string describing the historical performance.
+        """
         return "Historical data analysis pending"
     
     def _assess_improvement_trajectory(self, breakdown: QualityScoreBreakdown) -> str:
-        """Assess improvement trajectory"""
+        """Assesses the improvement trajectory.
+
+        Args:
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A string describing the improvement trajectory.
+        """
         if breakdown.score_trend == "improving":
             return "Positive improvement trend detected"
         elif breakdown.score_trend == "declining":
@@ -807,15 +994,34 @@ This section would contain:
             return "Stable performance level"
     
     def _estimate_processing_time(self, qa_report: QAReport) -> str:
-        """Estimate processing time (placeholder)"""
+        """Estimates the processing time.
+
+        This is a placeholder implementation.
+
+        Args:
+            qa_report: The QA validation report.
+
+        Returns:
+            A string describing the estimated processing time.
+        """
         return "Analysis completed successfully"
     
     def _assess_system_load(self) -> str:
-        """Assess system load during processing (placeholder)"""
+        """Assesses the system load during processing.
+
+        This is a placeholder implementation.
+
+        Returns:
+            A string describing the system load.
+        """
         return "Normal processing load"
     
     def _load_templates(self) -> Dict:
-        """Load report templates"""
+        """Loads the report templates.
+
+        Returns:
+            A dictionary of report templates.
+        """
         return {
             'html': 'comprehensive',
             'json': 'detailed',
@@ -824,7 +1030,11 @@ This section would contain:
         }
     
     def _default_config(self) -> Dict:
-        """Default configuration for report generator"""
+        """Returns the default configuration for the report generator.
+
+        Returns:
+            A dictionary of default configuration parameters.
+        """
         return {
             'format_options': {
                 'include_detailed_metrics': True,

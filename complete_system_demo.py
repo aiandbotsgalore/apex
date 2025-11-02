@@ -38,7 +38,15 @@ from apex_director.qa.metrics_viz import MetricsVisualizer
 
 
 async def generate_test_audio(output_path: Path, duration_seconds: int = 30) -> Path:
-    """Generate a test electronic music file"""
+    """Generates a test electronic music file for demonstration purposes.
+
+    Args:
+        output_path: The path to save the generated audio file.
+        duration_seconds: The duration of the audio file in seconds.
+
+    Returns:
+        The path to the generated audio file.
+    """
     try:
         import numpy as np
         import scipy.io.wavfile as wavfile

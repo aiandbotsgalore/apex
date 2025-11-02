@@ -60,7 +60,17 @@ class RecoveryStrategy(Enum):
 
 @dataclass
 class ErrorContext:
-    """Context information for an error"""
+    """Provides context information for an error.
+
+    Attributes:
+        component: The component where the error occurred.
+        operation: The operation being performed when the error occurred.
+        user_id: The ID of the user associated with the error.
+        session_id: The ID of the session associated with the error.
+        workflow_id: The ID of the workflow associated with the error.
+        task_id: The ID of the task associated with the error.
+        additional_data: A dictionary of additional context data.
+    """
     component: str
     operation: str
     user_id: Optional[str] = None
@@ -72,7 +82,25 @@ class ErrorContext:
 
 @dataclass
 class ErrorRecord:
-    """Complete error record"""
+    """Represents a complete record of an error.
+
+    Attributes:
+        id: The unique identifier for the error record.
+        timestamp: The timestamp when the error occurred.
+        severity: The severity of the error.
+        category: The category of the error.
+        message: A summary of the error message.
+        details: Detailed information about the error.
+        context: The context in which the error occurred.
+        stack_trace: The stack trace of the error, if available.
+        recovery_strategy: The strategy to use for recovering from the error.
+        retry_count: The number of times a retry has been attempted.
+        max_retries: The maximum number of retries allowed.
+        resolved: Whether the error has been resolved.
+        resolved_at: The timestamp when the error was resolved.
+        resolution_notes: Notes about the resolution of the error.
+        related_errors: A list of IDs of related errors.
+    """
     id: str
     timestamp: datetime
     severity: ErrorSeverity
@@ -90,6 +118,11 @@ class ErrorRecord:
     related_errors: List[str] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the ErrorRecord to a dictionary.
+
+        Returns:
+            A dictionary representation of the ErrorRecord.
+        """
         data = asdict(self)
         data['timestamp'] = self.timestamp.isoformat()
         data['severity'] = self.severity.value
@@ -101,19 +134,38 @@ class ErrorRecord:
     
     @property
     def is_retryable(self) -> bool:
-        """Check if error is retryable"""
+        """Checks if the error is retryable.
+
+        Returns:
+            True if the error is retryable, False otherwise.
+        """
         return (self.recovery_strategy in [RecoveryStrategy.RETRY, RecoveryStrategy.FALLBACK] and
                 self.retry_count < self.max_retries)
     
     @property
     def age_hours(self) -> float:
-        """Get error age in hours"""
+        """Gets the age of the error in hours.
+
+        Returns:
+            The age of the error in hours.
+        """
         return (datetime.utcnow() - self.timestamp).total_seconds() / 3600
 
 
 @dataclass
 class RecoveryAttempt:
-    """Record of a recovery attempt"""
+    """Represents a record of a recovery attempt for an error.
+
+    Attributes:
+        id: The unique identifier for the recovery attempt.
+        error_id: The ID of the error that was being recovered from.
+        strategy: The recovery strategy that was used.
+        attempted_at: The timestamp when the recovery attempt was made.
+        success: Whether the recovery attempt was successful.
+        duration_seconds: The duration of the recovery attempt in seconds.
+        details: Details about the recovery attempt.
+        result_data: A dictionary of data resulting from the recovery attempt.
+    """
     id: str
     error_id: str
     strategy: RecoveryStrategy
@@ -125,9 +177,22 @@ class RecoveryAttempt:
 
 
 class ErrorHandler:
-    """Comprehensive error handling and recovery system"""
+    """A comprehensive system for handling and recovering from errors.
+
+    This class provides functionality for:
+    - Recording and logging errors with context and severity
+    - Automatically attempting to recover from errors using various strategies
+    - Triggering custom error handlers
+    - Tracking error statistics
+    - Exporting error reports
+    """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """Initializes the ErrorHandler.
+
+        Args:
+            config: An optional dictionary of configuration parameters.
+        """
         self.config = config or self._get_default_config()
         self.errors: Dict[str, ErrorRecord] = {}
         self.recovery_attempts: Dict[str, List[RecoveryAttempt]] = {}
@@ -224,19 +289,18 @@ class ErrorHandler:
                     category: Optional[ErrorCategory] = None,
                     recovery_strategy: Optional[RecoveryStrategy] = None,
                     custom_message: Optional[str] = None) -> str:
-        """
-        Handle an error with comprehensive logging and recovery
-        
+        """Handles an error with comprehensive logging and recovery.
+
         Args:
-            error: The exception that occurred
-            context: Context information about where the error occurred
-            severity: Severity level of the error
-            category: Category of the error
-            recovery_strategy: Preferred recovery strategy
-            custom_message: Custom error message
-            
+            error: The exception that occurred.
+            context: Context information about where the error occurred.
+            severity: The severity level of the error.
+            category: The category of the error.
+            recovery_strategy: The preferred recovery strategy.
+            custom_message: A custom error message.
+
         Returns:
-            Error ID for tracking
+            The ID of the error record for tracking.
         """
         # Determine error category if not provided
         if category is None:
@@ -551,7 +615,14 @@ class ErrorHandler:
     # Public interface methods
     
     def get_error_details(self, error_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed information about an error"""
+        """Gets detailed information about an error.
+
+        Args:
+            error_id: The ID of the error.
+
+        Returns:
+            A dictionary of error details, or None if the error is not found.
+        """
         error_record = self.errors.get(error_id)
         if not error_record:
             return None
@@ -561,7 +632,11 @@ class ErrorHandler:
         return data
     
     def get_error_statistics(self) -> Dict[str, Any]:
-        """Get error statistics"""
+        """Gets statistics about the errors that have occurred.
+
+        Returns:
+            A dictionary of error statistics.
+        """
         total_errors = len(self.errors)
         resolved_errors = len([e for e in self.errors.values() if e.resolved])
         unresolved_errors = total_errors - resolved_errors
@@ -599,7 +674,15 @@ class ErrorHandler:
         }
     
     def get_errors_by_category(self, category: ErrorCategory, include_resolved: bool = True) -> List[Dict[str, Any]]:
-        """Get errors filtered by category"""
+        """Gets a list of errors filtered by category.
+
+        Args:
+            category: The category to filter by.
+            include_resolved: Whether to include resolved errors in the results.
+
+        Returns:
+            A list of errors in the specified category.
+        """
         filtered_errors = []
         for error in self.errors.values():
             if error.category == category:
@@ -609,7 +692,15 @@ class ErrorHandler:
         return filtered_errors
     
     def export_error_report(self, file_path: str, include_resolved: bool = True) -> bool:
-        """Export comprehensive error report"""
+        """Exports a comprehensive error report to a file.
+
+        Args:
+            file_path: The path to the file to export the report to.
+            include_resolved: Whether to include resolved errors in the report.
+
+        Returns:
+            True if the report was successfully exported, False otherwise.
+        """
         try:
             report = {
                 'generated_at': datetime.utcnow().isoformat(),
@@ -634,19 +725,36 @@ class ErrorHandler:
             return False
     
     def add_error_handler(self, category: ErrorCategory, handler: Callable):
-        """Add custom error handler for a category"""
+        """Adds a custom error handler for a specific category.
+
+        Args:
+            category: The category to add the handler for.
+            handler: The handler function to add.
+        """
         if category not in self.error_handlers:
             self.error_handlers[category] = []
         self.error_handlers[category].append(handler)
         logger.info(f"Added error handler for {category.value}")
     
     def add_global_error_handler(self, handler: Callable):
-        """Add global error handler for all errors"""
+        """Adds a global error handler for all errors.
+
+        Args:
+            handler: The handler function to add.
+        """
         self.global_handlers.append(handler)
         logger.info("Added global error handler")
     
     def resolve_error(self, error_id: str, resolution_notes: str) -> bool:
-        """Manually resolve an error"""
+        """Manually resolves an error.
+
+        Args:
+            error_id: The ID of the error to resolve.
+            resolution_notes: Notes about the resolution.
+
+        Returns:
+            True if the error was successfully resolved, False otherwise.
+        """
         if error_id in self.errors:
             self._mark_error_resolved(error_id, resolution_notes)
             logger.info(f"Manually resolved error {error_id}")
@@ -654,7 +762,14 @@ class ErrorHandler:
         return False
     
     def retry_error(self, error_id: str) -> bool:
-        """Manually retry an error"""
+        """Manually retries an error.
+
+        Args:
+            error_id: The ID of the error to retry.
+
+        Returns:
+            True if the error was successfully retried, False otherwise.
+        """
         if error_id in self.errors:
             error_record = self.errors[error_id]
             if error_record.is_retryable:
@@ -666,7 +781,11 @@ class ErrorHandler:
         return False
     
     def get_critical_errors(self) -> List[Dict[str, Any]]:
-        """Get all critical errors that need attention"""
+        """Gets a list of all critical errors that need attention.
+
+        Returns:
+            A list of critical errors.
+        """
         critical_errors = []
         for error in self.errors.values():
             if (error.severity in [ErrorSeverity.CRITICAL, ErrorSeverity.FATAL] and 
@@ -676,7 +795,14 @@ class ErrorHandler:
         return critical_errors
     
     def get_workflow_errors(self, workflow_id: str) -> List[Dict[str, Any]]:
-        """Get errors related to a specific workflow"""
+        """Gets a list of errors related to a specific workflow.
+
+        Args:
+            workflow_id: The ID of the workflow.
+
+        Returns:
+            A list of errors related to the workflow.
+        """
         workflow_errors = []
         for error in self.errors.values():
             if error.context.workflow_id == workflow_id:

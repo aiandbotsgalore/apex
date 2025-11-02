@@ -13,24 +13,22 @@ warnings.filterwarnings('ignore')
 
 
 class SectionDetector:
-    """
-    Song structure detection using audio similarity and segmentation.
-    
-    Features:
-    - Beat-synchronous feature extraction
-    - Similarity matrix computation
-    - Automatic section boundary detection
-    - Section labeling (verse, chorus, bridge)
-    - Structure complexity analysis
+    """Detects the structural sections of a song.
+
+    This class uses audio similarity and segmentation to identify sections
+    like verses, choruses, and bridges.
+
+    Attributes:
+        sample_rate: The sample rate to use for audio processing.
+        hop_length: The hop length for feature extraction.
     """
     
     def __init__(self, sample_rate: int = 44100, hop_length: int = 512):
-        """
-        Initialize section detector.
-        
+        """Initializes the SectionDetector.
+
         Args:
-            sample_rate: Audio sample rate
-            hop_length: Analysis hop length
+            sample_rate: The sample rate to use for audio processing.
+            hop_length: The hop length for feature extraction.
         """
         self.sample_rate = sample_rate
         self.hop_length = hop_length
@@ -48,16 +46,15 @@ class SectionDetector:
         
     def analyze(self, audio_data: np.ndarray, beat_results: Dict[str, Any], 
                spectral_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Perform comprehensive section detection analysis.
-        
+        """Performs a comprehensive section detection analysis.
+
         Args:
-            audio_data: Audio signal array
-            beat_results: Results from beat detection
-            spectral_results: Results from spectral analysis
-            
+            audio_data: The audio signal array.
+            beat_results: The results from the beat detection.
+            spectral_results: The results from the spectral analysis.
+
         Returns:
-            Dictionary containing section detection results
+            A dictionary containing the section detection results.
         """
         try:
             # Basic validation
@@ -131,15 +128,14 @@ class SectionDetector:
             }
     
     def _extract_beat_sync_features(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Extract features synchronized with beats.
-        
+        """Extracts features that are synchronized with the detected beats.
+
         Args:
-            audio_data: Audio signal
-            beat_results: Beat detection results
-            
+            audio_data: The audio signal.
+            beat_results: The results from the beat detection.
+
         Returns:
-            Beat-synchronous features
+            A dictionary of beat-synchronous features.
         """
         try:
             beat_times = np.array(beat_results.get('beat_times', []))
@@ -236,14 +232,14 @@ class SectionDetector:
             }
     
     def _compute_similarity_matrix(self, feature_data: Dict[str, Any]) -> np.ndarray:
-        """
-        Compute self-similarity matrix for section detection.
-        
+        """Computes a self-similarity matrix from the beat-synchronous
+        features.
+
         Args:
-            feature_data: Beat-synchronous features
-            
+            feature_data: The beat-synchronous features.
+
         Returns:
-            Similarity matrix
+            A NumPy array representing the self-similarity matrix.
         """
         try:
             features = feature_data.get('features', np.array([]))
@@ -279,16 +275,15 @@ class SectionDetector:
     
     def _detect_boundaries(self, similarity_matrix: np.ndarray, feature_data: Dict[str, Any], 
                           duration: float) -> List[float]:
-        """
-        Detect section boundaries from similarity matrix.
-        
+        """Detects section boundaries from the similarity matrix.
+
         Args:
-            similarity_matrix: Self-similarity matrix
-            feature_data: Beat-synchronous features
-            duration: Audio duration in seconds
-            
+            similarity_matrix: The self-similarity matrix.
+            feature_data: The beat-synchronous features.
+            duration: The total duration of the audio in seconds.
+
         Returns:
-            List of boundary times in seconds
+            A list of boundary times in seconds.
         """
         try:
             if similarity_matrix.size == 0:
@@ -349,17 +344,17 @@ class SectionDetector:
     
     def _segment_sections(self, audio_data: np.ndarray, boundaries: List[float], 
                          features: Dict[str, Any], beat_results: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Segment audio into sections based on boundaries.
-        
+        """Segments the audio into sections based on the detected boundaries.
+
         Args:
-            audio_data: Audio signal
-            boundaries: Section boundary times
-            features: Beat-synchronous features
-            beat_results: Beat detection results
-            
+            audio_data: The audio signal.
+            boundaries: A list of section boundary times.
+            features: The beat-synchronous features.
+            beat_results: The results from the beat detection.
+
         Returns:
-            List of sections with characteristics
+            A list of dictionaries, where each dictionary represents a
+            section.
         """
         try:
             sections = []
@@ -400,16 +395,15 @@ class SectionDetector:
     
     def _calculate_section_features(self, section_audio: np.ndarray, features: Dict[str, Any], 
                                   start_time: float) -> Dict[str, Any]:
-        """
-        Calculate features for a specific section.
-        
+        """Calculates features for a specific section of audio.
+
         Args:
-            section_audio: Audio for the section
-            features: Beat-synchronous features
-            start_time: Section start time
-            
+            section_audio: The audio data for the section.
+            features: The beat-synchronous features.
+            start_time: The start time of the section.
+
         Returns:
-            Section features dictionary
+            A dictionary of features for the section.
         """
         try:
             section_features = {}
@@ -462,15 +456,14 @@ class SectionDetector:
     
     def _analyze_section_characteristics(self, sections: List[Dict[str, Any]], 
                                        spectral_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Analyze characteristics of detected sections.
-        
+        """Analyzes the characteristics of the detected sections.
+
         Args:
-            sections: List of sections
-            spectral_results: Spectral analysis results
-            
+            sections: A list of the detected sections.
+            spectral_results: The results from the spectral analysis.
+
         Returns:
-            Section analysis results
+            A dictionary with the analysis of the section characteristics.
         """
         try:
             analysis = {
@@ -513,14 +506,14 @@ class SectionDetector:
             }
     
     def _find_repetition_patterns(self, sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Find repetition patterns in sections.
-        
+        """Finds repetition patterns among the detected sections.
+
         Args:
-            sections: List of sections
-            
+            sections: A list of the detected sections.
+
         Returns:
-            List of repetition patterns
+            A list of dictionaries, where each dictionary describes a
+            repetition pattern.
         """
         try:
             patterns = []
@@ -550,15 +543,14 @@ class SectionDetector:
             return []
     
     def _calculate_section_similarity(self, section1: Dict[str, Any], section2: Dict[str, Any]) -> float:
-        """
-        Calculate similarity between two sections.
-        
+        """Calculates the similarity between two sections.
+
         Args:
-            section1: First section
-            section2: Second section
-            
+            section1: The first section.
+            section2: The second section.
+
         Returns:
-            Similarity score (0.0 to 1.0)
+            A similarity score between 0.0 and 1.0.
         """
         try:
             features1 = section1.get('features', {})
@@ -596,15 +588,14 @@ class SectionDetector:
     
     def _label_sections(self, sections: List[Dict[str, Any]], 
                        section_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Label sections based on their characteristics.
-        
+        """Labels the detected sections based on their characteristics.
+
         Args:
-            sections: List of sections
-            section_analysis: Section analysis results
-            
+            sections: A list of the detected sections.
+            section_analysis: The results from the section analysis.
+
         Returns:
-            List of labeled sections
+            A list of the sections, with added labels.
         """
         try:
             labeled_sections = []
@@ -637,18 +628,17 @@ class SectionDetector:
     
     def _classify_section(self, energy: float, complexity: float, duration: float, 
                          index: int, total_sections: int) -> str:
-        """
-        Classify section type based on characteristics.
-        
+        """Classifies a section type based on its characteristics.
+
         Args:
-            energy: Section energy level
-            complexity: Section complexity score
-            duration: Section duration
-            index: Section index
-            total_sections: Total number of sections
-            
+            energy: The energy level of the section.
+            complexity: The complexity score of the section.
+            duration: The duration of the section.
+            index: The index of the section.
+            total_sections: The total number of sections.
+
         Returns:
-            Section label
+            A string label for the section (e.g., "verse", "chorus").
         """
         try:
             # First section is typically intro
@@ -682,16 +672,15 @@ class SectionDetector:
             return 'unknown'
     
     def _calculate_section_confidence(self, energy: float, complexity: float, duration: float) -> float:
-        """
-        Calculate confidence for section classification.
-        
+        """Calculates the confidence score for a section classification.
+
         Args:
-            energy: Section energy
-            complexity: Section complexity
-            duration: Section duration
-            
+            energy: The energy level of the section.
+            complexity: The complexity score of the section.
+            duration: The duration of the section.
+
         Returns:
-            Confidence score (0.0 to 1.0)
+            A confidence score between 0.0 and 1.0.
         """
         confidence = 0.5  # Base confidence
         
@@ -714,14 +703,13 @@ class SectionDetector:
         return max(0.0, min(1.0, confidence))
     
     def _identify_structure_type(self, sections: List[Dict[str, Any]]) -> str:
-        """
-        Identify overall song structure type.
-        
+        """Identifies the overall song structure type.
+
         Args:
-            sections: List of labeled sections
-            
+            sections: A list of the labeled sections.
+
         Returns:
-            Structure type string
+            A string representing the structure type (e.g., "verse-chorus").
         """
         try:
             if not sections:
@@ -753,14 +741,13 @@ class SectionDetector:
             return 'unknown'
     
     def _calculate_structure_complexity(self, sections: List[Dict[str, Any]]) -> float:
-        """
-        Calculate overall structure complexity score.
-        
+        """Calculates an overall complexity score for the song's structure.
+
         Args:
-            sections: List of labeled sections
-            
+            sections: A list of the labeled sections.
+
         Returns:
-            Complexity score (0.0 to 1.0)
+            A complexity score between 0.0 and 1.0.
         """
         try:
             if len(sections) < 2:
@@ -790,14 +777,13 @@ class SectionDetector:
             return 0.0
     
     def _calculate_section_confidence(self, results: Dict[str, Any]) -> float:
-        """
-        Calculate overall confidence for section detection.
-        
+        """Calculates the overall confidence score for the section detection.
+
         Args:
-            results: Section detection results
-            
+            results: The section detection results.
+
         Returns:
-            Confidence score (0.0 to 1.0)
+            A confidence score between 0.0 and 1.0.
         """
         confidence_factors = []
         
@@ -839,15 +825,14 @@ class SectionDetector:
 
 
 def detect_song_structure(audio_data: np.ndarray, sample_rate: int = 44100) -> Dict[str, Any]:
-    """
-    Convenience function to detect song structure from audio data.
-    
+    """A convenience function to detect song structure from audio data.
+
     Args:
-        audio_data: Audio signal array
-        sample_rate: Audio sample rate
-        
+        audio_data: The audio signal array.
+        sample_rate: The sample rate of the audio.
+
     Returns:
-        Song structure detection results
+        A dictionary containing the song structure detection results.
     """
     detector = SectionDetector(sample_rate=sample_rate)
     results = detector.analyze(audio_data, {}, {})

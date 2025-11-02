@@ -16,7 +16,17 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class UpscaleSettings:
-    """Configuration for upscaling"""
+    """Configuration for upscaling.
+
+    Attributes:
+        scale_factor: The factor by which to upscale the image (e.g., 2, 4).
+        model_name: The name of the upscaling model to use.
+        tile_size: The size of the tiles to use for large images.
+        tile_overlap: The overlap between tiles.
+        face_enhance: Whether to enable face enhancement.
+        denoise_strength: The strength of the noise reduction.
+        upscaling_engine: The upscaling engine to use.
+    """
     scale_factor: int = 4  # 2x, 4x, 8x
     model_name: str = "RealESRGAN_x4plus"  # Model selection
     tile_size: int = 512  # Tile size for large images
@@ -27,7 +37,16 @@ class UpscaleSettings:
     
 @dataclass
 class UpscaleResult:
-    """Result of upscaling operation"""
+    """Result of an upscaling operation.
+
+    Attributes:
+        original_image: The original image.
+        upscaled_image: The upscaled image.
+        scale_factor: The scale factor used for upscaling.
+        processing_time: The time taken for the upscaling operation.
+        quality_metrics: A dictionary of quality metrics.
+        enhancement_details: A dictionary of enhancement details.
+    """
     original_image: Image.Image
     upscaled_image: Image.Image
     scale_factor: int
@@ -36,7 +55,11 @@ class UpscaleResult:
     enhancement_details: Dict[str, Any]
     
     def save(self, output_path: Path):
-        """Save upscaled image and metadata"""
+        """Saves the upscaled image and metadata.
+
+        Args:
+            output_path: The path to save the upscaled image to.
+        """
         # Save upscaled image
         self.upscaled_image.save(output_path.with_suffix('.png'), quality=95)
         
@@ -55,9 +78,19 @@ class UpscaleResult:
             json.dump(metadata, f, indent=2)
 
 class RealESRGANUpscaler:
-    """Real-ESRGAN based upscaling engine"""
+    """A Real-ESRGAN-based upscaling engine.
+
+    This class provides a wrapper around the Real-ESRGAN model for upscaling
+    images. It also provides a fallback to a simpler upscaling method if the
+    Real-ESRGAN model is not available.
+    """
     
     def __init__(self, model_path: Optional[str] = None):
+        """Initializes the RealESRGANUpscaler.
+
+        Args:
+            model_path: The path to the Real-ESRGAN model.
+        """
         self.model_loaded = False
         self.model_path = model_path
         self.model = None
@@ -89,7 +122,14 @@ class RealESRGANUpscaler:
         logger.info("Real-ESRGAN upscaler initialized")
     
     def load_model(self, model_name: str) -> bool:
-        """Load Real-ESRGAN model"""
+        """Loads a Real-ESRGAN model.
+
+        Args:
+            model_name: The name of the model to load.
+
+        Returns:
+            True if the model was loaded successfully, False otherwise.
+        """
         try:
             # Placeholder for actual model loading
             # In real implementation, would load with:
@@ -117,7 +157,15 @@ class RealESRGANUpscaler:
         image: Image.Image,
         settings: UpscaleSettings
     ) -> UpscaleResult:
-        """Upscale image using Real-ESRGAN"""
+        """Upscales an image using Real-ESRGAN.
+
+        Args:
+            image: The image to upscale.
+            settings: The settings for the upscaling operation.
+
+        Returns:
+            An UpscaleResult object containing the upscaled image and metadata.
+        """
         
         start_time = time.time()
         
@@ -175,7 +223,15 @@ class RealESRGANUpscaler:
         image: Image.Image,
         settings: UpscaleSettings
     ) -> Image.Image:
-        """Simulate Real-ESRGAN processing with high-quality upscaling"""
+        """Simulates Real-ESRGAN processing with high-quality upscaling.
+
+        Args:
+            image: The image to upscale.
+            settings: The settings for the upscaling operation.
+
+        Returns:
+            The upscaled image.
+        """
         
         # Get target size
         original_width, original_height = image.size
@@ -206,7 +262,15 @@ class RealESRGANUpscaler:
         image: Image.Image,
         strength: float
     ) -> Image.Image:
-        """Apply detail enhancement to improve texture quality"""
+        """Applies detail enhancement to improve texture quality.
+
+        Args:
+            image: The image to enhance.
+            strength: The strength of the enhancement.
+
+        Returns:
+            The enhanced image.
+        """
         
         # Convert to array for processing
         img_array = np.array(image, dtype=np.float64)
@@ -233,7 +297,14 @@ class RealESRGANUpscaler:
         return enhanced_image
     
     def _enhance_faces(self, image: Image.Image) -> Image.Image:
-        """Enhance facial features in the image"""
+        """Enhances facial features in the image.
+
+        Args:
+            image: The image to enhance.
+
+        Returns:
+            The enhanced image.
+        """
         
         # Placeholder for face detection and enhancement
         # In reality, would detect faces and apply specific enhancements
@@ -249,7 +320,14 @@ class RealESRGANUpscaler:
         return enhanced
     
     def _apply_sharpening(self, image: Image.Image) -> Image.Image:
-        """Apply sharpening to improve edge definition"""
+        """Applies sharpening to improve edge definition.
+
+        Args:
+            image: The image to sharpen.
+
+        Returns:
+            The sharpened image.
+        """
         
         # Create unsharp mask
         blur = image.filter(ImageFilter.GaussianBlur(radius=1))
@@ -265,7 +343,15 @@ class RealESRGANUpscaler:
         image: Image.Image,
         settings: UpscaleSettings
     ) -> UpscaleResult:
-        """Fallback upscaling using built-in PIL methods"""
+        """Fallback upscaling using built-in PIL methods.
+
+        Args:
+            image: The image to upscale.
+            settings: The settings for the upscaling operation.
+
+        Returns:
+            An UpscaleResult object containing the upscaled image and metadata.
+        """
         
         start_time = time.time()
         
@@ -306,7 +392,16 @@ class RealESRGANUpscaler:
         upscaled: Image.Image,
         scale_factor: int
     ) -> Dict[str, float]:
-        """Calculate quality metrics for upscaled image"""
+        """Calculates quality metrics for an upscaled image.
+
+        Args:
+            original: The original image.
+            upscaled: The upscaled image.
+            scale_factor: The scale factor used for upscaling.
+
+        Returns:
+            A dictionary of quality metrics.
+        """
         
         metrics = {}
         
@@ -340,7 +435,14 @@ class RealESRGANUpscaler:
         return metrics
     
     def _calculate_sharpness(self, image: Image.Image) -> float:
-        """Calculate sharpness score using gradient magnitude"""
+        """Calculates a sharpness score using gradient magnitude.
+
+        Args:
+            image: The image to calculate the sharpness of.
+
+        Returns:
+            The sharpness score.
+        """
         
         # Convert to grayscale
         gray = image.convert('L')
@@ -364,7 +466,15 @@ class RealESRGANUpscaler:
         original: Image.Image,
         upscaled: Image.Image
     ) -> float:
-        """Calculate how well details are preserved during upscaling"""
+        """Calculates how well details are preserved during upscaling.
+
+        Args:
+            original: The original image.
+            upscaled: The upscaled image.
+
+        Returns:
+            The detail preservation score.
+        """
         
         # Downscale upscaled image back to original size for comparison
         downscaled = upscaled.resize(original.size, Image.Resampling.LANCZOS)
@@ -379,7 +489,14 @@ class RealESRGANUpscaler:
         return detail_preservation
     
     def _calculate_edge_quality(self, image: Image.Image) -> float:
-        """Calculate edge quality score"""
+        """Calculates an edge quality score.
+
+        Args:
+            image: The image to calculate the edge quality of.
+
+        Returns:
+            The edge quality score.
+        """
         
         # Apply edge detection
         gray = image.convert('L')
@@ -399,7 +516,15 @@ class RealESRGANUpscaler:
         img1: np.ndarray,
         img2: np.ndarray
     ) -> float:
-        """Calculate Structural Similarity Index (simplified)"""
+        """Calculates the Structural Similarity Index (simplified).
+
+        Args:
+            img1: The first image as a NumPy array.
+            img2: The second image as a NumPy array.
+
+        Returns:
+            The SSIM score.
+        """
         
         # Simplified SSIM calculation
         mu1 = np.mean(img1)
@@ -419,9 +544,19 @@ class RealESRGANUpscaler:
         return max(0, min(1, ssim))
 
 class TileBasedUpscaler:
-    """Tile-based upscaling for very large images"""
+    """A tile-based upscaler for very large images.
+
+    This class works by splitting a large image into smaller tiles, upscaling
+    each tile individually, and then stitching the upscaled tiles back
+    together.
+    """
     
     def __init__(self, upscaler: RealESRGANUpscaler):
+        """Initializes the TileBasedUpscaler.
+
+        Args:
+            upscaler: The RealESRGANUpscaler to use for upscaling the tiles.
+        """
         self.upscaler = upscaler
     
     def upscale_large_image(
@@ -429,7 +564,15 @@ class TileBasedUpscaler:
         image: Image.Image,
         settings: UpscaleSettings
     ) -> UpscaleResult:
-        """Upscale large images using tile-based processing"""
+        """Upscales large images using tile-based processing.
+
+        Args:
+            image: The image to upscale.
+            settings: The settings for the upscaling operation.
+
+        Returns:
+            An UpscaleResult object containing the upscaled image and metadata.
+        """
         
         logger.info("Starting tile-based upscaling")
         
@@ -541,9 +684,17 @@ class TileBasedUpscaler:
         return result
 
 class ProfessionalUpscaler:
-    """Professional upscaling pipeline with multiple engines and quality optimization"""
+    """A professional upscaling pipeline with multiple engines and quality
+    optimization.
+
+    This class provides a high-level interface for upscaling images using a
+    variety of presets and custom settings. It automatically selects the
+    appropriate upscaling engine and settings based on the image size and
+    desired quality.
+    """
     
     def __init__(self):
+        """Initializes the ProfessionalUpscaler."""
         self.realesrgan_upscaler = RealESRGANUpscaler()
         self.tile_upscaler = TileBasedUpscaler(self.realesrgan_upscaler)
         
@@ -587,7 +738,17 @@ class ProfessionalUpscaler:
         preset: str = "broadcast_quality",
         custom_settings: Optional[UpscaleSettings] = None
     ) -> UpscaleResult:
-        """Upscale image with preset or custom settings"""
+        """Upscales an image with a preset or custom settings.
+
+        Args:
+            image: The image to upscale.
+            preset: The preset to use for upscaling.
+            custom_settings: Custom settings to use for upscaling. If provided,
+                these will override the preset.
+
+        Returns:
+            An UpscaleResult object containing the upscaled image and metadata.
+        """
         
         if custom_settings:
             settings = custom_settings
@@ -617,7 +778,19 @@ class ProfessionalUpscaler:
         output_dir: Path,
         custom_settings: Optional[UpscaleSettings] = None
     ) -> List[UpscaleResult]:
-        """Upscale multiple images in batch"""
+        """Upscales multiple images in a batch.
+
+        Args:
+            images: A list of tuples, where each tuple contains the filename and
+                the image to upscale.
+            preset: The preset to use for upscaling.
+            output_dir: The directory to save the upscaled images to.
+            custom_settings: Custom settings to use for upscaling. If provided,
+                these will override the preset.
+
+        Returns:
+            A list of UpscaleResult objects.
+        """
         
         results = []
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -644,11 +817,23 @@ class ProfessionalUpscaler:
         return results
     
     def get_supported_models(self) -> Dict[str, Dict[str, Any]]:
-        """Get list of supported upscaling models"""
+        """Gets a list of supported upscaling models.
+
+        Returns:
+            A dictionary of supported models and their descriptions.
+        """
         return self.realesrgan_upscaler.supported_models
     
     def get_preset_settings(self, preset: str) -> Optional[UpscaleSettings]:
-        """Get settings for a specific preset"""
+        """Gets the settings for a specific preset.
+
+        Args:
+            preset: The name of the preset.
+
+        Returns:
+            An UpscaleSettings object for the preset, or None if the preset
+            does not exist.
+        """
         return self.presets.get(preset)
     
     def create_custom_preset(
@@ -656,7 +841,12 @@ class ProfessionalUpscaler:
         name: str,
         settings: UpscaleSettings
     ):
-        """Create custom upscaling preset"""
+        """Creates a custom upscaling preset.
+
+        Args:
+            name: The name of the preset.
+            settings: The settings for the preset.
+        """
         self.presets[name] = settings
         logger.info(f"Created custom preset: {name}")
     
@@ -665,7 +855,15 @@ class ProfessionalUpscaler:
         image: Image.Image,
         settings: UpscaleSettings
     ) -> float:
-        """Estimate processing time for upscaling"""
+        """Estimates the processing time for upscaling.
+
+        Args:
+            image: The image to be upscaled.
+            settings: The settings for the upscaling operation.
+
+        Returns:
+            The estimated processing time in seconds.
+        """
         
         # Base time per megapixel (estimated)
         base_time_per_megapixel = 0.5  # seconds

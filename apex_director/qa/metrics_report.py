@@ -19,7 +19,16 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ReportConfig:
-    """Configuration for report generation"""
+    """Configuration for report generation.
+
+    Attributes:
+        include_charts: Whether to include charts in the report.
+        include_summary: Whether to include a summary in the report.
+        include_details: Whether to include details in the report.
+        include_recommendations: Whether to include recommendations in the
+            report.
+        format: The format of the report (html, json, or markdown).
+    """
     include_charts: bool = True
     include_summary: bool = True
     include_details: bool = True
@@ -28,9 +37,14 @@ class ReportConfig:
 
 
 class MetricsReport:
-    """Quality metrics report generator"""
+    """A class for generating quality metrics reports."""
     
     def __init__(self, metrics_collector: MetricsCollector):
+        """Initializes the MetricsReport.
+
+        Args:
+            metrics_collector: The MetricsCollector to use for getting metrics.
+        """
         self.metrics_collector = metrics_collector
         self.report_templates = self._load_templates()
     
@@ -40,7 +54,16 @@ class MetricsReport:
         output_path: Path,
         config: Optional[ReportConfig] = None
     ) -> Path:
-        """Generate comprehensive project quality report"""
+        """Generates a comprehensive project quality report.
+
+        Args:
+            project_id: The ID of the project.
+            output_path: The path to save the report to.
+            config: The configuration for the report.
+
+        Returns:
+            The path to the generated report.
+        """
         if config is None:
             config = ReportConfig()
         
@@ -67,7 +90,16 @@ class MetricsReport:
         output_path: Path,
         time_range_days: int = 30
     ) -> Path:
-        """Generate summary report across multiple projects"""
+        """Generates a summary report across multiple projects.
+
+        Args:
+            projects: A list of project IDs to include in the report.
+            output_path: The path to save the report to.
+            time_range_days: The number of days to include in the report.
+
+        Returns:
+            The path to the generated report.
+        """
         cutoff_date = datetime.now() - timedelta(days=time_range_days)
         
         # Filter metrics by time range
@@ -95,7 +127,16 @@ class MetricsReport:
         project_metrics: List[QualityMetrics],
         config: ReportConfig
     ) -> str:
-        """Generate report content using templates"""
+        """Generates the report content using templates.
+
+        Args:
+            project_id: The ID of the project.
+            project_metrics: A list of quality metrics for the project.
+            config: The configuration for the report.
+
+        Returns:
+            The generated report content.
+        """
         
         summary_stats = self.metrics_collector.get_summary_stats(project_id)
         
@@ -119,7 +160,15 @@ class MetricsReport:
         projects: List[str],
         metrics: List[QualityMetrics]
     ) -> str:
-        """Generate summary report content"""
+        """Generates the summary report content.
+
+        Args:
+            projects: A list of project IDs.
+            metrics: A list of quality metrics.
+
+        Returns:
+            The generated summary report content.
+        """
         
         # Calculate overall statistics
         all_stages = set(m.stage for m in metrics)
@@ -152,7 +201,11 @@ class MetricsReport:
         return self.report_templates['summary_report'].render(**template_data)
     
     def _load_templates(self) -> Dict[str, Template]:
-        """Load Jinja2 templates for report generation"""
+        """Loads the Jinja2 templates for report generation.
+
+        Returns:
+            A dictionary of Jinja2 templates.
+        """
         
         project_template = """
 <!DOCTYPE html>

@@ -13,7 +13,17 @@ from dataclasses import dataclass
 
 @dataclass
 class StyleMetrics:
-    """Style consistency metrics"""
+    """Represents style consistency metrics.
+
+    Attributes:
+        clip_similarity_score: The CLIP similarity score.
+        color_consistency_score: The color consistency score.
+        composition_score: The composition score.
+        lighting_consistency_score: The lighting consistency score.
+        overall_style_score: The overall style score.
+        drift_detected: Whether style drift was detected.
+        reference_frame_idx: The index of the reference frame.
+    """
     clip_similarity_score: float
     color_consistency_score: float
     composition_score: float
@@ -24,10 +34,9 @@ class StyleMetrics:
 
 
 class StyleMonitor:
-    """
-    Visual Style Consistency Monitor
-    
-    Uses CLIP embeddings and other computer vision techniques to:
+    """A class for monitoring visual style consistency.
+
+    This class uses CLIP embeddings and other computer vision techniques to:
     - Detect visual style drift between frames
     - Measure color consistency
     - Analyze composition and lighting
@@ -35,7 +44,11 @@ class StyleMonitor:
     """
     
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize style monitor with configuration"""
+        """Initializes the StyleMonitor.
+
+        Args:
+            config: A dictionary of configuration parameters.
+        """
         self.config = config or self._default_config()
         self.logger = logging.getLogger('apex_director.qa.style_monitor')
         
@@ -62,14 +75,13 @@ class StyleMonitor:
         self.max_consecutive_drift = self.config.get('max_consecutive_drift', 10)
     
     def analyze_consistency(self, sample_frames: List[np.ndarray]) -> Dict:
-        """
-        Analyze visual consistency across sample frames
-        
+        """Analyzes the visual consistency across a list of sample frames.
+
         Args:
-            sample_frames: List of sample frames from video
-            
+            sample_frames: A list of sample frames from a video.
+
         Returns:
-            Dictionary with consistency analysis results
+            A dictionary with the consistency analysis results.
         """
         self.logger.info(f"Analyzing style consistency for {len(sample_frames)} frames")
         
@@ -116,7 +128,7 @@ class StyleMonitor:
         return results
     
     def _initialize_clip_model(self):
-        """Initialize CLIP model for visual similarity analysis"""
+        """Initializes the CLIP model for visual similarity analysis."""
         try:
             # Placeholder for CLIP initialization
             # In a real implementation, this would load a pre-trained CLIP model
@@ -127,7 +139,14 @@ class StyleMonitor:
             self.clip_model = None
     
     def _analyze_color_consistency(self, frames: List[np.ndarray]) -> Dict:
-        """Analyze color consistency across frames"""
+        """Analyzes the color consistency across a list of frames.
+
+        Args:
+            frames: A list of frames to analyze.
+
+        Returns:
+            A dictionary with the color consistency analysis results.
+        """
         try:
             # Convert frames to HSV for better color analysis
             hsv_frames = [cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) for frame in frames]
@@ -194,7 +213,14 @@ class StyleMonitor:
             return {'score': 0.5, 'error': str(e)}
     
     def _analyze_composition_consistency(self, frames: List[np.ndarray]) -> Dict:
-        """Analyze composition consistency across frames"""
+        """Analyzes the composition consistency across a list of frames.
+
+        Args:
+            frames: A list of frames to analyze.
+
+        Returns:
+            A dictionary with the composition consistency analysis results.
+        """
         try:
             composition_scores = []
             
@@ -231,7 +257,14 @@ class StyleMonitor:
             return {'score': 0.5, 'error': str(e)}
     
     def _analyze_lighting_consistency(self, frames: List[np.ndarray]) -> Dict:
-        """Analyze lighting consistency across frames"""
+        """Analyzes the lighting consistency across a list of frames.
+
+        Args:
+            frames: A list of frames to analyze.
+
+        Returns:
+            A dictionary with the lighting consistency analysis results.
+        """
         try:
             brightness_values = []
             contrast_values = []
@@ -273,7 +306,14 @@ class StyleMonitor:
             return {'score': 0.5, 'error': str(e)}
     
     def _analyze_clip_consistency(self, frames: List[np.ndarray]) -> Dict:
-        """Analyze visual similarity using CLIP embeddings"""
+        """Analyzes the visual similarity using CLIP embeddings.
+
+        Args:
+            frames: A list of frames to analyze.
+
+        Returns:
+            A dictionary with the CLIP consistency analysis results.
+        """
         try:
             if self.clip_model is None:
                 # Fallback to simpler visual similarity
@@ -305,7 +345,16 @@ class StyleMonitor:
             return self._fallback_visual_similarity(frames)
     
     def _extract_clip_embeddings(self, frames: List[np.ndarray]) -> List[np.ndarray]:
-        """Extract CLIP embeddings from frames (placeholder)"""
+        """Extracts CLIP embeddings from a list of frames.
+
+        This is a placeholder implementation.
+
+        Args:
+            frames: A list of frames to extract embeddings from.
+
+        Returns:
+            A list of CLIP embeddings.
+        """
         # Placeholder implementation
         # In reality, this would use a pre-trained CLIP model
         embeddings = []
@@ -317,7 +366,14 @@ class StyleMonitor:
         return embeddings
     
     def _extract_basic_features(self, frame: np.ndarray) -> np.ndarray:
-        """Extract basic visual features as CLIP placeholder"""
+        """Extracts basic visual features as a placeholder for CLIP embeddings.
+
+        Args:
+            frame: The frame to extract features from.
+
+        Returns:
+            A feature vector.
+        """
         # Resize to standard size
         resized = cv2.resize(frame, (224, 224))
         
@@ -335,7 +391,15 @@ class StyleMonitor:
         return features
     
     def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
-        """Calculate cosine similarity between two vectors"""
+        """Calculates the cosine similarity between two vectors.
+
+        Args:
+            a: The first vector.
+            b: The second vector.
+
+        Returns:
+            The cosine similarity between the two vectors.
+        """
         dot_product = np.dot(a, b)
         norm_a = np.linalg.norm(a)
         norm_b = np.linalg.norm(b)
@@ -346,7 +410,14 @@ class StyleMonitor:
         return dot_product / (norm_a * norm_b)
     
     def _fallback_visual_similarity(self, frames: List[np.ndarray]) -> Dict:
-        """Fallback visual similarity analysis when CLIP is not available"""
+        """A fallback visual similarity analysis when CLIP is not available.
+
+        Args:
+            frames: A list of frames to analyze.
+
+        Returns:
+            A dictionary with the visual similarity analysis results.
+        """
         try:
             similarities = []
             
@@ -372,7 +443,17 @@ class StyleMonitor:
             return {'score': 0.5, 'error': str(e)}
     
     def _calculate_ssim(self, img1: np.ndarray, img2: np.ndarray) -> float:
-        """Calculate Structural Similarity Index (simplified version)"""
+        """Calculates the Structural Similarity Index (SSIM) between two images.
+
+        This is a simplified version of the SSIM calculation.
+
+        Args:
+            img1: The first image.
+            img2: The second image.
+
+        Returns:
+            The SSIM score.
+        """
         try:
             # Convert to grayscale
             gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
@@ -409,7 +490,14 @@ class StyleMonitor:
             return 0.5
     
     def _detect_style_drift(self, frames: List[np.ndarray]) -> bool:
-        """Detect if style drift has occurred"""
+        """Detects if style drift has occurred.
+
+        Args:
+            frames: A list of frames to analyze.
+
+        Returns:
+            True if style drift was detected, False otherwise.
+        """
         try:
             if len(frames) < 3:
                 return False
@@ -439,7 +527,15 @@ class StyleMonitor:
             return False
     
     def _calculate_frame_difference(self, frame1: np.ndarray, frame2: np.ndarray) -> float:
-        """Calculate visual difference between two frames"""
+        """Calculates the visual difference between two frames.
+
+        Args:
+            frame1: The first frame.
+            frame2: The second frame.
+
+        Returns:
+            The visual difference between the two frames.
+        """
         try:
             # Convert to grayscale
             gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
@@ -459,7 +555,14 @@ class StyleMonitor:
             return 0.0
     
     def _rule_of_thirds_score(self, frame: np.ndarray) -> float:
-        """Calculate rule of thirds composition score"""
+        """Calculates the rule of thirds composition score for a frame.
+
+        Args:
+            frame: The frame to calculate the score for.
+
+        Returns:
+            The rule of thirds composition score.
+        """
         try:
             height, width = frame.shape[:2]
             
@@ -487,7 +590,14 @@ class StyleMonitor:
             return 0.5
     
     def _center_of_mass_score(self, frame: np.ndarray) -> float:
-        """Calculate center of mass positioning score"""
+        """Calculates the center of mass positioning score for a frame.
+
+        Args:
+            frame: The frame to calculate the score for.
+
+        Returns:
+            The center of mass positioning score.
+        """
         try:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             
@@ -520,7 +630,14 @@ class StyleMonitor:
             return 0.5
     
     def _edge_distribution_score(self, frame: np.ndarray) -> float:
-        """Calculate edge distribution score"""
+        """Calculates the edge distribution score for a frame.
+
+        Args:
+            frame: The frame to calculate the score for.
+
+        Returns:
+            The edge distribution score.
+        """
         try:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             edges = cv2.Canny(gray, 50, 150)
@@ -555,7 +672,17 @@ class StyleMonitor:
     
     def _generate_style_recommendations(self, color_scores: Dict, composition_scores: Dict,
                                       lighting_scores: Dict, clip_scores: Dict) -> List[str]:
-        """Generate recommendations based on style analysis"""
+        """Generates recommendations based on style analysis.
+
+        Args:
+            color_scores: A dictionary of color consistency scores.
+            composition_scores: A dictionary of composition consistency scores.
+            lighting_scores: A dictionary of lighting consistency scores.
+            clip_scores: A dictionary of CLIP consistency scores.
+
+        Returns:
+            A list of recommendations.
+        """
         recommendations = []
         
         # Color consistency recommendations
@@ -588,7 +715,11 @@ class StyleMonitor:
         return recommendations
     
     def _default_config(self) -> Dict:
-        """Default configuration for style monitor"""
+        """Returns the default configuration for the style monitor.
+
+        Returns:
+            A dictionary of default configuration parameters.
+        """
         return {
             'clip_threshold': 0.8,
             'reference_frames': 5,
@@ -602,7 +733,12 @@ class StyleMonitor:
         }
     
     def save_style_profile(self, frames: List[np.ndarray], output_path: str):
-        """Save style profile for future reference"""
+        """Saves a style profile for future reference.
+
+        Args:
+            frames: A list of frames to create the style profile from.
+            output_path: The path to save the style profile to.
+        """
         try:
             profile = {
                 'config': self.config,

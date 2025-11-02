@@ -18,6 +18,7 @@ from datetime import datetime
 
 # Simple HTTP server
 class APEXDirectorHandler(http.server.SimpleHTTPRequestHandler):
+    """A simple HTTP request handler for the APEX DIRECTOR web interface."""
     
     def do_GET(self):
         if self.path == "/" or self.path == "/index.html":

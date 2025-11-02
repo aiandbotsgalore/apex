@@ -33,7 +33,23 @@ class ColorCurve(Enum):
 
 @dataclass
 class ColorCorrection:
-    """Individual color correction parameters"""
+    """Represents a set of individual color correction parameters.
+
+    Attributes:
+        exposure: The exposure adjustment in stops.
+        contrast: The contrast adjustment.
+        brightness: The brightness adjustment.
+        saturation: The saturation adjustment.
+        hue: The hue adjustment in degrees.
+        gamma: The gamma adjustment.
+        shadows: The shadows adjustment.
+        midtones: The midtones adjustment.
+        highlights: The highlights adjustment.
+        blacks: The blacks adjustment.
+        whites: The whites adjustment.
+        temperature: The white balance temperature in Kelvin.
+        tint: The white balance tint.
+    """
     exposure: float = 0.0  # -2.0 to +2.0 stops
     contrast: float = 0.0  # -100 to +100
     brightness: float = 0.0  # -100 to +100
@@ -55,7 +71,18 @@ class ColorCorrection:
 
 @dataclass
 class SkinToneMask:
-    """Skin tone isolation parameters"""
+    """Represents the parameters for isolating skin tones.
+
+    Attributes:
+        enabled: Whether the skin tone mask is enabled.
+        y_min: The minimum Y value in the YCbCr color space.
+        y_max: The maximum Y value in the YCbCr color space.
+        cb_min: The minimum Cb value in the YCbCr color space.
+        cb_max: The maximum Cb value in the YCbCr color space.
+        cr_min: The minimum Cr value in the YCbCr color space.
+        cr_max: The maximum Cr value in the YCbCr color space.
+        softness: The softness of the mask.
+    """
     enabled: bool = False
     y_min: float = 0.0  # YCbCr Y channel min
     y_max: float = 1.0  # YCbCr Y channel max
@@ -68,7 +95,14 @@ class SkinToneMask:
 
 @dataclass
 class SelectiveSaturation:
-    """Selective color desaturation"""
+    """Represents the parameters for selective color desaturation.
+
+    Attributes:
+        enabled: Whether selective saturation is enabled.
+        target_colors: A list of HSV color ranges to target.
+        desaturation_amount: The amount of desaturation to apply.
+        softness: The softness of the desaturation effect.
+    """
     enabled: bool = False
     target_colors: List[Tuple[float, float, float]] = field(default_factory=list)  # HSV ranges
     desaturation_amount: float = 1.0  # 0.0 to 1.0
@@ -77,7 +111,15 @@ class SelectiveSaturation:
 
 @dataclass
 class LUT:
-    """Look-Up Table for creative grading"""
+    """Represents a Look-Up Table (LUT) for creative grading.
+
+    Attributes:
+        name: The name of the LUT.
+        file_path: The path to the LUT file.
+        type: The type of LUT ("3d" or "1d").
+        cube_size: The size of the LUT cube.
+        data: The LUT data as a NumPy array.
+    """
     name: str = ""
     file_path: Optional[str] = None
     type: str = "3d"  # "3d" or "1d"
@@ -87,7 +129,14 @@ class LUT:
 
 @dataclass
 class FilmGrain:
-    """Film grain simulation"""
+    """Represents the parameters for film grain simulation.
+
+    Attributes:
+        enabled: Whether film grain is enabled.
+        intensity: The intensity of the film grain.
+        grain_type: The type of film grain ("camera", "film", or "digital").
+        seed: The random seed for the film grain.
+    """
     enabled: bool = False
     intensity: float = 0.1  # 0.0 to 1.0
     grain_type: str = "camera"  # "camera", "film", "digital"
@@ -96,7 +145,15 @@ class FilmGrain:
 
 @dataclass
 class Vignette:
-    """Vignette effect"""
+    """Represents the parameters for a vignette effect.
+
+    Attributes:
+        enabled: Whether the vignette is enabled.
+        amount: The amount of the vignette.
+        midpoint: The midpoint of the vignette.
+        roundness: The roundness of the vignette.
+        feather: The feather of the vignette.
+    """
     enabled: bool = False
     amount: float = 0.3  # 0.0 to 1.0
     midpoint: float = 0.7  # 0.0 to 1.0
@@ -106,16 +163,34 @@ class Vignette:
 
 @dataclass
 class ChromaticAberration:
-    """Chromatic aberration simulation"""
+    """Represents the parameters for chromatic aberration simulation.
+
+    Attributes:
+        enabled: Whether chromatic aberration is enabled.
+        amount: The amount of chromatic aberration.
+        channel_bias: The channel to bias the aberration towards.
+    """
     enabled: bool = False
     amount: float = 0.1  # 0.0 to 1.0
     channel_bias: str = "blue"  # "red", "green", "blue"
 
 
 class ColorGrader:
-    """4-Stage Professional Color Grading Pipeline"""
+    """A 4-stage professional color grading pipeline.
+
+    This class provides a comprehensive color grading solution with support for:
+    - Primary and secondary color correction
+    - Creative grading with Look-Up Tables (LUTs)
+    - Finishing effects such as film grain, sharpening, and vignettes
+    - Broadcast-quality color spaces (Rec.709, Rec.2020)
+    """
     
     def __init__(self, timeline: Timeline):
+        """Initializes the ColorGrader.
+
+        Args:
+            timeline: The timeline to be graded.
+        """
         self.timeline = timeline
         self.color_space = ColorSpace.REC_709
         self.curve = ColorCurve.LINEAR
@@ -140,7 +215,16 @@ class ColorGrader:
         self._setup_color_conversion()
     
     def stage_1_primary_correction(self, frame: np.ndarray) -> np.ndarray:
-        """Stage 1: Primary correction (exposure, white balance, contrast)"""
+        """Performs stage 1 primary color correction.
+
+        This stage includes adjustments for exposure, white balance, and contrast.
+
+        Args:
+            frame: The input frame to be corrected.
+
+        Returns:
+            The corrected frame.
+        """
         result = frame.astype(np.float32) / 255.0
         
         # Exposure adjustment (logarithmic)
@@ -170,7 +254,17 @@ class ColorGrader:
         return np.clip(result, 0, 1)
     
     def stage_2_secondary_correction(self, frame: np.ndarray) -> np.ndarray:
-        """Stage 2: Secondary correction (skin tone isolation, selective desaturation)"""
+        """Performs stage 2 secondary color correction.
+
+        This stage includes adjustments for skin tone isolation and selective
+        desaturation.
+
+        Args:
+            frame: The input frame to be corrected.
+
+        Returns:
+            The corrected frame.
+        """
         result = frame.copy()
         
         # Apply skin tone mask if enabled
@@ -188,7 +282,17 @@ class ColorGrader:
         return result
     
     def stage_3_creative_grade(self, frame: np.ndarray) -> np.ndarray:
-        """Stage 3: Creative grade (LUT application, cinematic curves)"""
+        """Performs stage 3 creative color grading.
+
+        This stage includes the application of Look-Up Tables (LUTs) and cinematic
+        color curves.
+
+        Args:
+            frame: The input frame to be graded.
+
+        Returns:
+            The graded frame.
+        """
         result = frame.copy()
         
         # Apply LUT if specified
@@ -204,7 +308,17 @@ class ColorGrader:
         return result
     
     def stage_4_finishing(self, frame: np.ndarray) -> np.ndarray:
-        """Stage 4: Finishing (film grain, sharpening, vignette, chromatic aberration)"""
+        """Performs stage 4 finishing effects.
+
+        This stage includes the application of film grain, sharpening, vignettes,
+        and chromatic aberration.
+
+        Args:
+            frame: The input frame to be finished.
+
+        Returns:
+            The finished frame.
+        """
         result = frame.copy()
         
         # Film grain
@@ -229,7 +343,14 @@ class ColorGrader:
         return result
     
     def grade_frame(self, frame: np.ndarray) -> np.ndarray:
-        """Apply complete 4-stage grading pipeline"""
+        """Applies the complete 4-stage grading pipeline to a frame.
+
+        Args:
+            frame: The input frame to be graded.
+
+        Returns:
+            The graded frame.
+        """
         # Stage 1: Primary correction
         graded = self.stage_1_primary_correction(frame)
         
@@ -690,7 +811,14 @@ class ColorGrader:
 
 # Utility functions for color grading
 def validate_color_grading(frame: np.ndarray) -> Dict[str, Union[bool, List[str]]]:
-    """Validate color grading output"""
+    """Validates the output of the color grading process.
+
+    Args:
+        frame: The graded frame to be validated.
+
+    Returns:
+        A dictionary containing the validation results.
+    """
     errors = []
     warnings = []
     
@@ -719,7 +847,14 @@ def validate_color_grading(frame: np.ndarray) -> Dict[str, Union[bool, List[str]
 
 
 def auto_color_balance(frame: np.ndarray) -> ColorCorrection:
-    """Automatic white balance and color correction"""
+    """Performs automatic white balance and color correction.
+
+    Args:
+        frame: The input frame to be balanced.
+
+    Returns:
+        A ColorCorrection object with the calculated adjustments.
+    """
     # Calculate gray world assumption
     mean_r = np.mean(frame[:, :, 0])
     mean_g = np.mean(frame[:, :, 1])
@@ -740,7 +875,14 @@ def auto_color_balance(frame: np.ndarray) -> ColorCorrection:
 
 
 def analyze_histogram(frame: np.ndarray) -> Dict[str, float]:
-    """Analyze color histogram for color grading insights"""
+    """Analyzes the color histogram of a frame.
+
+    Args:
+        frame: The input frame to be analyzed.
+
+    Returns:
+        A dictionary of histogram analysis results.
+    """
     # Convert to HSV for better color analysis
     hsv = cv2.cvtColor((frame * 255).astype(np.uint8), cv2.COLOR_RGB2HSV)
     hsv = hsv.astype(np.float32) / 255.0

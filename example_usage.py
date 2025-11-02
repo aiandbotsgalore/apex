@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-APEX DIRECTOR Example Usage
-Demonstrates how to use the core system components
+APEX DIRECTOR Example Usage.
+
+This script demonstrates how to use the core components of the APEX DIRECTOR
+system, including the orchestrator, backend manager, asset manager, and estimator.
 """
 
 import asyncio
@@ -203,7 +205,7 @@ async def example_system_monitoring():
     return status
 
 async def main():
-    """Main example demonstrating all system capabilities"""
+    """Main function to run the example usage demonstration."""
     print("APEX DIRECTOR Core System Demo")
     print("=" * 50)
     

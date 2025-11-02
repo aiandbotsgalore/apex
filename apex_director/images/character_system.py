@@ -17,7 +17,22 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CharacterProfile:
-    """Complete character profile for consistency"""
+    """Represents a complete character profile for consistency.
+
+    Attributes:
+        name: The name of the character.
+        description: A text description of the character.
+        reference_images: A list of paths to reference images for the
+            character.
+        face_encodings: A list of face encodings extracted from the
+            reference images.
+        facial_features: A dictionary of analyzed facial features.
+        style_attributes: A dictionary of style attributes for the
+            character.
+        consistency_notes: Notes on maintaining consistency.
+        generation_prompts: A list of prompts used to generate images of the
+            character.
+    """
     name: str
     description: str
     reference_images: List[Path]
@@ -32,6 +47,11 @@ class CharacterProfile:
             self.face_encodings = []
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the CharacterProfile to a dictionary.
+
+        Returns:
+            A dictionary representation of the character profile.
+        """
         return {
             "name": self.name,
             "description": self.description,
@@ -45,6 +65,14 @@ class CharacterProfile:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'CharacterProfile':
+        """Creates a CharacterProfile from a dictionary.
+
+        Args:
+            data: A dictionary containing character profile data.
+
+        Returns:
+            A CharacterProfile instance.
+        """
         return cls(
             name=data["name"],
             description=data["description"],
@@ -58,19 +86,35 @@ class CharacterProfile:
 
 @dataclass
 class FaceMatch:
-    """Face matching result"""
+    """Represents the result of a face matching operation.
+
+    Attributes:
+        character_name: The name of the matched character.
+        confidence: The confidence of the match (0.0 to 1.0).
+        match_locations: A list of bounding boxes for the matched faces.
+        similarity_score: The similarity score of the match.
+    """
     character_name: str
     confidence: float
     match_locations: List[Tuple[int, int, int, int]]  # (top, right, bottom, left)
     similarity_score: float
     
     def is_high_confidence(self, threshold: float = 0.8) -> bool:
+        """Checks if the match has a high confidence score.
+
+        Args:
+            threshold: The confidence threshold.
+
+        Returns:
+            True if the confidence is above the threshold, False otherwise.
+        """
         return self.confidence >= threshold
 
 class FaceRecognitionSystem:
-    """Face recognition and matching system"""
+    """A system for face recognition and matching."""
     
     def __init__(self):
+        """Initializes the FaceRecognitionSystem."""
         self.face_detector_model = "hog"  # or "cnn" for better accuracy
         self.face_encoding_model = "large"  # or "small" for faster processing
         
@@ -79,7 +123,15 @@ class FaceRecognitionSystem:
         image: Image.Image,
         face_locations: Optional[List[Tuple[int, int, int, int]]] = None
     ) -> List[np.ndarray]:
-        """Extract face encodings from image"""
+        """Extracts face encodings from an image.
+
+        Args:
+            image: The image to process.
+            face_locations: Optional pre-computed face locations.
+
+        Returns:
+            A list of face encodings.
+        """
         try:
             # Convert PIL to RGB if needed
             if image.mode != 'RGB':
@@ -109,7 +161,14 @@ class FaceRecognitionSystem:
         self, 
         image: Image.Image
     ) -> List[Tuple[int, int, int, int]]:
-        """Detect faces in image"""
+        """Detects faces in an image.
+
+        Args:
+            image: The image to process.
+
+        Returns:
+            A list of bounding boxes for the detected faces.
+        """
         try:
             if image.mode != 'RGB':
                 image = image.convert('RGB')
@@ -132,7 +191,16 @@ class FaceRecognitionSystem:
         candidate_encoding: np.ndarray,
         tolerance: float = 0.6
     ) -> float:
-        """Compare two face encodings and return similarity score"""
+        """Compares two face encodings and returns a similarity score.
+
+        Args:
+            reference_encoding: The reference face encoding.
+            candidate_encoding: The candidate face encoding to compare.
+            tolerance: The tolerance for the comparison.
+
+        Returns:
+            A similarity score between 0.0 and 1.0.
+        """
         try:
             # Use face_recognition built-in comparison
             match = face_recognition.compare_faces(
@@ -157,9 +225,14 @@ class FaceRecognitionSystem:
             return 0.0
 
 class CharacterConsistencyManager:
-    """Manages character consistency across image generation"""
+    """Manages character profiles and consistency across image generations."""
     
     def __init__(self, storage_path: str = "character_profiles"):
+        """Initializes the CharacterConsistencyManager.
+
+        Args:
+            storage_path: The path to store character profiles.
+        """
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(exist_ok=True)
         self.characters: Dict[str, CharacterProfile] = {}
@@ -167,7 +240,7 @@ class CharacterConsistencyManager:
         self.load_all_characters()
     
     def load_all_characters(self):
-        """Load all character profiles from storage"""
+        """Loads all character profiles from the storage directory."""
         for profile_file in self.storage_path.glob("*.json"):
             try:
                 with open(profile_file, 'r') as f:
@@ -182,7 +255,11 @@ class CharacterConsistencyManager:
                 logger.error(f"Failed to load character {profile_file}: {e}")
     
     def save_character(self, character: CharacterProfile):
-        """Save character profile to storage"""
+        """Saves a character profile to the storage directory.
+
+        Args:
+            character: The CharacterProfile to save.
+        """
         try:
             profile_file = self.storage_path / f"{character.name.replace(' ', '_')}.json"
             
@@ -202,7 +279,17 @@ class CharacterConsistencyManager:
         description: str = "",
         style_attributes: Optional[Dict[str, str]] = None
     ) -> CharacterProfile:
-        """Create new character profile from reference images"""
+        """Creates a new character profile from a set of reference images.
+
+        Args:
+            name: The name of the character.
+            reference_images: A list of paths to reference images.
+            description: A text description of the character.
+            style_attributes: A dictionary of style attributes.
+
+        Returns:
+            The newly created CharacterProfile.
+        """
         
         logger.info(f"Creating character profile for: {name}")
         
@@ -238,7 +325,17 @@ class CharacterConsistencyManager:
         return profile
     
     def _analyze_facial_features(self, encodings: List[np.ndarray]) -> Dict[str, Any]:
-        """Analyze facial features from encodings"""
+        """Analyzes facial features from a list of face encodings.
+
+        Note:
+            This is currently a placeholder implementation.
+
+        Args:
+            encodings: A list of face encodings.
+
+        Returns:
+            A dictionary of analyzed facial features.
+        """
         # Placeholder for detailed facial feature analysis
         # In reality, would extract specific features like eye color, skin tone, etc.
         
@@ -249,7 +346,15 @@ class CharacterConsistencyManager:
         }
     
     def _calculate_feature_consistency(self, encodings: List[np.ndarray]) -> float:
-        """Calculate consistency of facial features across reference images"""
+        """Calculates the consistency of facial features across reference
+        images.
+
+        Args:
+            encodings: A list of face encodings.
+
+        Returns:
+            A consistency score between 0.0 and 1.0.
+        """
         if len(encodings) < 2:
             return 1.0
         
@@ -266,7 +371,15 @@ class CharacterConsistencyManager:
         image: Image.Image,
         confidence_threshold: float = 0.8
     ) -> List[FaceMatch]:
-        """Find matching characters in generated image"""
+        """Finds matching characters in a generated image.
+
+        Args:
+            image: The image to search for characters in.
+            confidence_threshold: The minimum confidence for a match.
+
+        Returns:
+            A list of FaceMatch objects for the detected characters.
+        """
         
         logger.info("Searching for character matches in image")
         
@@ -316,7 +429,16 @@ class CharacterConsistencyManager:
         character_name: str,
         additional_attributes: Optional[Dict[str, str]] = None
     ) -> str:
-        """Generate prompt with character consistency information"""
+        """Generates a prompt with character consistency information.
+
+        Args:
+            character_name: The name of the character.
+            additional_attributes: Optional additional attributes to include
+                in the prompt.
+
+        Returns:
+            A string prompt for image generation.
+        """
         
         if character_name not in self.characters:
             logger.warning(f"Character '{character_name}' not found")
@@ -358,7 +480,17 @@ class CharacterConsistencyManager:
         expected_character: str,
         confidence_threshold: float = 0.8
     ) -> Tuple[bool, float, List[str]]:
-        """Validate that generated image maintains character consistency"""
+        """Validates that a generated image maintains character consistency.
+
+        Args:
+            generated_image: The image to validate.
+            expected_character: The name of the expected character.
+            confidence_threshold: The minimum confidence for a valid match.
+
+        Returns:
+            A tuple containing a boolean for consistency, the confidence
+            score, and a list of any issues.
+        """
         
         issues = []
         
@@ -394,7 +526,11 @@ class CharacterConsistencyManager:
         return is_consistent, best_match.confidence, issues
     
     def get_character_statistics(self) -> Dict[str, Any]:
-        """Get statistics about character database"""
+        """Gets statistics about the character database.
+
+        Returns:
+            A dictionary of statistics.
+        """
         return {
             "total_characters": len(self.characters),
             "character_names": list(self.characters.keys()),
@@ -410,7 +546,13 @@ class CharacterConsistencyManager:
         style_attributes: Dict[str, str],
         consistency_notes: str = ""
     ):
-        """Update character's style attributes"""
+        """Updates a character's style attributes.
+
+        Args:
+            character_name: The name of the character to update.
+            style_attributes: A dictionary of style attributes to update.
+            consistency_notes: New consistency notes.
+        """
         
         if character_name not in self.characters:
             logger.warning(f"Character '{character_name}' not found")
@@ -429,7 +571,17 @@ class CharacterConsistencyManager:
         secondary_name: str,
         confidence_threshold: float = 0.9
     ) -> bool:
-        """Merge two character profiles if they represent the same person"""
+        """Merges two character profiles if they represent the same person.
+
+        Args:
+            primary_name: The name of the primary character profile.
+            secondary_name: The name of the secondary character profile to
+                merge.
+            confidence_threshold: The minimum confidence for merging.
+
+        Returns:
+            True if the profiles were merged, False otherwise.
+        """
         
         if primary_name not in self.characters or secondary_name not in self.characters:
             logger.error("One or both characters not found")

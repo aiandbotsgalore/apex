@@ -47,6 +47,15 @@ logging.basicConfig(level=logging.INFO)
 
 # Data models for the web interface
 class MusicVideoRequestModel(BaseModel):
+    """Data model for a music video generation request.
+
+    Attributes:
+        project_name: The name of the project.
+        genre: The genre of the music.
+        concept: The creative concept for the video.
+        director_style: The director style to emulate.
+        quality_preset: The quality preset to use for the output.
+    """
     project_name: str
     genre: str
     concept: str
@@ -596,7 +605,19 @@ async def create_project(
     quality_preset: str = Form(...),
     audio_file: UploadFile = File(...)
 ):
-    """Create a new music video generation project"""
+    """Creates a new music video generation project.
+
+    Args:
+        project_name: The name of the project.
+        genre: The genre of the music.
+        concept: The creative concept for the video.
+        director_style: The director style to emulate.
+        quality_preset: The quality preset for the output.
+        audio_file: The uploaded audio file.
+
+    Returns:
+        A dictionary with the project ID and a success message, or an error message.
+    """
     
     try:
         # Generate project ID

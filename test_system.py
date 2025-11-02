@@ -123,7 +123,7 @@ async def test_job_submission():
         return False
 
 async def main():
-    """Main test runner"""
+    """Main function to run the system tests."""
     print("APEX DIRECTOR System Validation")
     print("=" * 50)
     

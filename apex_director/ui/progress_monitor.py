@@ -55,7 +55,27 @@ class Priority(Enum):
 
 @dataclass
 class WorkflowTask:
-    """Individual workflow task"""
+    """Represents an individual task within a workflow.
+
+    Attributes:
+        id: The unique identifier for the task.
+        stage: The workflow stage this task belongs to.
+        name: The name of the task.
+        description: A description of the task.
+        status: The current status of the task.
+        priority: The priority of the task.
+        created_at: The timestamp when the task was created.
+        started_at: The timestamp when the task was started.
+        completed_at: The timestamp when the task was completed.
+        estimated_duration: The estimated duration of the task in seconds.
+        actual_duration: The actual duration of the task in seconds.
+        progress: The progress of the task, from 0.0 to 1.0.
+        dependencies: A list of task IDs that this task depends on.
+        result: A dictionary of results from the task.
+        error_message: An error message if the task failed.
+        metadata: A dictionary of additional metadata.
+        callbacks: A list of callback functions to be called when the task is completed.
+    """
     id: str
     stage: WorkflowStage
     name: str
@@ -75,6 +95,11 @@ class WorkflowTask:
     callbacks: List[Callable] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the WorkflowTask to a dictionary.
+
+        Returns:
+            A dictionary representation of the WorkflowTask.
+        """
         data = asdict(self)
         data['stage'] = self.stage.value
         data['status'] = self.status.value
@@ -88,7 +113,11 @@ class WorkflowTask:
     
     @property
     def duration_so_far(self) -> float:
-        """Get current task duration"""
+        """Gets the current duration of the task.
+
+        Returns:
+            The current duration of the task in seconds.
+        """
         if self.started_at:
             end_time = self.completed_at or datetime.utcnow()
             return (end_time - self.started_at).total_seconds()
@@ -96,18 +125,38 @@ class WorkflowTask:
     
     @property
     def is_completed(self) -> bool:
-        """Check if task is completed"""
+        """Checks if the task is completed.
+
+        Returns:
+            True if the task is completed, False otherwise.
+        """
         return self.status in [TaskStatus.COMPLETED, TaskStatus.SKIPPED]
     
     @property
     def is_failed(self) -> bool:
-        """Check if task failed"""
+        """Checks if the task has failed.
+
+        Returns:
+            True if the task has failed, False otherwise.
+        """
         return self.status == TaskStatus.FAILED
 
 
 @dataclass
 class WorkflowStageProgress:
-    """Progress tracking for a workflow stage"""
+    """Represents the progress of a workflow stage.
+
+    Attributes:
+        stage: The workflow stage.
+        total_tasks: The total number of tasks in the stage.
+        completed_tasks: The number of completed tasks in the stage.
+        failed_tasks: The number of failed tasks in the stage.
+        current_task_id: The ID of the currently running task in the stage.
+        stage_progress: The progress of the stage, from 0.0 to 1.0.
+        estimated_remaining: The estimated remaining time for the stage in seconds.
+        started_at: The timestamp when the stage was started.
+        completed_at: The timestamp when the stage was completed.
+    """
     stage: WorkflowStage
     total_tasks: int
     completed_tasks: int
@@ -120,7 +169,11 @@ class WorkflowStageProgress:
     
     @property
     def percentage_complete(self) -> float:
-        """Get percentage of stage completed"""
+        """Gets the percentage of the stage that is complete.
+
+        Returns:
+            The percentage of the stage that is complete.
+        """
         if self.total_tasks == 0:
             return 0.0
         return (self.completed_tasks / self.total_tasks) * 100.0
@@ -128,7 +181,22 @@ class WorkflowStageProgress:
 
 @dataclass
 class WorkflowProgress:
-    """Complete workflow progress tracking"""
+    """Represents the complete progress of a workflow.
+
+    Attributes:
+        workflow_id: The unique identifier for the workflow.
+        project_name: The name of the project.
+        current_stage: The current stage of the workflow.
+        stage_progress: A dictionary of progress for each stage in the workflow.
+        total_tasks: The total number of tasks in the workflow.
+        completed_tasks: The number of completed tasks in the workflow.
+        failed_tasks: The number of failed tasks in the workflow.
+        overall_progress: The overall progress of the workflow, from 0.0 to 1.0.
+        estimated_completion: The estimated completion time of the workflow.
+        started_at: The timestamp when the workflow was started.
+        last_updated: The timestamp when the workflow was last updated.
+        status: The current status of the workflow.
+    """
     workflow_id: str
     project_name: str
     current_stage: WorkflowStage
@@ -143,6 +211,11 @@ class WorkflowProgress:
     status: str = "running"  # running, completed, failed, cancelled
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the WorkflowProgress to a dictionary.
+
+        Returns:
+            A dictionary representation of the WorkflowProgress.
+        """
         data = asdict(self)
         data['current_stage'] = self.current_stage.value
         data['stage_progress'] = {k: asdict(v) for k, v in self.stage_progress.items()}
@@ -154,9 +227,18 @@ class WorkflowProgress:
 
 
 class ProgressMonitor:
-    """Comprehensive progress monitoring system"""
+    """A comprehensive system for monitoring the progress of workflows.
+
+    This class provides functionality for:
+    - Creating and managing workflows and tasks
+    - Starting, stopping, and updating the progress of tasks
+    - Monitoring the overall progress of workflows
+    - Exporting progress reports
+    - Triggering event handlers for workflow events
+    """
     
     def __init__(self):
+        """Initializes the ProgressMonitor."""
         self.active_workflows: Dict[str, WorkflowProgress] = {}
         self.tasks: Dict[str, WorkflowTask] = {}
         self.stage_handlers: Dict[WorkflowStage, Callable] = {}
@@ -174,7 +256,7 @@ class ProgressMonitor:
         logger.info("Progress Monitor initialized")
     
     def start_monitoring(self):
-        """Start the progress monitoring system"""
+        """Starts the progress monitoring system."""
         if self._is_monitoring:
             return
         
@@ -184,7 +266,7 @@ class ProgressMonitor:
         logger.info("Progress monitoring started")
     
     def stop_monitoring(self):
-        """Stop the progress monitoring system"""
+        """Stops the progress monitoring system."""
         self._is_monitoring = False
         if self._update_thread:
             self._update_thread.join(timeout=5)
@@ -257,15 +339,14 @@ class ProgressMonitor:
     def create_workflow(self, 
                        project_name: str,
                        workflow_config: Optional[Dict[str, Any]] = None) -> str:
-        """
-        Create a new workflow for progress tracking
-        
+        """Creates a new workflow for progress tracking.
+
         Args:
-            project_name: Name of the project
-            workflow_config: Optional workflow configuration
-            
+            project_name: The name of the project.
+            workflow_config: Optional workflow configuration.
+
         Returns:
-            Workflow ID
+            The ID of the newly created workflow.
         """
         workflow_id = str(uuid.uuid4())
         
@@ -304,20 +385,19 @@ class ProgressMonitor:
                 priority: Priority = Priority.NORMAL,
                 estimated_duration: float = 0.0,
                 dependencies: Optional[List[str]] = None) -> str:
-        """
-        Add a task to a workflow
-        
+        """Adds a task to a workflow.
+
         Args:
-            workflow_id: ID of the workflow
-            stage: Workflow stage this task belongs to
-            name: Task name
-            description: Task description
-            priority: Task priority
-            estimated_duration: Estimated duration in seconds
-            dependencies: List of task IDs this task depends on
-            
+            workflow_id: The ID of the workflow to add the task to.
+            stage: The workflow stage this task belongs to.
+            name: The name of the task.
+            description: A description of the task.
+            priority: The priority of the task.
+            estimated_duration: The estimated duration of the task in seconds.
+            dependencies: A list of task IDs that this task depends on.
+
         Returns:
-            Task ID
+            The ID of the newly created task.
         """
         if workflow_id not in self.active_workflows:
             raise ValueError(f"Workflow {workflow_id} not found")
@@ -349,7 +429,14 @@ class ProgressMonitor:
         return task_id
     
     def start_task(self, task_id: str) -> bool:
-        """Mark a task as started"""
+        """Marks a task as started.
+
+        Args:
+            task_id: The ID of the task to start.
+
+        Returns:
+            True if the task was successfully started, False otherwise.
+        """
         with self._lock:
             if task_id not in self.tasks:
                 logger.warning(f"Task {task_id} not found")
@@ -372,7 +459,16 @@ class ProgressMonitor:
         return True
     
     def update_task_progress(self, task_id: str, progress: float, metadata: Optional[Dict[str, Any]] = None) -> bool:
-        """Update task progress"""
+        """Updates the progress of a task.
+
+        Args:
+            task_id: The ID of the task to update.
+            progress: The new progress of the task, from 0.0 to 1.0.
+            metadata: Optional metadata to add to the task.
+
+        Returns:
+            True if the task was successfully updated, False otherwise.
+        """
         with self._lock:
             if task_id not in self.tasks:
                 return False
@@ -389,7 +485,15 @@ class ProgressMonitor:
         return True
     
     def complete_task(self, task_id: str, result: Optional[Dict[str, Any]] = None) -> bool:
-        """Mark a task as completed"""
+        """Marks a task as completed.
+
+        Args:
+            task_id: The ID of the task to complete.
+            result: Optional results from the task.
+
+        Returns:
+            True if the task was successfully completed, False otherwise.
+        """
         with self._lock:
             if task_id not in self.tasks:
                 return False
@@ -411,7 +515,15 @@ class ProgressMonitor:
         return True
     
     def fail_task(self, task_id: str, error_message: str) -> bool:
-        """Mark a task as failed"""
+        """Marks a task as failed.
+
+        Args:
+            task_id: The ID of the task to mark as failed.
+            error_message: The error message associated with the failure.
+
+        Returns:
+            True if the task was successfully marked as failed, False otherwise.
+        """
         with self._lock:
             if task_id not in self.tasks:
                 return False
@@ -460,19 +572,45 @@ class ProgressMonitor:
                 workflow.failed_tasks = sum(sp.failed_tasks for sp in workflow.stage_progress.values())
     
     def get_workflow_progress(self, workflow_id: str) -> Optional[WorkflowProgress]:
-        """Get current progress for a workflow"""
+        """Gets the current progress for a workflow.
+
+        Args:
+            workflow_id: The ID of the workflow.
+
+        Returns:
+            A WorkflowProgress object, or None if the workflow is not found.
+        """
         return self.active_workflows.get(workflow_id)
     
     def get_task_progress(self, task_id: str) -> Optional[WorkflowTask]:
-        """Get current progress for a task"""
+        """Gets the current progress for a task.
+
+        Args:
+            task_id: The ID of the task.
+
+        Returns:
+            A WorkflowTask object, or None if the task is not found.
+        """
         return self.tasks.get(task_id)
     
     def get_all_workflows(self) -> Dict[str, WorkflowProgress]:
-        """Get all active workflows"""
+        """Gets all active workflows.
+
+        Returns:
+            A dictionary of all active workflows.
+        """
         return self.active_workflows.copy()
     
     def get_workflow_summary(self, workflow_id: str) -> Optional[Dict[str, Any]]:
-        """Get summary of workflow progress"""
+        """Gets a summary of the progress for a workflow.
+
+        Args:
+            workflow_id: The ID of the workflow.
+
+        Returns:
+            A dictionary containing a summary of the workflow's progress, or None
+            if the workflow is not found.
+        """
         workflow = self.get_workflow_progress(workflow_id)
         if not workflow:
             return None
@@ -517,7 +655,15 @@ class ProgressMonitor:
         return summary
     
     def export_progress_report(self, workflow_id: str, file_path: str) -> bool:
-        """Export detailed progress report"""
+        """Exports a detailed progress report for a workflow to a file.
+
+        Args:
+            workflow_id: The ID of the workflow to export.
+            file_path: The path to the file to export the report to.
+
+        Returns:
+            True if the report was successfully exported, False otherwise.
+        """
         try:
             workflow = self.get_workflow_progress(workflow_id)
             if not workflow:
@@ -553,7 +699,12 @@ class ProgressMonitor:
             return False
     
     def add_event_handler(self, event_type: str, handler: Callable):
-        """Add event handler for workflow events"""
+        """Adds an event handler for workflow events.
+
+        Args:
+            event_type: The type of event to handle.
+            handler: The handler function.
+        """
         if event_type in self.event_handlers:
             self.event_handlers[event_type].append(handler)
             logger.info(f"Added event handler for {event_type}")
@@ -561,7 +712,12 @@ class ProgressMonitor:
             logger.warning(f"Unknown event type: {event_type}")
     
     def _trigger_event(self, event_type: str, data: Any):
-        """Trigger event handlers"""
+        """Triggers event handlers for a given event.
+
+        Args:
+            event_type: The type of event to trigger.
+            data: The data to pass to the event handlers.
+        """
         handlers = self.event_handlers.get(event_type, [])
         for handler in handlers:
             try:
@@ -570,12 +726,24 @@ class ProgressMonitor:
                 logger.error(f"Error in event handler for {event_type}: {e}")
     
     def register_stage_handler(self, stage: WorkflowStage, handler: Callable):
-        """Register handler for specific workflow stage completion"""
+        """Registers a handler for a specific workflow stage completion.
+
+        Args:
+            stage: The workflow stage to register the handler for.
+            handler: The handler function.
+        """
         self.stage_handlers[stage] = handler
         logger.info(f"Registered stage handler for {stage.value}")
     
     def get_stage_statistics(self, workflow_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed statistics for workflow stages"""
+        """Gets detailed statistics for the stages of a workflow.
+
+        Args:
+            workflow_id: The ID of the workflow.
+
+        Returns:
+            A dictionary of stage statistics, or None if the workflow is not found.
+        """
         workflow = self.get_workflow_progress(workflow_id)
         if not workflow:
             return None
@@ -603,7 +771,11 @@ class ProgressMonitor:
         return stats
     
     def cleanup_workflow(self, workflow_id: str):
-        """Clean up completed workflow"""
+        """Cleans up a completed workflow.
+
+        Args:
+            workflow_id: The ID of the workflow to clean up.
+        """
         with self._lock:
             if workflow_id in self.active_workflows:
                 workflow = self.active_workflows[workflow_id]
@@ -623,7 +795,15 @@ class ProgressMonitor:
                 logger.info(f"Cleaned up workflow {workflow_id}")
     
     def get_current_tasks(self, workflow_id: str, stage: Optional[WorkflowStage] = None) -> List[WorkflowTask]:
-        """Get currently running tasks"""
+        """Gets the currently running tasks for a workflow.
+
+        Args:
+            workflow_id: The ID of the workflow.
+            stage: An optional workflow stage to filter by.
+
+        Returns:
+            A list of currently running tasks.
+        """
         workflow = self.get_workflow_progress(workflow_id)
         if not workflow:
             return []

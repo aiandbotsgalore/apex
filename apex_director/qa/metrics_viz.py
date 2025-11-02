@@ -24,9 +24,14 @@ logger = logging.getLogger(__name__)
 
 
 class MetricsVisualizer:
-    """Creates visualizations for quality metrics"""
+    """A class for creating visualizations for quality metrics."""
     
     def __init__(self, metrics_collector: MetricsCollector):
+        """Initializes the MetricsVisualizer.
+
+        Args:
+            metrics_collector: The MetricsCollector to use for getting metrics.
+        """
         self.metrics_collector = metrics_collector
         self.color_palette = sns.color_palette("husl", 12)
         
@@ -42,7 +47,17 @@ class MetricsVisualizer:
         output_path: Path,
         time_range_days: int = 30
     ) -> Path:
-        """Create timeline chart for a specific metric"""
+        """Creates a timeline chart for a specific metric.
+
+        Args:
+            project_id: The ID of the project.
+            metric_name: The name of the metric to plot.
+            output_path: The path to save the chart to.
+            time_range_days: The number of days to include in the chart.
+
+        Returns:
+            The path to the generated chart.
+        """
         
         # Get project metrics
         project_metrics = self.metrics_collector.get_project_metrics(project_id)
@@ -95,7 +110,16 @@ class MetricsVisualizer:
         output_path: Path,
         time_range_days: int = 30
     ) -> Path:
-        """Create comprehensive summary dashboard"""
+        """Creates a comprehensive summary dashboard.
+
+        Args:
+            project_ids: A list of project IDs to include in the dashboard.
+            output_path: The path to save the dashboard to.
+            time_range_days: The number of days to include in the dashboard.
+
+        Returns:
+            The path to the generated dashboard.
+        """
         
         # Collect data for all projects
         all_metrics_data = []
@@ -157,7 +181,16 @@ class MetricsVisualizer:
         output_path: Path,
         time_range_days: int = 30
     ) -> Path:
-        """Create quality metrics heatmap"""
+        """Creates a quality metrics heatmap.
+
+        Args:
+            project_ids: A list of project IDs to include in the heatmap.
+            output_path: The path to save the heatmap to.
+            time_range_days: The number of days to include in the heatmap.
+
+        Returns:
+            The path to the generated heatmap.
+        """
         
         # Get all metric names across projects
         metric_names = set()
@@ -211,7 +244,14 @@ class MetricsVisualizer:
         return output_path
     
     def create_image_to_base64(self, plot: plt.Figure) -> str:
-        """Convert matplotlib figure to base64 string for embedding in HTML"""
+        """Converts a matplotlib figure to a base64 string for embedding in HTML.
+
+        Args:
+            plot: The matplotlib figure to convert.
+
+        Returns:
+            A base64 string representation of the figure.
+        """
         buffer = BytesIO()
         plot.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
         buffer.seek(0)
@@ -220,7 +260,14 @@ class MetricsVisualizer:
         return image_base64
     
     def _plot_timeline_by_project(self, ax, df, metric, title):
-        """Plot timeline for multiple projects"""
+        """Plots a timeline for multiple projects.
+
+        Args:
+            ax: The matplotlib axes to plot on.
+            df: The DataFrame containing the data.
+            metric: The name of the metric to plot.
+            title: The title of the plot.
+        """
         projects = df['project_id'].unique()
         colors = sns.color_palette("husl", len(projects))
         
@@ -235,7 +282,14 @@ class MetricsVisualizer:
         ax.grid(True, alpha=0.3)
     
     def _plot_metric_distribution(self, ax, df, metric, title):
-        """Plot distribution of a metric"""
+        """Plots the distribution of a metric.
+
+        Args:
+            ax: The matplotlib axes to plot on.
+            df: The DataFrame containing the data.
+            metric: The name of the metric to plot.
+            title: The title of the plot.
+        """
         if metric in df.columns:
             sns.histplot(data=df, x=metric, ax=ax, bins=20, alpha=0.7)
             ax.set_title(title)
@@ -245,7 +299,14 @@ class MetricsVisualizer:
             ax.text(0.5, 0.5, f'No data for {metric}', ha='center', va='center', transform=ax.transAxes)
     
     def _plot_project_comparison(self, ax, df, metric, title):
-        """Plot comparison between projects"""
+        """Plots a comparison between projects.
+
+        Args:
+            ax: The matplotlib axes to plot on.
+            df: The DataFrame containing the data.
+            metric: The name of the metric to plot.
+            title: The title of the plot.
+        """
         if metric in df.columns:
             sns.boxplot(data=df, x='project_id', y=metric, ax=ax)
             ax.set_title(title)
@@ -256,7 +317,14 @@ class MetricsVisualizer:
             ax.text(0.5, 0.5, f'No data for {metric}', ha='center', va='center', transform=ax.transAxes)
     
     def _plot_stage_performance(self, ax, df, metric, title):
-        """Plot performance by stage"""
+        """Plots the performance of a metric by stage.
+
+        Args:
+            ax: The matplotlib axes to plot on.
+            df: The DataFrame containing the data.
+            metric: The name of the metric to plot.
+            title: The title of the plot.
+        """
         if metric in df.columns:
             sns.barplot(data=df, x='stage', y=metric, ax=ax, estimator=np.mean)
             ax.set_title(title)
@@ -267,7 +335,14 @@ class MetricsVisualizer:
             ax.text(0.5, 0.5, f'No data for {metric}', ha='center', va='center', transform=ax.transAxes)
     
     def _plot_metric_trend(self, ax, df, metric, title):
-        """Plot trend of a metric over time"""
+        """Plots the trend of a metric over time.
+
+        Args:
+            ax: The matplotlib axes to plot on.
+            df: The DataFrame containing the data.
+            metric: The name of the metric to plot.
+            title: The title of the plot.
+        """
         if metric in df.columns:
             daily_avg = df.groupby(df['timestamp'].dt.date)[metric].mean().reset_index()
             ax.plot(daily_avg['timestamp'], daily_avg[metric], marker='o', linewidth=2)
@@ -279,7 +354,14 @@ class MetricsVisualizer:
             ax.text(0.5, 0.5, f'No data for {metric}', ha='center', va='center', transform=ax.transAxes)
     
     def _plot_success_rates(self, ax, df, metric, title):
-        """Plot success rates by stage"""
+        """Plots the success rates of a metric by stage.
+
+        Args:
+            ax: The matplotlib axes to plot on.
+            df: The DataFrame containing the data.
+            metric: The name of the metric to plot.
+            title: The title of the plot.
+        """
         if metric in df.columns:
             stage_success = df.groupby('stage')[metric].mean().reset_index()
             bars = ax.bar(range(len(stage_success)), stage_success[metric])

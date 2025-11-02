@@ -16,7 +16,17 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class StyleElement:
-    """Individual style element for consistency tracking"""
+    """Represents an individual style element for consistency tracking.
+
+    Attributes:
+        name: The name of the style element.
+        value: The value of the style element.
+        weight: The importance of this element in consistency calculations.
+        category: The category of the style element (e.g., "color",
+            "lighting").
+        is_essential: A boolean indicating if the element is essential for
+            style consistency.
+    """
     name: str
     value: str
     weight: float = 1.0
@@ -24,11 +34,24 @@ class StyleElement:
     is_essential: bool = True
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the StyleElement to a dictionary.
+
+        Returns:
+            A dictionary representation of the style element.
+        """
         return asdict(self)
 
 @dataclass
 class CharacterReference:
-    """Character reference for consistency"""
+    """Represents a character reference for consistency.
+
+    Attributes:
+        name: The name of the character.
+        reference_images: A list of paths to reference images.
+        face_encoding: The face encoding for the character.
+        attributes: A dictionary of character attributes.
+        style_notes: Notes on the character's style.
+    """
     name: str
     reference_images: List[Path]
     face_encoding: Optional[np.ndarray] = None
@@ -40,6 +63,11 @@ class CharacterReference:
             self.attributes = {}
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the CharacterReference to a dictionary.
+
+        Returns:
+            A dictionary representation of the character reference.
+        """
         return {
             "name": self.name,
             "reference_images": [str(p) for p in self.reference_images],
@@ -50,7 +78,17 @@ class CharacterReference:
 
 @dataclass
 class SceneStyle:
-    """Style characteristics for a specific scene"""
+    """Represents the style characteristics for a specific scene.
+
+    Attributes:
+        scene_id: The ID of the scene.
+        style_elements: A list of StyleElement objects for the scene.
+        lighting_setup: A dictionary describing the lighting setup.
+        color_palette: A list of colors in the scene's palette.
+        mood_descriptors: A list of words describing the mood of the scene.
+        technical_specs: A dictionary of technical specifications for the
+            scene.
+    """
     scene_id: str
     style_elements: List[StyleElement]
     lighting_setup: Dict[str, str]
@@ -59,6 +97,11 @@ class SceneStyle:
     technical_specs: Dict[str, str]
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the SceneStyle to a dictionary.
+
+        Returns:
+            A dictionary representation of the scene style.
+        """
         return {
             "scene_id": self.scene_id,
             "style_elements": [se.to_dict() for se in self.style_elements],
@@ -69,16 +112,31 @@ class SceneStyle:
         }
 
 class StyleBibleManager:
-    """Manages style consistency using style_bible.json"""
+    """Manages style consistency using a style bible.
+
+    This class is responsible for loading, creating, and managing the
+    style_bible.json file, which contains all the style information for a
+    project.
+    """
     
     def __init__(self, style_bible_path: str = "style_bible.json"):
+        """Initializes the StyleBibleManager.
+
+        Args:
+            style_bible_path: The path to the style bible JSON file.
+        """
         self.style_bible_path = Path(style_bible_path)
         self.style_bible = self._load_or_create_style_bible()
         self.character_references: Dict[str, CharacterReference] = {}
         self.scene_styles: Dict[str, SceneStyle] = {}
         
     def _load_or_create_style_bible(self) -> Dict[str, Any]:
-        """Load existing style bible or create new one"""
+        """Loads an existing style bible or creates a new one if it doesn't
+        exist.
+
+        Returns:
+            A dictionary containing the style bible data.
+        """
         if self.style_bible_path.exists():
             try:
                 with open(self.style_bible_path, 'r') as f:
@@ -143,7 +201,11 @@ class StyleBibleManager:
         return default_style_bible
     
     def _save_style_bible(self, style_bible: Dict[str, Any]):
-        """Save style bible to file"""
+        """Saves the style bible to a file.
+
+        Args:
+            style_bible: The style bible dictionary to save.
+        """
         try:
             with open(self.style_bible_path, 'w') as f:
                 json.dump(style_bible, f, indent=2)
@@ -151,7 +213,13 @@ class StyleBibleManager:
             logger.error(f"Failed to save style bible: {e}")
     
     def update_style_element(self, category: str, key: str, value: Any):
-        """Update a specific style element in the bible"""
+        """Updates a specific style element in the style bible.
+
+        Args:
+            category: The category of the style element.
+            key: The key of the style element.
+            value: The new value for the style element.
+        """
         if category not in self.style_bible:
             self.style_bible[category] = {}
         
@@ -160,11 +228,24 @@ class StyleBibleManager:
         logger.info(f"Updated style element: {category}.{key} = {value}")
     
     def get_style_element(self, category: str, key: str, default: Any = None) -> Any:
-        """Get a style element from the bible"""
+        """Gets a style element from the style bible.
+
+        Args:
+            category: The category of the style element.
+            key: The key of the style element.
+            default: The default value to return if the element is not found.
+
+        Returns:
+            The value of the style element.
+        """
         return self.style_bible.get(category, {}).get(key, default)
     
     def add_character_reference(self, character: CharacterReference):
-        """Add character reference for consistency"""
+        """Adds a character reference to the style bible.
+
+        Args:
+            character: The CharacterReference to add.
+        """
         self.character_references[character.name] = character
         
         # Update style bible
@@ -177,7 +258,14 @@ class StyleBibleManager:
         logger.info(f"Added character reference: {character.name}")
     
     def get_character_reference(self, name: str) -> Optional[CharacterReference]:
-        """Get character reference by name"""
+        """Gets a character reference by name.
+
+        Args:
+            name: The name of the character.
+
+        Returns:
+            A CharacterReference object if found, otherwise None.
+        """
         char_dict = self.style_bible.get("character_consistency", {}).get(name)
         if char_dict:
             # Convert back to CharacterReference object
@@ -191,7 +279,11 @@ class StyleBibleManager:
         return None
     
     def add_scene_style(self, scene_style: SceneStyle):
-        """Add scene-specific style"""
+        """Adds a scene-specific style to the style bible.
+
+        Args:
+            scene_style: The SceneStyle object to add.
+        """
         self.scene_styles[scene_style.scene_id] = scene_style
         
         # Update style bible
@@ -204,7 +296,14 @@ class StyleBibleManager:
         logger.info(f"Added scene style: {scene_style.scene_id}")
     
     def get_scene_style(self, scene_id: str) -> Optional[SceneStyle]:
-        """Get scene-specific style"""
+        """Gets a scene-specific style from the style bible.
+
+        Args:
+            scene_id: The ID of the scene.
+
+        Returns:
+            A SceneStyle object if found, otherwise None.
+        """
         scene_dict = self.style_bible.get("scene_styles", {}).get(scene_id)
         if scene_dict:
             style_elements = [StyleElement(**se) for se in scene_dict["style_elements"]]
@@ -225,7 +324,17 @@ class StyleBibleManager:
         character_name: Optional[str] = None,
         style_variation: Optional[str] = None
     ) -> str:
-        """Generate prompt with style consistency elements"""
+        """Generates a prompt with style consistency elements.
+
+        Args:
+            base_prompt: The base prompt to build upon.
+            scene_id: The ID of the scene to incorporate style from.
+            character_name: The name of the character to incorporate style from.
+            style_variation: The style variation to use.
+
+        Returns:
+            A prompt string with style consistency elements.
+        """
         
         consistency_elements = []
         
@@ -288,7 +397,18 @@ class StyleBibleManager:
         return final_prompt
     
     def detect_style_drift(self, generated_image: Image.Image) -> Tuple[float, List[str]]:
-        """Detect style drift using CLIP embeddings (placeholder implementation)"""
+        """Detects style drift using CLIP embeddings (placeholder).
+
+        This is a placeholder implementation. In a real implementation, this
+        method would use CLIP embeddings to compare the generated image
+        against the style bible.
+
+        Args:
+            generated_image: The generated image to check for style drift.
+
+        Returns:
+            A tuple containing the drift score and a list of drift issues.
+        """
         # This is a placeholder - in reality, would use CLIP embeddings
         # to compare the generated image against the style bible
         
@@ -319,7 +439,19 @@ class StyleBibleManager:
         image1: Image.Image,
         image2: Image.Image
     ) -> float:
-        """Calculate style similarity between two images"""
+        """Calculates the style similarity between two images (placeholder).
+
+        This is a placeholder implementation. In a real implementation, this
+        method would use feature extraction and comparison to calculate the
+        style similarity.
+
+        Args:
+            image1: The first image.
+            image2: The second image.
+
+        Returns:
+            The style similarity score.
+        """
         # Placeholder implementation
         # In reality, would use feature extraction and comparison
         
@@ -330,7 +462,11 @@ class StyleBibleManager:
         return similarity
     
     def get_style_statistics(self) -> Dict[str, Any]:
-        """Get statistics about style consistency"""
+        """Gets statistics about style consistency.
+
+        Returns:
+            A dictionary of style statistics.
+        """
         return {
             "total_characters": len(self.character_references),
             "total_scenes": len(self.scene_styles),
@@ -345,6 +481,11 @@ class StyleConsistencyValidator:
     """Validates style consistency across generated images"""
     
     def __init__(self, style_bible_manager: StyleBibleManager):
+        """Initializes the StyleConsistencyValidator.
+
+        Args:
+            style_bible_manager: The StyleBibleManager to use for validation.
+        """
         self.style_bible_manager = style_bible_manager
     
     def validate_image_consistency(
@@ -353,7 +494,17 @@ class StyleConsistencyValidator:
         expected_scene_id: Optional[str] = None,
         expected_character: Optional[str] = None
     ) -> Tuple[bool, float, List[str]]:
-        """Validate image against style consistency requirements"""
+        """Validates an image against style consistency requirements.
+
+        Args:
+            image: The image to validate.
+            expected_scene_id: The expected scene ID for the image.
+            expected_character: The expected character in the image.
+
+        Returns:
+            A tuple containing a boolean indicating if the image is consistent,
+            the consistency score, and a list of consistency issues.
+        """
         
         issues = []
         consistency_score = 1.0

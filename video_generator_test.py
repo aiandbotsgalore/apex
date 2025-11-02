@@ -53,7 +53,7 @@ async def generate_actual_video(prompt: str, output_path: str, duration: int = 6
         return False
 
 async def generate_multiple_videos():
-    """Generate multiple test videos to demonstrate the system"""
+    """Generates multiple test videos to demonstrate the system."""
     test_prompts = [
         {
             "prompt": "A futuristic city with neon lights and flying cars, cyberpunk style, cinematic lighting, high quality",

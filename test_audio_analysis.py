@@ -284,7 +284,15 @@ def create_sample_timeline():
         return False
 
 def main():
-    """Main test function."""
+    """Main function to run the audio analysis test suite.
+
+    This function runs a series of tests on the audio analysis engine,
+    including system information checks, timeline export tests, and, if an
+    audio file is provided, basic and full analysis tests.
+
+    Returns:
+        0 on success, 1 on failure.
+    """
     print("🎵 ADVANCED AUDIO ANALYSIS ENGINE TEST SUITE")
     print("=" * 60)
     
