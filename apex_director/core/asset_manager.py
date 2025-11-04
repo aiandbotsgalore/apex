@@ -216,25 +216,29 @@ class AssetManager:
             logger.error(f"Failed to load metadata during object creation: {e}")
     
     def _save_metadata(self):
-        """Saves the in-memory asset and project metadata to disk."""
+        """Saves the in-memory asset and project metadata to disk atomically."""
         try:
-            # Save assets
+            # Save assets atomically
             assets_data = {
                 asset_id: asset.to_dict()
                 for asset_id, asset in self.assets_index.items()
             }
             
-            with open(self.metadata_db, 'w') as f:
+            temp_assets_db = self.metadata_db.with_suffix('.tmp')
+            with open(temp_assets_db, 'w') as f:
                 json.dump(assets_data, f, indent=2)
+            os.rename(temp_assets_db, self.metadata_db)
             
-            # Save projects
+            # Save projects atomically
             projects_data = {
-                project_id: project.__dict__
+                project_id: asdict(project)
                 for project_id, project in self.projects_index.items()
             }
             
-            with open(self.projects_db, 'w') as f:
+            temp_projects_db = self.projects_db.with_suffix('.tmp')
+            with open(temp_projects_db, 'w') as f:
                 json.dump(projects_data, f, indent=2)
+            os.rename(temp_projects_db, self.projects_db)
             
             # Create backup if enabled
             if self.config.metadata_backup:

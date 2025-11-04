@@ -122,25 +122,44 @@ async def test_job_submission():
         print(f"   ❌ Job submission test failed: {e}")
         return False
 
+def cleanup_metadata_files():
+    """Clean up metadata files before and after tests."""
+    print("\\n🧹 Cleaning up metadata files...")
+    metadata_dir = Path("assets/metadata")
+    if metadata_dir.exists():
+        for f in metadata_dir.glob("*.json"):
+            if "backup" not in f.name:
+                try:
+                    f.unlink()
+                    print(f"   🗑️  Removed {f.name}")
+                except OSError as e:
+                    print(f"   ❌ Error removing {f.name}: {e}")
+
 async def main():
     """Main function to run the system tests."""
     print("APEX DIRECTOR System Validation")
     print("=" * 50)
     
-    # Run basic functionality tests
-    basic_success = await test_basic_functionality()
+    cleanup_metadata_files()
     
-    if basic_success:
-        # Run job submission test
-        job_success = await test_job_submission()
+    try:
+        # Run basic functionality tests
+        basic_success = await test_basic_functionality()
         
-        if job_success:
-            print("\\n🎊 All tests completed successfully!")
-            print("The APEX DIRECTOR core system is fully functional.")
+        if basic_success:
+            # Run job submission test
+            job_success = await test_job_submission()
+
+            if job_success:
+                print("\\n🎊 All tests completed successfully!")
+                print("The APEX DIRECTOR core system is fully functional.")
+            else:
+                print("\\n⚠️  Basic functionality works, but job processing has issues.")
         else:
-            print("\\n⚠️  Basic functionality works, but job processing has issues.")
-    else:
-        print("\\n❌ Core system tests failed. Please check the implementation.")
+            print("\\n❌ Core system tests failed. Please check the implementation.")
+
+    finally:
+        cleanup_metadata_files()
 
 if __name__ == "__main__":
     asyncio.run(main())
