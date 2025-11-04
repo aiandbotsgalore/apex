@@ -47,6 +47,17 @@ logging.basicConfig(level=logging.INFO)
 
 # Data models for the web interface
 class MusicVideoRequestModel(BaseModel):
+    """Data model for a music video generation request.
+
+    Attributes:
+        project_name: The name of the project.
+        genre: The genre of the music.
+        concept: The creative concept for the video.
+        director_style: The director style to emulate.
+        duration: The duration of the video in seconds.
+        quality_preset: The quality preset to use for the output.
+        resolution: The resolution of the output video.
+    """
     project_name: str
     genre: str
     concept: str
@@ -56,12 +67,29 @@ class MusicVideoRequestModel(BaseModel):
     resolution: str = "1920x1080"
 
 class ProcessingStatus(BaseModel):
+    """Data model for the processing status of a job.
+
+    Attributes:
+        status: The current status of the job (e.g., processing, completed).
+        progress: The progress of the job as a percentage.
+        current_stage: The current stage of the generation process.
+        message: A message describing the current status.
+    """
     status: str
     progress: float
     current_stage: str
     message: str
 
 class ProcessingResult(BaseModel):
+    """Data model for the result of a processing job.
+
+    Attributes:
+        success: Whether the job was successful.
+        output_path: The path to the output file, if successful.
+        quality_score: The quality score of the output, if successful.
+        processing_time: The time taken to process the job, if successful.
+        error_message: An error message, if the job failed.
+    """
     success: bool
     output_path: Optional[str] = None
     quality_score: Optional[float] = None

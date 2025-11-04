@@ -14,7 +14,15 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CameraSettings:
-    """Camera and lens settings for cinematography"""
+    """Represents camera and lens settings for cinematography.
+
+    Attributes:
+        lens: The lens size (e.g., "50mm").
+        aperture: The aperture setting (e.g., "f/2.8").
+        focal_length: The focal length in millimeters.
+        iso: The ISO setting (e.g., "ISO 800").
+        shutter_speed: The shutter speed (e.g., "1/125").
+    """
     lens: str = "50mm"  # 24mm, 35mm, 50mm, 85mm, 135mm
     aperture: str = "f/2.8"
     focal_length: Optional[int] = None
@@ -31,7 +39,15 @@ class CameraSettings:
 
 @dataclass
 class LightingSetup:
-    """Professional lighting setup"""
+    """Represents a professional lighting setup.
+
+    Attributes:
+        key_light: The type of key light (e.g., "soft_box").
+        fill_light: The type of fill light (e.g., "reflector").
+        rim_light: The type of rim light (e.g., "hair_light").
+        background: The type of background lighting.
+        mood: The overall mood of the lighting.
+    """
     key_light: str = "soft_box"
     fill_light: str = "reflector"
     rim_light: str = "hair_light"
@@ -39,11 +55,25 @@ class LightingSetup:
     mood: str = "cinematic"
     
     def format_lighting_description(self) -> str:
+        """Formats the lighting setup into a descriptive string.
+
+        Returns:
+            A string describing the lighting setup.
+        """
         return f"{self.key_light}, {self.fill_light}, {self.rim_light}, {self.background} background, {self.mood} mood"
 
 @dataclass
 class Composition:
-    """Cinematic composition rules"""
+    """Represents cinematic composition rules.
+
+    Attributes:
+        rule_of_thirds: A boolean indicating whether to use the rule of
+            thirds.
+        leading_lines: A boolean indicating whether to use leading lines.
+        symmetry: A boolean indicating whether to use symmetry.
+        depth_of_field: The depth of field (e.g., "shallow", "deep").
+        framing: The type of shot framing (e.g., "medium_shot").
+    """
     rule_of_thirds: bool = True
     leading_lines: bool = False
     symmetry: bool = False
@@ -51,6 +81,11 @@ class Composition:
     framing: str = "medium_shot"  # close_up, medium_shot, wide_shot, extreme_wide
     
     def format_composition(self) -> str:
+        """Formats the composition into a descriptive string.
+
+        Returns:
+            A string describing the composition.
+        """
         elements = []
         if self.rule_of_thirds:
             elements.append("rule of thirds")
@@ -63,15 +98,24 @@ class Composition:
         return ", ".join(elements)
 
 class CinematographyPromptEngineer:
-    """Advanced prompt engineering for cinematic image generation"""
+    """An advanced prompt engineering system for cinematic image generation."""
     
     def __init__(self, style_bible_path: str = "style_bible.json"):
+        """Initializes the CinematographyPromptEngineer.
+
+        Args:
+            style_bible_path: The path to the style bible JSON file.
+        """
         self.style_bible_path = Path(style_bible_path)
         self.style_bible = self._load_style_bible()
         self._load_cinematography_knowledge()
     
     def _load_style_bible(self) -> Dict[str, Any]:
-        """Load style bible for consistency"""
+        """Loads the style bible for consistency.
+
+        Returns:
+            A dictionary containing the style bible data.
+        """
         if self.style_bible_path.exists():
             try:
                 with open(self.style_bible_path, 'r') as f:
@@ -81,7 +125,7 @@ class CinematographyPromptEngineer:
         return {}
     
     def _load_cinematography_knowledge(self):
-        """Load cinematography knowledge base"""
+        """Loads the cinematography knowledge base."""
         # Film genres and their visual characteristics
         self.genre_prompts = {
             "film_noir": {
@@ -186,7 +230,21 @@ class CinematographyPromptEngineer:
         composition: Optional[Composition] = None,
         style_bible_overrides: Optional[Dict[str, Any]] = None
     ) -> str:
-        """Generate a comprehensive cinematic prompt"""
+        """Generates a comprehensive cinematic prompt.
+
+        Args:
+            subject: The main subject of the image.
+            scene_description: A description of the scene.
+            genre: The genre of the scene.
+            director_style: The desired directorial style.
+            camera_settings: The camera settings.
+            lighting_setup: The lighting setup.
+            composition: The composition rules.
+            style_bible_overrides: Optional overrides for the style bible.
+
+        Returns:
+            A comprehensive cinematic prompt string.
+        """
         
         # Start with base prompt
         prompt_parts = []
@@ -234,7 +292,11 @@ class CinematographyPromptEngineer:
         return final_prompt
     
     def _apply_style_bible_consistency(self) -> str:
-        """Apply style bible elements for consistency"""
+        """Applies style bible elements for consistency.
+
+        Returns:
+            A string of style bible elements to be added to the prompt.
+        """
         consistency_elements = []
         
         # Color palette consistency
@@ -256,7 +318,14 @@ class CinematographyPromptEngineer:
         return ", ".join(consistency_elements)
     
     def _format_camera_settings(self, camera: CameraSettings) -> str:
-        """Format camera settings for prompt"""
+        """Formats camera settings into a descriptive string.
+
+        Args:
+            camera: The CameraSettings object.
+
+        Returns:
+            A string describing the camera settings.
+        """
         parts = []
         
         # Lens type
@@ -277,7 +346,15 @@ class CinematographyPromptEngineer:
         base_prompt: str,
         num_variations: int = 4
     ) -> List[str]:
-        """Generate style variations of a base prompt"""
+        """Generates style variations of a base prompt.
+
+        Args:
+            base_prompt: The base prompt to create variations of.
+            num_variations: The number of variations to generate.
+
+        Returns:
+            A list of the generated prompt variations.
+        """
         variations = []
         
         # Lighting variations
@@ -334,7 +411,15 @@ class CinematographyPromptEngineer:
         prompt: str,
         backend_name: str
     ) -> str:
-        """Optimize prompt for specific backend requirements"""
+        """Optimizes a prompt for a specific backend.
+
+        Args:
+            prompt: The prompt to optimize.
+            backend_name: The name of the backend.
+
+        Returns:
+            The optimized prompt string.
+        """
         
         # Backend-specific optimizations
         backend_optimizations = {
@@ -380,7 +465,15 @@ class CinematographyPromptEngineer:
         return optimized_prompt
     
     def validate_prompt(self, prompt: str) -> Tuple[bool, List[str]]:
-        """Validate prompt for quality and compatibility"""
+        """Validates a prompt for quality and compatibility.
+
+        Args:
+            prompt: The prompt to validate.
+
+        Returns:
+            A tuple containing a boolean indicating validity and a list of
+            any warnings.
+        """
         warnings = []
         
         # Check prompt length

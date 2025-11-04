@@ -31,7 +31,20 @@ class QualityMode(Enum):
 
 @dataclass
 class AssemblyJob:
-    """Complete video assembly job definition"""
+    """Represents a complete video assembly job.
+
+    Note: This class appears to be a duplicate of the one in `assembler.py`.
+
+    Attributes:
+        job_id: The unique identifier for the job.
+        timeline: The timeline to be assembled.
+        output_path: The path to the output file.
+        assembly_mode: The assembly mode to use.
+        quality_mode: The quality mode for the assembly.
+        parallel_processing: Whether to use parallel processing.
+        max_workers: The maximum number of workers for parallel processing.
+        validate_broadcast_standards: Whether to validate against broadcast standards.
+    """
     job_id: str
     timeline: any  # Timeline object
     output_path: str
@@ -44,7 +57,19 @@ class AssemblyJob:
 
 @dataclass
 class ProcessingResult:
-    """Result of video processing"""
+    """Represents the result of a video processing job.
+
+    Note: This class appears to be a duplicate of the one in `assembler.py`.
+
+    Attributes:
+        success: Whether the processing was successful.
+        output_path: The path to the output file.
+        duration: The duration of the output video in seconds.
+        processing_time: The time taken for processing in seconds.
+        frame_count: The number of frames in the output video.
+        errors: A list of errors that occurred during processing.
+        warnings: A list of warnings that occurred during processing.
+    """
     success: bool
     output_path: str
     duration: float
@@ -55,9 +80,19 @@ class ProcessingResult:
 
 
 class VideoAssembler:
-    """Professional video assembly engine"""
+    """A professional video assembly engine.
+
+    Note: This class appears to be a duplicate of the one in `assembler.py`.
+
+    This class orchestrates the entire video assembly process, including:
+    - Loading timelines
+    - Assembling videos from timelines
+    - Applying transitions, color grading, and motion effects
+    - Exporting the final video
+    """
     
     def __init__(self):
+        """Initializes the VideoAssembler."""
         self.timeline = None
         self.transition_engine = None
         self.color_grader = None
@@ -72,7 +107,14 @@ class VideoAssembler:
         }
     
     def assemble_video(self, job: AssemblyJob) -> ProcessingResult:
-        """Assemble complete video from timeline"""
+        """Assembles a complete video from a timeline.
+
+        Args:
+            job: The assembly job to process.
+
+        Returns:
+            A ProcessingResult object with the results of the assembly.
+        """
         start_time = time.time()
         
         try:
@@ -225,5 +267,9 @@ class VideoAssembler:
         }
     
     def get_statistics(self) -> Dict:
-        """Get processing statistics"""
+        """Gets the processing statistics for the assembly engine.
+
+        Returns:
+            A dictionary of processing statistics.
+        """
         return self.processing_stats.copy()

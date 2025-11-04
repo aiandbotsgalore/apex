@@ -20,7 +20,21 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class HistoricalRecord:
-    """Historical data point for estimation"""
+    """Represents a historical data point for a completed generation job.
+
+    Attributes:
+        timestamp: The timestamp when the job was completed.
+        backend: The name of the backend used for the job.
+        width: The width of the generated image.
+        height: The height of the generated image.
+        steps: The number of generation steps used.
+        quality_level: The quality level of the generation.
+        actual_time: The actual time taken to complete the job, in seconds.
+        actual_cost: The actual cost of the job.
+        success: A boolean indicating whether the job was successful.
+        prompt_length: The length of the prompt used.
+        complexity_score: A score representing the complexity of the request.
+    """
     timestamp: datetime
     backend: str
     width: int
@@ -34,12 +48,25 @@ class HistoricalRecord:
     complexity_score: float = 0.0
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the HistoricalRecord to a dictionary.
+
+        Returns:
+            A dictionary representation of the historical record.
+        """
         data = asdict(self)
         data['timestamp'] = self.timestamp.isoformat()
         return data
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'HistoricalRecord':
+        """Creates a HistoricalRecord instance from a dictionary.
+
+        Args:
+            data: A dictionary containing historical record data.
+
+        Returns:
+            An instance of HistoricalRecord.
+        """
         if 'timestamp' in data:
             data['timestamp'] = datetime.fromisoformat(data['timestamp'])
         return cls(**data)
@@ -47,7 +74,22 @@ class HistoricalRecord:
 
 @dataclass
 class CostEstimate:
-    """Estimated cost and time for a generation request"""
+    """Represents an estimated cost and time for a generation request.
+
+    Attributes:
+        estimate_id: A unique identifier for this estimate.
+        job_params: The parameters of the job for which the estimate was
+            generated.
+        estimated_cost: The estimated cost of the job.
+        estimated_time_seconds: The estimated time to complete the job, in
+            seconds.
+        confidence_score: A score from 0.0 to 1.0 representing the
+            confidence in the estimate.
+        factors: A dictionary of factors that influenced the estimate.
+        backend_suggestions: A list of recommended backends for the job.
+        created_at: The timestamp when the estimate was created.
+        expires_at: The timestamp when the estimate expires.
+    """
     estimate_id: str
     job_params: Dict[str, Any]
     estimated_cost: float
@@ -59,6 +101,11 @@ class CostEstimate:
     expires_at: datetime
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the CostEstimate to a dictionary.
+
+        Returns:
+            A dictionary representation of the cost estimate.
+        """
         data = asdict(self)
         data['created_at'] = self.created_at.isoformat()
         data['expires_at'] = self.expires_at.isoformat()
@@ -66,6 +113,14 @@ class CostEstimate:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'CostEstimate':
+        """Creates a CostEstimate instance from a dictionary.
+
+        Args:
+            data: A dictionary containing cost estimate data.
+
+        Returns:
+            An instance of CostEstimate.
+        """
         if 'created_at' in data:
             data['created_at'] = datetime.fromisoformat(data['created_at'])
         if 'expires_at' in data:
@@ -74,9 +129,18 @@ class CostEstimate:
 
 
 class EstimationEngine:
-    """Core estimation algorithm"""
+    """The core engine for estimating job costs and times.
+
+    This class uses historical data and algorithmic models to predict the
+    resource requirements for generation jobs.
+    """
     
     def __init__(self, config: EstimatorConfig):
+        """Initializes the EstimationEngine.
+
+        Args:
+            config: The configuration for the estimator.
+        """
         self.config = config
         self.historical_data: List[HistoricalRecord] = []
         self.cache: Dict[str, CostEstimate] = {}
@@ -86,7 +150,7 @@ class EstimationEngine:
         self._load_historical_data()
     
     def _load_historical_data(self):
-        """Load historical performance data"""
+        """Loads historical performance data from a file."""
         try:
             data_dir = Path("assets/metadata")
             historical_file = data_dir / "estimation_history.json"
@@ -105,7 +169,7 @@ class EstimationEngine:
             self.historical_data = []
     
     def _save_historical_data(self):
-        """Save historical performance data"""
+        """Saves the historical performance data to a file."""
         try:
             data_dir = Path("assets/metadata")
             data_dir.mkdir(parents=True, exist_ok=True)
@@ -120,7 +184,16 @@ class EstimationEngine:
             logger.warning(f"Failed to save historical data: {e}")
     
     def _generate_estimate_id(self, job_params: Dict[str, Any]) -> str:
-        """Generate cache key for estimate"""
+        """Generates a unique ID for an estimate based on job parameters.
+
+        This ID is used as a cache key.
+
+        Args:
+            job_params: The parameters of the job.
+
+        Returns:
+            A unique hexadecimal ID string.
+        """
         # Create a stable hash from job parameters
         key_parts = []
         for key in ['backend', 'width', 'height', 'steps', 'quality_level']:
@@ -131,11 +204,31 @@ class EstimationEngine:
         return hashlib.md5(key_string.encode()).hexdigest()[:16]
     
     def _is_estimate_valid(self, estimate: CostEstimate) -> bool:
-        """Check if cached estimate is still valid"""
+        """Checks if a cached estimate is still valid.
+
+        Args:
+            estimate: The CostEstimate to check.
+
+        Returns:
+            True if the estimate is still valid, False otherwise.
+        """
         return datetime.utcnow() < estimate.expires_at
     
     def _calculate_complexity_score(self, prompt: str, width: int, height: int, steps: int) -> float:
-        """Calculate complexity score for a generation request"""
+        """Calculates a complexity score for a generation request.
+
+        The score is based on factors like image size, number of steps, and
+        the complexity of the prompt.
+
+        Args:
+            prompt: The text prompt.
+            width: The width of the image.
+            height: The height of the image.
+            steps: The number of generation steps.
+
+        Returns:
+            A float representing the complexity score.
+        """
         # Base complexity factors
         base_score = 1.0
         
@@ -161,7 +254,19 @@ class EstimationEngine:
         return min(complexity, 5.0)  # Cap at 5.0
     
     def _get_similar_records(self, job_params: Dict[str, Any], limit: int = 50) -> List[HistoricalRecord]:
-        """Get historical records similar to current request"""
+        """Retrieves historical records that are similar to a given job.
+
+        Similarity is scored based on backend, resolution, steps, and quality
+        level.
+
+        Args:
+            job_params: The parameters of the job to find similar records
+                for.
+            limit: The maximum number of similar records to return.
+
+        Returns:
+            A list of the most similar HistoricalRecord objects.
+        """
         similar_records = []
         
         for record in self.historical_data:
@@ -210,7 +315,18 @@ class EstimationEngine:
         return [record for record, score in similar_records[:limit]]
     
     def _calculate_baseline_estimate(self, job_params: Dict[str, Any]) -> Tuple[float, float]:
-        """Calculate baseline time and cost estimates"""
+        """Calculates baseline time and cost estimates for a job.
+
+        This method provides an initial estimate based on backend
+        configurations and job parameters, without considering historical
+        data.
+
+        Args:
+            job_params: The parameters of the job.
+
+        Returns:
+            A tuple containing the estimated time and cost.
+        """
         backend_manager = get_backend_manager()
         
         # Get backend configuration
@@ -258,7 +374,20 @@ class EstimationEngine:
     
     def _calculate_confidence_score(self, similar_records: List[HistoricalRecord], 
                                    baseline_time: float, baseline_cost: float) -> float:
-        """Calculate confidence score based on available data"""
+        """Calculates a confidence score for an estimate.
+
+        The score is based on the quantity and consistency of similar
+        historical data.
+
+        Args:
+            similar_records: A list of historical records similar to the
+                current job.
+            baseline_time: The baseline time estimate.
+            baseline_cost: The baseline cost estimate.
+
+        Returns:
+            A confidence score between 0.0 and 1.0.
+        """
         if not similar_records:
             return 0.3  # Low confidence with no data
         
@@ -288,7 +417,18 @@ class EstimationEngine:
         return min(confidence, 0.95)  # Cap at 95%
     
     def estimate_generation(self, job_params: Dict[str, Any], prompt: str) -> CostEstimate:
-        """Generate comprehensive cost and time estimate"""
+        """Generates a comprehensive cost and time estimate for a job.
+
+        This method combines baseline calculations with historical data to
+        provide a refined estimate with a confidence score.
+
+        Args:
+            job_params: The parameters of the job.
+            prompt: The text prompt for the job.
+
+        Returns:
+            A CostEstimate object with the detailed estimate.
+        """
         
         # Add prompt to job parameters
         job_params_with_prompt = job_params.copy()
@@ -391,7 +531,11 @@ class EstimationEngine:
         return estimate
     
     def add_historical_record(self, record: HistoricalRecord):
-        """Add a new historical record for future estimations"""
+        """Adds a new historical record to the dataset.
+
+        Args:
+            record: The HistoricalRecord to add.
+        """
         self.historical_data.append(record)
         
         # Keep only recent records to manage memory
@@ -408,13 +552,26 @@ class EstimationEngine:
         self._clear_relevant_cache(record)
     
     def _clear_relevant_cache(self, record: HistoricalRecord):
-        """Clear cache entries that might be affected by new data"""
+        """Clears cache entries that might be affected by new data.
+
+        For simplicity, this method currently clears the entire cache.
+
+        Args:
+            record: The new HistoricalRecord that was added.
+        """
         # Simple approach: clear all cache (could be optimized)
         if self.config.cache_estimates:
             self.cache.clear()
     
     def batch_estimate(self, requests: List[Dict[str, Any]]) -> List[CostEstimate]:
-        """Generate estimates for multiple requests efficiently"""
+        """Generates estimates for multiple requests efficiently.
+
+        Args:
+            requests: A list of job request dictionaries.
+
+        Returns:
+            A list of CostEstimate objects corresponding to the requests.
+        """
         estimates = []
         
         for request in requests:
@@ -426,7 +583,12 @@ class EstimationEngine:
         return estimates
     
     def get_estimation_statistics(self) -> Dict[str, Any]:
-        """Get statistics about estimation accuracy and data"""
+        """Gets statistics about the estimation engine's performance.
+
+        Returns:
+            A dictionary of statistics, including the number of historical
+            records, data variance, and cache performance.
+        """
         if not self.historical_data:
             return {
                 "total_records": 0,
@@ -481,7 +643,14 @@ _estimation_engine: Optional[EstimationEngine] = None
 
 
 def get_estimator() -> EstimationEngine:
-    """Get the global estimation engine instance"""
+    """Gets the global instance of the EstimationEngine.
+
+    This function implements a singleton pattern to ensure that only one
+    instance of the estimation engine exists.
+
+    Returns:
+        The global EstimationEngine instance.
+    """
     global _estimation_engine
     if _estimation_engine is None:
         config = get_config().get_estimator_config()
@@ -491,15 +660,34 @@ def get_estimator() -> EstimationEngine:
 
 # Convenience functions
 def estimate_generation_cost_time(job_params: Dict[str, Any], prompt: str) -> CostEstimate:
-    """Quick estimate generation cost and time"""
+    """A convenience function to estimate generation cost and time.
+
+    Args:
+        job_params: The parameters of the job.
+        prompt: The text prompt for the job.
+
+    Returns:
+        A CostEstimate object with the detailed estimate.
+    """
     return get_estimator().estimate_generation(job_params, prompt)
 
 
 def batch_estimate_generation(requests: List[Dict[str, Any]]) -> List[CostEstimate]:
-    """Batch estimate multiple generations"""
+    """A convenience function to estimate multiple generations in a batch.
+
+    Args:
+        requests: A list of job request dictionaries.
+
+    Returns:
+        A list of CostEstimate objects.
+    """
     return get_estimator().batch_estimate(requests)
 
 
 def add_generation_record(record: HistoricalRecord):
-    """Add record of completed generation for future estimation"""
+    """A convenience function to add a new historical record.
+
+    Args:
+        record: The HistoricalRecord to add.
+    """
     get_estimator().add_historical_record(record)

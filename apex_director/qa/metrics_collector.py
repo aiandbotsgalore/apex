@@ -26,7 +26,15 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class QualityMetrics:
-    """Quality metrics data structure"""
+    """Represents a collection of quality metrics for a specific project stage.
+
+    Attributes:
+        timestamp: The timestamp of when the metrics were collected.
+        project_id: The ID of the project.
+        stage: The stage of the project for which the metrics were collected.
+        metrics: A dictionary of the collected metrics.
+        metadata: A dictionary of metadata associated with the metrics.
+    """
     timestamp: datetime
     project_id: str
     stage: str
@@ -34,16 +42,21 @@ class QualityMetrics:
     metadata: Dict[str, Any]
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization"""
+        """Converts the QualityMetrics to a dictionary for JSON serialization.
+
+        Returns:
+            A dictionary representation of the QualityMetrics.
+        """
         data = asdict(self)
         data['timestamp'] = self.timestamp.isoformat()
         return data
 
 
 class MetricsCollector:
-    """Collects and analyzes quality metrics"""
+    """A class for collecting and analyzing quality metrics."""
     
     def __init__(self):
+        """Initializes the MetricsCollector."""
         self.metrics_history: List[QualityMetrics] = []
         self.session_metrics: Dict[str, Dict[str, float]] = defaultdict(dict)
         
@@ -58,7 +71,16 @@ class MetricsCollector:
         images: List[str],
         style_reference: Optional[str] = None
     ) -> Dict[str, float]:
-        """Collect image quality metrics"""
+        """Collects image quality metrics.
+
+        Args:
+            project_id: The ID of the project.
+            images: A list of image paths.
+            style_reference: The path to a style reference image.
+
+        Returns:
+            A dictionary of image quality metrics.
+        """
         metrics = {}
         
         try:
@@ -107,7 +129,16 @@ class MetricsCollector:
         video_path: str,
         reference_audio: Optional[str] = None
     ) -> Dict[str, float]:
-        """Collect video quality metrics"""
+        """Collects video quality metrics.
+
+        Args:
+            project_id: The ID of the project.
+            video_path: The path to the video file.
+            reference_audio: The path to a reference audio file.
+
+        Returns:
+            A dictionary of video quality metrics.
+        """
         metrics = {}
         
         try:
@@ -141,7 +172,15 @@ class MetricsCollector:
         project_id: str,
         workflow_data: Dict[str, Any]
     ) -> Dict[str, float]:
-        """Collect workflow performance metrics"""
+        """Collects workflow performance metrics.
+
+        Args:
+            project_id: The ID of the project.
+            workflow_data: A dictionary of workflow data.
+
+        Returns:
+            A dictionary of workflow performance metrics.
+        """
         metrics = {}
         
         try:
@@ -176,7 +215,16 @@ class MetricsCollector:
         stage: str,
         data: Dict[str, Any]
     ) -> QualityMetrics:
-        """Collect comprehensive metrics for a project stage"""
+        """Collects comprehensive metrics for a project stage.
+
+        Args:
+            project_id: The ID of the project.
+            stage: The stage of the project.
+            data: A dictionary of data for the stage.
+
+        Returns:
+            A QualityMetrics object.
+        """
         metrics = {}
         
         # Collect stage-specific metrics
@@ -212,19 +260,49 @@ class MetricsCollector:
         return quality_metrics
     
     async def _calculate_aesthetic_score(self, image_path: str) -> float:
-        """Calculate aesthetic score for an image"""
+        """Calculates the aesthetic score for an image.
+
+        This is a placeholder implementation. A real implementation would
+        integrate with CLIP or similar aesthetic models.
+
+        Args:
+            image_path: The path to the image.
+
+        Returns:
+            The aesthetic score.
+        """
         # This would integrate with CLIP or similar aesthetic models
         # For now, return a placeholder
         return 0.75
     
     async def _detect_artifacts(self, image_path: str) -> List[str]:
-        """Detect visual artifacts in an image"""
+        """Detects visual artifacts in an image.
+
+        This is a placeholder implementation. A real implementation would
+        integrate with artifact detection models.
+
+        Args:
+            image_path: The path to the image.
+
+        Returns:
+            A list of detected artifacts.
+        """
         # This would integrate with artifact detection models
         # For now, return empty list
         return []
     
     async def _analyze_video_technical_quality(self, video_path: str) -> Dict[str, float]:
-        """Analyze technical quality of video"""
+        """Analyzes the technical quality of a video.
+
+        This is a placeholder implementation. A real implementation would
+        integrate with FFmpeg analysis.
+
+        Args:
+            video_path: The path to the video.
+
+        Returns:
+            A dictionary of technical quality metrics.
+        """
         # This would integrate with FFmpeg analysis
         # For now, return placeholder metrics
         return {
@@ -235,11 +313,25 @@ class MetricsCollector:
         }
     
     def get_project_metrics(self, project_id: str) -> List[QualityMetrics]:
-        """Get all metrics for a specific project"""
+        """Gets all metrics for a specific project.
+
+        Args:
+            project_id: The ID of the project.
+
+        Returns:
+            A list of QualityMetrics objects.
+        """
         return [m for m in self.metrics_history if m.project_id == project_id]
     
     def get_summary_stats(self, project_id: str) -> Dict[str, Any]:
-        """Get summary statistics for a project"""
+        """Gets summary statistics for a project.
+
+        Args:
+            project_id: The ID of the project.
+
+        Returns:
+            A dictionary of summary statistics.
+        """
         project_metrics = self.get_project_metrics(project_id)
         
         if not project_metrics:
@@ -270,7 +362,11 @@ class MetricsCollector:
         return summary
     
     def export_metrics(self, output_path: Path) -> None:
-        """Export metrics to JSON file"""
+        """Exports the metrics to a JSON file.
+
+        Args:
+            output_path: The path to the output file.
+        """
         export_data = {
             'metrics_history': [m.to_dict() for m in self.metrics_history],
             'export_timestamp': datetime.now().isoformat(),

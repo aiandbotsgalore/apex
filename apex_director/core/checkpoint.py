@@ -24,7 +24,20 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class JobState:
-    """State of a single job"""
+    """Represents the state of a single job at a point in time.
+
+    Attributes:
+        job_id: The unique identifier for the job.
+        status: The current status of the job (e.g., "pending", "completed").
+        progress: The progress of the job as a float between 0.0 and 1.0.
+        backend_used: The name of the backend used for the job.
+        request_data: A dictionary containing the original request data.
+        started_at: The timestamp when the job started processing.
+        completed_at: The timestamp when the job was completed or failed.
+        error_message: The last error message, if the job failed.
+        retry_count: The number of times the job has been retried.
+        asset_id: The ID of the generated asset, if the job was successful.
+    """
     job_id: str
     status: str  # pending, queued, processing, completed, failed, cancelled
     progress: float = 0.0
@@ -37,6 +50,11 @@ class JobState:
     asset_id: Optional[str] = None  # If completed successfully
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the JobState to a dictionary.
+
+        Returns:
+            A dictionary representation of the job state.
+        """
         data = asdict(self)
         if self.started_at:
             data['started_at'] = self.started_at.isoformat()
@@ -46,6 +64,14 @@ class JobState:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'JobState':
+        """Creates a JobState instance from a dictionary.
+
+        Args:
+            data: A dictionary containing job state data.
+
+        Returns:
+            An instance of JobState.
+        """
         if 'started_at' in data and isinstance(data['started_at'], str):
             data['started_at'] = datetime.fromisoformat(data['started_at'])
         if 'completed_at' in data and isinstance(data['completed_at'], str):
@@ -55,7 +81,20 @@ class JobState:
 
 @dataclass
 class SystemState:
-    """Complete system state snapshot"""
+    """Represents a complete snapshot of the system's state.
+
+    Attributes:
+        checkpoint_id: The unique identifier for this checkpoint.
+        timestamp: The timestamp when the checkpoint was created.
+        version: The version of the system state schema.
+        orchestrator_state: A dictionary containing the state of the
+            orchestrator.
+        job_states: A dictionary mapping job IDs to their JobState.
+        backend_states: A dictionary containing the states of the backends.
+        asset_inventory: A dictionary summarizing the asset inventory.
+        performance_metrics: A dictionary of performance metrics at the time
+            of the checkpoint.
+    """
     checkpoint_id: str
     timestamp: datetime
     version: str = "1.0"
@@ -66,6 +105,11 @@ class SystemState:
     performance_metrics: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the SystemState to a dictionary.
+
+        Returns:
+            A dictionary representation of the system state.
+        """
         data = asdict(self)
         data['timestamp'] = self.timestamp.isoformat()
         data['job_states'] = {job_id: job.to_dict() for job_id, job in self.job_states.items()}
@@ -73,6 +117,14 @@ class SystemState:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'SystemState':
+        """Creates a SystemState instance from a dictionary.
+
+        Args:
+            data: A dictionary containing system state data.
+
+        Returns:
+            An instance of SystemState.
+        """
         if 'timestamp' in data:
             data['timestamp'] = datetime.fromisoformat(data['timestamp'])
         if 'job_states' in data:
@@ -84,9 +136,20 @@ class SystemState:
 
 
 class CheckpointManager:
-    """Manages checkpoint creation and system state recovery"""
+    """Manages the creation and recovery of system state checkpoints.
+
+    This class provides functionalities for automatic and manual checkpoint
+    creation, as well as for restoring the system to a previous state.
+    """
     
     def __init__(self, asset_manager: AssetManager, custom_config: Optional[OrchestratorConfig] = None):
+        """Initializes the CheckpointManager.
+
+        Args:
+            asset_manager: An instance of the AssetManager.
+            custom_config: An optional OrchestratorConfig to override the
+                default configuration.
+        """
         self.asset_manager = asset_manager
         self.config = custom_config or get_config().get_orchestrator_config()
         self.checkpoint_dir = Path("assets/checkpoints")
@@ -103,19 +166,19 @@ class CheckpointManager:
         self.start_auto_checkpointing()
     
     def start_auto_checkpointing(self):
-        """Start automatic periodic checkpointing"""
+        """Starts the automatic periodic checkpointing task."""
         if self.auto_checkpoint_task is None or self.auto_checkpoint_task.done():
             self.auto_checkpoint_task = asyncio.create_task(self._auto_checkpoint_loop())
             logger.info("Auto checkpointing started")
     
     def stop_auto_checkpointing(self):
-        """Stop automatic checkpointing"""
+        """Stops the automatic checkpointing task."""
         if self.auto_checkpoint_task and not self.auto_checkpoint_task.done():
             self.auto_checkpoint_task.cancel()
             logger.info("Auto checkpointing stopped")
     
     async def _auto_checkpoint_loop(self):
-        """Background loop for automatic checkpointing"""
+        """The background loop for performing automatic checkpoints."""
         while True:
             try:
                 await asyncio.sleep(self.config.checkpoint_interval)
@@ -131,7 +194,14 @@ class CheckpointManager:
                 await asyncio.sleep(60)  # Wait before retry
     
     def _should_create_checkpoint(self) -> bool:
-        """Determine if checkpoint should be created based on changes"""
+        """Determines if a checkpoint should be created.
+
+        A checkpoint is created if enough time has passed since the last one
+        or if there have been significant changes to the system state.
+
+        Returns:
+            True if a checkpoint should be created, False otherwise.
+        """
         if not self.current_checkpoint:
             return True
         
@@ -147,7 +217,15 @@ class CheckpointManager:
         return len(self.current_checkpoint.job_states) > 0
     
     async def create_checkpoint(self, reason: str = "manual") -> str:
-        """Create a checkpoint of current system state"""
+        """Creates a checkpoint of the current system state.
+
+        Args:
+            reason: The reason for creating the checkpoint (e.g., "manual",
+                "auto").
+
+        Returns:
+            The ID of the newly created checkpoint.
+        """
         checkpoint_id = str(uuid.uuid4())[:8]
         
         try:
@@ -188,7 +266,11 @@ class CheckpointManager:
             raise
     
     async def _capture_system_state(self) -> SystemState:
-        """Capture current state of all system components"""
+        """Captures the current state of all system components.
+
+        Returns:
+            A SystemState object representing the current state of the system.
+        """
         
         # Capture orchestrator state
         orchestrator_state = {
@@ -236,7 +318,7 @@ class CheckpointManager:
         )
     
     async def _save_checkpoint_index(self):
-        """Save index of available checkpoints"""
+        """Saves the index of available checkpoints to a file."""
         index_file = self.checkpoint_dir / "checkpoint_index.json"
         
         index_data = {
@@ -249,7 +331,11 @@ class CheckpointManager:
             json.dump(index_data, f, indent=2)
     
     def _cleanup_checkpoint_files(self, checkpoint_id: str):
-        """Remove old checkpoint files"""
+        """Removes the files associated with a specific checkpoint.
+
+        Args:
+            checkpoint_id: The ID of the checkpoint to clean up.
+        """
         for pattern in [f"checkpoint_{checkpoint_id}.json", f"checkpoint_{checkpoint_id}.pkl"]:
             file_path = self.checkpoint_dir / pattern
             if file_path.exists():
@@ -260,7 +346,17 @@ class CheckpointManager:
                     logger.warning(f"Failed to cleanup {file_path}: {e}")
     
     async def restore_from_checkpoint(self, checkpoint_id: Optional[str] = None) -> bool:
-        """Restore system state from checkpoint"""
+        """Restores the system state from a specified checkpoint.
+
+        If no checkpoint ID is provided, it restores from the latest
+        available checkpoint.
+
+        Args:
+            checkpoint_id: The ID of the checkpoint to restore from.
+
+        Returns:
+            True if the restoration was successful, False otherwise.
+        """
         
         # Find checkpoint to restore
         if not checkpoint_id:
@@ -300,7 +396,11 @@ class CheckpointManager:
             return False
     
     def _find_latest_checkpoint(self) -> Optional[str]:
-        """Find the most recent checkpoint"""
+        """Finds the ID of the most recent checkpoint.
+
+        Returns:
+            The ID of the latest checkpoint, or None if no checkpoints exist.
+        """
         if not self.checkpoint_history:
             return None
         
@@ -312,7 +412,14 @@ class CheckpointManager:
         return self.checkpoint_history[-1] if self.checkpoint_history else None
     
     async def _restore_job_states(self, job_states: Dict[str, JobState]):
-        """Restore job states to orchestrator"""
+        """Restores the states of jobs to the orchestrator.
+
+        In a real implementation, this would re-queue jobs and update the
+        orchestrator's state.
+
+        Args:
+            job_states: A dictionary of job states to restore.
+        """
         # In a real implementation, this would restore jobs to the orchestrator
         # For now, we'll log the restoration
         logger.info(f"Restoring {len(job_states)} job states from checkpoint")
@@ -332,13 +439,25 @@ class CheckpointManager:
                 logger.info(f"Job {job_id} was in progress, will be re-queued for continuation")
     
     def _restore_backend_states(self, backend_states: Dict[str, Any]):
-        """Restore backend states (informational)"""
+        """Restores backend states from a checkpoint.
+
+        Note:
+            This is currently for informational purposes only.
+
+        Args:
+            backend_states: A dictionary of backend states to restore.
+        """
         logger.info("Backend states restored from checkpoint")
         for backend_name, state in backend_states.items():
             logger.debug(f"Backend {backend_name}: {state.get('status', 'unknown')}")
     
     async def list_checkpoints(self) -> List[Dict[str, Any]]:
-        """List all available checkpoints"""
+        """Lists all available checkpoints.
+
+        Returns:
+            A list of dictionaries, where each dictionary contains metadata
+            about a checkpoint.
+        """
         checkpoints = []
         
         try:
@@ -377,7 +496,14 @@ class CheckpointManager:
         return checkpoints
     
     async def delete_checkpoint(self, checkpoint_id: str) -> bool:
-        """Delete a specific checkpoint"""
+        """Deletes a specific checkpoint.
+
+        Args:
+            checkpoint_id: The ID of the checkpoint to delete.
+
+        Returns:
+            True if the deletion was successful, False otherwise.
+        """
         try:
             if checkpoint_id in self.checkpoint_history:
                 self.checkpoint_history.remove(checkpoint_id)
@@ -396,7 +522,14 @@ class CheckpointManager:
             return False
     
     async def cleanup_old_checkpoints(self, keep_count: int = 5) -> int:
-        """Clean up old checkpoints, keeping only the most recent ones"""
+        """Cleans up old checkpoints, keeping a specified number of recent ones.
+
+        Args:
+            keep_count: The number of recent checkpoints to keep.
+
+        Returns:
+            The number of checkpoints that were deleted.
+        """
         if len(self.checkpoint_history) <= keep_count:
             return 0
         
@@ -411,7 +544,11 @@ class CheckpointManager:
         return deleted_count
     
     def get_checkpoint_status(self) -> Dict[str, Any]:
-        """Get current checkpoint system status"""
+        """Gets the current status of the checkpoint system.
+
+        Returns:
+            A dictionary containing the status of the checkpoint system.
+        """
         return {
             "auto_checkpoint_enabled": self.auto_checkpoint_task is not None and not self.auto_checkpoint_task.done(),
             "checkpoint_interval": self.config.checkpoint_interval,
@@ -422,7 +559,11 @@ class CheckpointManager:
         }
     
     def _calculate_disk_usage(self) -> float:
-        """Calculate total disk usage of checkpoint files"""
+        """Calculates the total disk usage of all checkpoint files.
+
+        Returns:
+            The total disk usage in megabytes.
+        """
         total_size = 0
         try:
             for file_path in self.checkpoint_dir.glob("checkpoint_*"):
@@ -434,11 +575,15 @@ class CheckpointManager:
         return total_size / (1024 * 1024)  # Convert to MB
     
     async def force_checkpoint(self):
-        """Force an immediate checkpoint creation"""
+        """Forces an immediate checkpoint creation."""
         return await self.create_checkpoint("forced")
     
     async def shutdown(self):
-        """Graceful shutdown with final checkpoint"""
+        """Performs a graceful shutdown of the checkpoint manager.
+
+        This includes stopping the auto-checkpointing task and creating a
+        final checkpoint.
+        """
         try:
             # Stop auto checkpointing
             self.stop_auto_checkpointing()
@@ -458,7 +603,14 @@ _checkpoint_manager: Optional[CheckpointManager] = None
 
 
 def get_checkpoint_manager() -> CheckpointManager:
-    """Get the global checkpoint manager instance"""
+    """Gets the global instance of the CheckpointManager.
+
+    This function implements a singleton pattern to ensure that only one
+    instance of the checkpoint manager exists.
+
+    Returns:
+        The global CheckpointManager instance.
+    """
     global _checkpoint_manager
     if _checkpoint_manager is None:
         from .asset_manager import AssetManager
@@ -468,20 +620,44 @@ def get_checkpoint_manager() -> CheckpointManager:
 
 # Convenience functions
 async def create_checkpoint(reason: str = "manual") -> str:
-    """Create a system checkpoint"""
+    """A convenience function to create a system checkpoint.
+
+    Args:
+        reason: The reason for creating the checkpoint.
+
+    Returns:
+        The ID of the newly created checkpoint.
+    """
     return await get_checkpoint_manager().create_checkpoint(reason)
 
 
 async def restore_from_checkpoint(checkpoint_id: Optional[str] = None) -> bool:
-    """Restore system from checkpoint"""
+    """A convenience function to restore the system from a checkpoint.
+
+    Args:
+        checkpoint_id: The ID of the checkpoint to restore from. If None,
+            restores from the latest checkpoint.
+
+    Returns:
+        True if the restoration was successful, False otherwise.
+    """
     return await get_checkpoint_manager().restore_from_checkpoint(checkpoint_id)
 
 
 async def list_checkpoints() -> List[Dict[str, Any]]:
-    """List all available checkpoints"""
+    """A convenience function to list all available checkpoints.
+
+    Returns:
+        A list of dictionaries, where each dictionary contains metadata
+        about a checkpoint.
+    """
     return await get_checkpoint_manager().list_checkpoints()
 
 
 def get_checkpoint_status() -> Dict[str, Any]:
-    """Get checkpoint system status"""
+    """A convenience function to get the status of the checkpoint system.
+
+    Returns:
+        A dictionary containing the status of the checkpoint system.
+    """
     return get_checkpoint_manager().get_checkpoint_status()

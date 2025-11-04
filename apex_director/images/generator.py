@@ -24,7 +24,25 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class GenerationRequest:
-    """Complete generation request"""
+    """Represents a complete request for cinematic image generation.
+
+    Attributes:
+        prompt: The main text prompt for the image.
+        scene_id: An optional ID for the scene, used for style consistency.
+        character_name: The name of a character to feature in the image.
+        genre: The genre of the scene (e.g., "drama", "sci-fi").
+        director_style: The desired directorial style.
+        camera_settings: The camera settings for the shot.
+        lighting_setup: The lighting setup for the scene.
+        composition: The desired composition of the shot.
+        backend_preference: The preferred generation backend.
+        num_variants: The number of image variants to generate.
+        upscale: A boolean indicating whether to upscale the selected
+            variants.
+        upscale_preset: The preset to use for upscaling.
+        output_dir: The directory to save the generated images and
+            metadata.
+    """
     prompt: str
     scene_id: Optional[str] = None
     character_name: Optional[str] = None
@@ -40,11 +58,27 @@ class GenerationRequest:
     output_dir: Path = Path("generated_images")
     
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the GenerationRequest to a dictionary.
+
+        Returns:
+            A dictionary representation of the request.
+        """
         return asdict(self)
 
 @dataclass
 class GenerationResult:
-    """Complete generation result"""
+    """Represents the complete result of an image generation request.
+
+    Attributes:
+        request: The original GenerationRequest.
+        selected_variants: A list of the selected image variants.
+        upscaled_variants: A list of the upscaled image variants.
+        generation_time: The total time taken for the generation process.
+        style_consistency_score: The score for style consistency.
+        character_consistency_score: The score for character consistency.
+        overall_quality_score: The overall quality score of the generation.
+        metadata: A dictionary of metadata about the generation process.
+    """
     request: GenerationRequest
     selected_variants: List[Any]  # VariantResult from variant_selector
     upscaled_variants: List[Any]  # UpscaleResult from upscaller
@@ -55,7 +89,9 @@ class GenerationResult:
     metadata: Dict[str, Any]
     
     def save_results(self):
-        """Save all generation results"""
+        """Saves all the results of the generation process to the output
+        directory.
+        """
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # Save selected variants
@@ -89,7 +125,12 @@ class GenerationResult:
             json.dump(generation_metadata, f, indent=2, default=str)
 
 class CinematicImageGenerator:
-    """Main cinematic image generation engine"""
+    """The main engine for cinematic image generation.
+
+    This class integrates all the components of the image generation pipeline,
+    including prompt engineering, style and character consistency, variant
+    selection, and upscaling.
+    """
     
     def __init__(
         self,
@@ -97,6 +138,14 @@ class CinematicImageGenerator:
         character_profiles_path: str = "character_profiles",
         output_dir: str = "generated_images"
     ):
+        """Initializes the CinematicImageGenerator.
+
+        Args:
+            style_bible_path: The path to the style bible JSON file.
+            character_profiles_path: The path to the directory of character
+                profiles.
+            output_dir: The root directory for saving generated images.
+        """
         # Initialize all components
         self.backend_manager = BackendManager()
         self.prompt_engineer = CinematographyPromptEngineer(style_bible_path)
@@ -118,7 +167,15 @@ class CinematicImageGenerator:
         requests: List[GenerationRequest],
         progress_callback: Optional[callable] = None
     ) -> List[GenerationResult]:
-        """Generate a sequence of images with style consistency"""
+        """Generates a sequence of images with style consistency.
+
+        Args:
+            requests: A list of GenerationRequest objects.
+            progress_callback: An optional callback for reporting progress.
+
+        Returns:
+            A list of GenerationResult objects.
+        """
         
         logger.info(f"Starting image sequence generation: {len(requests)} requests")
         
@@ -150,7 +207,14 @@ class CinematicImageGenerator:
         return results
     
     async def generate_single_image(self, request: GenerationRequest) -> GenerationResult:
-        """Generate a single image with all components"""
+        """Generates a single image using the full pipeline.
+
+        Args:
+            request: The GenerationRequest for the image.
+
+        Returns:
+            A GenerationResult object.
+        """
         
         start_time = time.time()
         
@@ -215,7 +279,14 @@ class CinematicImageGenerator:
         return result
     
     def _generate_enhanced_prompt(self, request: GenerationRequest) -> str:
-        """Generate enhanced cinematic prompt"""
+        """Generates an enhanced cinematic prompt from a generation request.
+
+        Args:
+            request: The GenerationRequest.
+
+        Returns:
+            The enhanced prompt string.
+        """
         
         # Create camera, lighting, and composition settings if not provided
         if not request.camera_settings:
@@ -267,7 +338,17 @@ class CinematicImageGenerator:
         config: GenerationConfig,
         request: GenerationRequest
     ) -> List[Tuple[str, Image.Image]]:
-        """Generate image variants using backend"""
+        """Generates image variants using the specified backend.
+
+        Args:
+            prompt: The text prompt for the generation.
+            config: The generation configuration.
+            request: The original generation request.
+
+        Returns:
+            A list of tuples, where each tuple contains a variant ID and a
+            PIL Image object.
+        """
         
         logger.info(f"Generating {config.num_variants} variants")
         
@@ -294,7 +375,16 @@ class CinematicImageGenerator:
         prompt: str,
         request: GenerationRequest
     ) -> List[Any]:
-        """Select best variants using 4-criteria scoring"""
+        """Selects the best variants from a list of generated images.
+
+        Args:
+            variants: A list of generated image variants.
+            prompt: The text prompt used for generation.
+            request: The original generation request.
+
+        Returns:
+            A list of the selected variants.
+        """
         
         logger.info("Selecting best variants")
         
@@ -323,7 +413,16 @@ class CinematicImageGenerator:
         variants: List[Any],
         request: GenerationRequest
     ) -> Dict[str, float]:
-        """Validate style and character consistency"""
+        """Validates the style and character consistency of the generated
+        variants.
+
+        Args:
+            variants: A list of the selected variants.
+            request: The original generation request.
+
+        Returns:
+            A dictionary of consistency scores.
+        """
         
         if not variants:
             return {"style": 0.0, "character": 0.0, "overall": 0.0}
@@ -375,7 +474,15 @@ class CinematicImageGenerator:
         variants: List[Any],
         request: GenerationRequest
     ) -> List[Any]:
-        """Upscale selected variants"""
+        """Upscales the selected image variants.
+
+        Args:
+            variants: A list of the variants to upscale.
+            request: The original generation request.
+
+        Returns:
+            A list of the upscaled image results.
+        """
         
         if not variants:
             return []
@@ -404,7 +511,14 @@ class CinematicImageGenerator:
         return upscaled_variants
     
     def _get_style_reference(self, scene_id: Optional[str]) -> Optional[Image.Image]:
-        """Get style reference image for consistency scoring"""
+        """Gets a style reference image for consistency scoring.
+
+        Args:
+            scene_id: The ID of the scene.
+
+        Returns:
+            A PIL Image object to be used as a style reference, or None.
+        """
         
         if scene_id:
             # Get scene style from style manager
@@ -420,7 +534,12 @@ class CinematicImageGenerator:
         request: GenerationRequest,
         result: GenerationResult
     ):
-        """Update style bible with generation results"""
+        """Updates the style bible with the results of a generation.
+
+        Args:
+            request: The original generation request.
+            result: The result of the generation.
+        """
         
         if result.selected_variants:
             # Use the best variant to update style consistency
@@ -435,7 +554,15 @@ class CinematicImageGenerator:
                     pass  # In real implementation, would extract style features
     
     def create_project_template(self, project_name: str) -> Dict[str, Path]:
-        """Create project template with all necessary files"""
+        """Creates a project template with all the necessary files and
+        directories.
+
+        Args:
+            project_name: The name of the project.
+
+        Returns:
+            A dictionary of paths to the created project files.
+        """
         
         project_dir = self.output_dir / project_name
         project_dir.mkdir(exist_ok=True)
@@ -484,7 +611,11 @@ class CinematicImageGenerator:
         }
     
     def get_system_status(self) -> Dict[str, Any]:
-        """Get system status and available components"""
+        """Gets the current status of the image generation system.
+
+        Returns:
+            A dictionary containing the system status.
+        """
         
         return {
             "available_backends": self.backend_manager.get_available_backends(),
@@ -500,7 +631,11 @@ class CinematicImageGenerator:
         }
     
     async def health_check(self) -> Dict[str, bool]:
-        """Perform system health check"""
+        """Performs a health check on the system.
+
+        Returns:
+            A dictionary with the health status of each component.
+        """
         
         health_status = {}
         
@@ -533,7 +668,17 @@ async def quick_generate(
     output_dir: str = "quick_generation",
     **kwargs
 ) -> GenerationResult:
-    """Quick image generation with sensible defaults"""
+    """A convenience function for quick image generation with sensible
+    defaults.
+
+    Args:
+        prompt: The text prompt for the image.
+        output_dir: The directory to save the generated image.
+        **kwargs: Additional keyword arguments for the GenerationRequest.
+
+    Returns:
+        A GenerationResult object.
+    """
     
     generator = CinematicImageGenerator(output_dir=output_dir)
     
@@ -550,7 +695,16 @@ async def batch_generate(
     output_dir: str = "batch_generation",
     **kwargs
 ) -> List[GenerationResult]:
-    """Batch generate multiple images"""
+    """A convenience function for batch generating multiple images.
+
+    Args:
+        prompts: A list of text prompts.
+        output_dir: The directory to save the generated images.
+        **kwargs: Additional keyword arguments for the GenerationRequest.
+
+    Returns:
+        A list of GenerationResult objects.
+    """
     
     generator = CinematicImageGenerator(output_dir=output_dir)
     

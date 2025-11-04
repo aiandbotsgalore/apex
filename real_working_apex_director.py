@@ -52,6 +52,17 @@ active_projects = {}
 completed_projects = {}
 
 class ProjectStatus:
+    """Represents the status of a video generation project.
+
+    Attributes:
+        id: The unique identifier for the project.
+        status: The current status of the project (e.g., pending, processing, completed).
+        progress: The progress of the project as a percentage.
+        current_stage: The current stage of the generation process.
+        start_time: The time the project was started.
+        result: The result of the project, if completed.
+        error: Any error message, if the project failed.
+    """
     def __init__(self):
         self.id = str(uuid.uuid4())
         self.status = "pending"
@@ -762,7 +773,12 @@ async def call_video_generation(prompt: str, output_path: str) -> bool:
         return False
 
 async def create_fallback_video(video_path: str, project):
-    """Create a fallback video if AI generation fails"""
+    """Creates a fallback video if the main AI generation fails.
+
+    Args:
+        video_path: The path to save the fallback video.
+        project: The project object.
+    """
     try:
         print("🔄 Creating fallback video...")
         

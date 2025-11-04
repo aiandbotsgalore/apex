@@ -50,6 +50,13 @@ APEX DIRECTOR implements a robust multi-layered architecture designed for scalab
 - Backend-specific cost models
 - Batch estimation for efficient processing
 
+### Music Video Generation
+- **Audio Analysis**: Beat detection, harmonic analysis, and section detection.
+- **Cinematography**: Automatic shot selection, camera movements, and transitions.
+- **Video Assembly**: Combines generated images and audio into a final video.
+- **Quality Assurance**: Ensures broadcast-quality output with metrics and reports.
+- **Web Interface**: A user-friendly web interface for creating and managing projects.
+
 ## 📁 Directory Structure
 
 ```
@@ -62,8 +69,20 @@ apex_director/
 │   ├── checkpoint.py        # State management
 │   ├── estimator.py         # Cost/time prediction
 │   └── config.py            # Configuration settings
+├── audio/
+│   └── ...                  # Audio analysis components
+├── cinematography/
+│   └── ...                  # Cinematography and narrative components
+├── images/
+│   └── ...                  # Image generation components
+├── qa/
+│   └── ...                  # Quality assurance components
 ├── schemas/
 │   └── __init__.py          # JSON schemas for validation
+├── ui/
+│   └── ...                  # User interface components
+├── video/
+│   └── ...                  # Video assembly components
 └── __init__.py              # Package initialization
 
 assets/
@@ -251,6 +270,22 @@ if success:
     print("System restored from checkpoint")
 ```
 
+### Web Interface
+
+The easiest way to use APEX DIRECTOR is through the web interface.
+
+```bash
+# Start the web interface
+python web_interface.py
+```
+
+Then, open your web browser to `http://localhost:8000` to access the user interface. From there, you can:
+- Create new music video projects.
+- Upload audio files.
+- Specify creative concepts and director styles.
+- Monitor the progress of video generation.
+- Download completed videos.
+
 ## 🛠️ System Components
 
 ### Backend Manager
@@ -277,6 +312,31 @@ if success:
 - **Purpose**: Coordinate all system components
 - **Features**: Job queuing, priority management, error handling
 - **Scalability**: Multi-processor support with configurable concurrency
+
+### Audio Analysis
+- **Purpose**: Analyze audio files to extract musical features for video synchronization.
+- **Features**: Beat detection, key and chord analysis, section identification (verse, chorus), and loudness metering.
+- **Output**: A detailed analysis report used to drive the creative and editing process.
+
+### Cinematography
+- **Purpose**: Emulate professional cinematography techniques and narrative structures.
+- **Features**: Automatic shot selection, camera movement generation (pans, zooms, dollies), and application of cinematic styles.
+- **Integration**: Works with the Treatment Generator to translate high-level concepts into a concrete visual plan.
+
+### Video Assembly
+- **Purpose**: Assemble generated images and audio into a final video file.
+- **Features**: Frame-accurate editing, professional transitions (cuts, crossfades), color grading, and motion effects.
+- **Output**: Broadcast-quality video files in various formats (MP4, MOV).
+
+### Quality Assurance (QA)
+- **Purpose**: Ensure the final output meets professional standards.
+- **Features**: Automated checks for artifacts, broadcast standard compliance, audio-visual sync, and style consistency.
+- **Output**: Generates detailed quality reports and visualizations.
+
+### User Interface (UI)
+- **Purpose**: Provide a user-friendly web interface for the entire system.
+- **Features**: Project creation, file uploads, progress monitoring, and downloading final videos.
+- **Technology**: Built with FastAPI for a modern, responsive user experience.
 
 ## 📊 Monitoring & Statistics
 

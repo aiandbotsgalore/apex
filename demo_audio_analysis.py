@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-Simple demonstration of the Advanced Audio Analysis Engine
+Simple demonstration of the Advanced Audio Analysis Engine.
+
+This script demonstrates the capabilities of the audio analysis engine
+by importing its components and printing information about their features.
 """
 
 import sys

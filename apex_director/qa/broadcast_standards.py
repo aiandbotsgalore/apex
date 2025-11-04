@@ -12,7 +12,7 @@ from enum import Enum
 
 
 class BroadcastStandard(Enum):
-    """Broadcast standards"""
+    """Enumeration of broadcast standards."""
     REC709 = "Rec.709/BT.709"
     REC2020 = "Rec.2020/BT.2020"
     NTSC = "NTSC"
@@ -21,7 +21,7 @@ class BroadcastStandard(Enum):
 
 
 class LegalizerMode(Enum):
-    """Video legalizer modes"""
+    """Enumeration of video legalizer modes."""
     SIMPLE = "simple"
     ADVANCED = "advanced"
     PROFESSIONAL = "professional"
@@ -29,7 +29,17 @@ class LegalizerMode(Enum):
 
 @dataclass
 class BroadcastCompliance:
-    """Broadcast compliance metrics"""
+    """Represents broadcast compliance metrics.
+
+    Attributes:
+        ire_levels_compliant: Whether the IRE levels are compliant.
+        gamut_compliant: Whether the color gamut is compliant.
+        safe_area_compliant: Whether the safe areas are compliant.
+        level_violations: The number of IRE level violations.
+        gamut_violations: The number of color gamut violations.
+        safe_area_violations: The number of safe area violations.
+        overall_compliance_score: The overall compliance score.
+    """
     ire_levels_compliant: bool
     gamut_compliant: bool
     safe_area_compliant: bool
@@ -40,19 +50,20 @@ class BroadcastCompliance:
 
 
 class BroadcastStandardsValidator:
-    """
-    Broadcast Standards Compliance Validator
-    
-    Validates video against professional broadcast standards:
-    - IRE level compliance (7.5-100 IRE for legal range)
-    - Color gamut compliance (broadcast-safe colors)
-    - Safe area compliance (title/action safe zones)
-    - Professional encoding standards
-    - Automatic legalizer application
+    """A class for validating video against professional broadcast standards.
+
+    This class can validate a video against a variety of broadcast standards,
+    including IRE level compliance, color gamut compliance, and safe area
+    compliance. It can also apply a broadcast legalizer to the video to
+    automatically correct any compliance issues.
     """
     
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize broadcast standards validator"""
+        """Initializes the BroadcastStandardsValidator.
+
+        Args:
+            config: A dictionary of configuration parameters.
+        """
         self.config = config or self._default_config()
         self.logger = logging.getLogger('apex_director.qa.broadcast_standards')
         
@@ -161,7 +172,14 @@ class BroadcastStandardsValidator:
             }
     
     def _analyze_ire_levels(self, sample_frames: List[np.ndarray]) -> Dict:
-        """Analyze IRE level compliance"""
+        """Analyzes the IRE level compliance of a list of sample frames.
+
+        Args:
+            sample_frames: A list of sample frames from a video.
+
+        Returns:
+            A dictionary with the IRE level analysis results.
+        """
         try:
             self.logger.info("Analyzing IRE levels")
             
@@ -253,7 +271,14 @@ class BroadcastStandardsValidator:
             }
     
     def _analyze_gamut_compliance(self, sample_frames: List[np.ndarray]) -> Dict:
-        """Analyze color gamut compliance"""
+        """Analyzes the color gamut compliance of a list of sample frames.
+
+        Args:
+            sample_frames: A list of sample frames from a video.
+
+        Returns:
+            A dictionary with the color gamut analysis results.
+        """
         try:
             self.logger.info("Analyzing color gamut compliance")
             
@@ -346,7 +371,14 @@ class BroadcastStandardsValidator:
             }
     
     def _analyze_safe_area_compliance(self, sample_frames: List[np.ndarray]) -> Dict:
-        """Analyze safe area compliance"""
+        """Analyzes the safe area compliance of a list of sample frames.
+
+        Args:
+            sample_frames: A list of sample frames from a video.
+
+        Returns:
+            A dictionary with the safe area analysis results.
+        """
         try:
             self.logger.info("Analyzing safe area compliance")
             
@@ -432,7 +464,16 @@ class BroadcastStandardsValidator:
     
     def _calculate_compliance_score(self, ire_results: Dict, gamut_results: Dict, 
                                   safe_area_results: Dict) -> float:
-        """Calculate overall compliance score"""
+        """Calculates the overall compliance score.
+
+        Args:
+            ire_results: The IRE level analysis results.
+            gamut_results: The color gamut analysis results.
+            safe_area_results: The safe area analysis results.
+
+        Returns:
+            The overall compliance score.
+        """
         try:
             scores = []
             weights = []
@@ -474,7 +515,16 @@ class BroadcastStandardsValidator:
     
     def _generate_legalizer_recommendations(self, ire_results: Dict, gamut_results: Dict,
                                           safe_area_results: Dict) -> List[str]:
-        """Generate legalizer recommendations"""
+        """Generates legalizer recommendations based on the analysis results.
+
+        Args:
+            ire_results: The IRE level analysis results.
+            gamut_results: The color gamut analysis results.
+            safe_area_results: The safe area analysis results.
+
+        Returns:
+            A list of legalizer recommendations.
+        """
         recommendations = []
         
         # IRE level recommendations
@@ -509,7 +559,16 @@ class BroadcastStandardsValidator:
     
     def _generate_compliance_recommendations(self, ire_results: Dict, gamut_results: Dict,
                                            safe_area_results: Dict) -> List[str]:
-        """Generate compliance recommendations"""
+        """Generates compliance recommendations based on the analysis results.
+
+        Args:
+            ire_results: The IRE level analysis results.
+            gamut_results: The color gamut analysis results.
+            safe_area_results: The safe area analysis results.
+
+        Returns:
+            A list of compliance recommendations.
+        """
         recommendations = []
         
         # General compliance recommendations
@@ -540,7 +599,14 @@ class BroadcastStandardsValidator:
         return recommendations
     
     def _get_technical_details(self, sample_frames: List[np.ndarray]) -> Dict:
-        """Get technical details about the video"""
+        """Gets technical details about the video.
+
+        Args:
+            sample_frames: A list of sample frames from the video.
+
+        Returns:
+            A dictionary of technical details.
+        """
         try:
             if not sample_frames:
                 return {}
@@ -571,7 +637,14 @@ class BroadcastStandardsValidator:
             return {}
     
     def _detect_color_space(self, frame: np.ndarray) -> str:
-        """Detect the color space of the frame"""
+        """Detects the color space of a frame.
+
+        Args:
+            frame: The frame to detect the color space of.
+
+        Returns:
+            The detected color space.
+        """
         try:
             # Simple color space detection based on color distribution
             if len(frame.shape) == 3:
@@ -585,7 +658,11 @@ class BroadcastStandardsValidator:
             return "Unknown"
     
     def _get_gamut_limits(self) -> Dict:
-        """Get color gamut limits for current broadcast standard"""
+        """Gets the color gamut limits for the current broadcast standard.
+
+        Returns:
+            A dictionary of color gamut limits.
+        """
         if self.broadcast_standard == BroadcastStandard.REC709:
             return {
                 'r_max': 0.95,
@@ -617,20 +694,25 @@ class BroadcastStandardsValidator:
     
     def _store_analysis_results(self, ire_results: Dict, gamut_results: Dict, 
                               safe_area_results: Dict):
-        """Store analysis results for future reference"""
+        """Stores the analysis results for future reference.
+
+        Args:
+            ire_results: The IRE level analysis results.
+            gamut_results: The color gamut analysis results.
+            safe_area_results: The safe area analysis results.
+        """
         self.ire_analysis_results.append(ire_results)
         self.gamut_analysis_results.append(gamut_results)
         self.safe_area_results.append(safe_area_results)
     
     def apply_broadcast_legalizer(self, frames: List[np.ndarray]) -> List[np.ndarray]:
-        """
-        Apply broadcast legalizer to frames
-        
+        """Applies a broadcast legalizer to a list of frames.
+
         Args:
-            frames: List of frames to legalize
-            
+            frames: A list of frames to legalize.
+
         Returns:
-            List of legalized frames
+            A list of legalized frames.
         """
         self.logger.info(f"Applying broadcast legalizer to {len(frames)} frames")
         
@@ -651,7 +733,14 @@ class BroadcastStandardsValidator:
         return legalized_frames
     
     def _simple_legalizer(self, frame: np.ndarray) -> np.ndarray:
-        """Simple broadcast legalizer"""
+        """Applies a simple broadcast legalizer to a frame.
+
+        Args:
+            frame: The frame to legalize.
+
+        Returns:
+            The legalized frame.
+        """
         try:
             # Convert to float for processing
             if frame.max() > 1:
@@ -671,7 +760,14 @@ class BroadcastStandardsValidator:
             return frame
     
     def _advanced_legalizer(self, frame: np.ndarray) -> np.ndarray:
-        """Advanced broadcast legalizer with color space conversion"""
+        """Applies an advanced broadcast legalizer to a frame.
+
+        Args:
+            frame: The frame to legalize.
+
+        Returns:
+            The legalized frame.
+        """
         try:
             # Convert to float
             if frame.max() > 1:
@@ -702,7 +798,14 @@ class BroadcastStandardsValidator:
             return frame
     
     def _professional_legalizer(self, frame: np.ndarray) -> np.ndarray:
-        """Professional broadcast legalizer with gamut limiting"""
+        """Applies a professional broadcast legalizer to a frame.
+
+        Args:
+            frame: The frame to legalize.
+
+        Returns:
+            The legalized frame.
+        """
         try:
             # Convert to float
             if frame.max() > 1:
@@ -736,7 +839,14 @@ class BroadcastStandardsValidator:
             return frame
     
     def _apply_soft_limiting(self, frame: np.ndarray) -> np.ndarray:
-        """Apply soft limiting to preserve highlight details"""
+        """Applies soft limiting to a frame to preserve highlight details.
+
+        Args:
+            frame: The frame to apply soft limiting to.
+
+        Returns:
+            The frame with soft limiting applied.
+        """
         try:
             # Identify areas approaching limits
             high_values = frame > 0.9
@@ -756,7 +866,12 @@ class BroadcastStandardsValidator:
             return frame
     
     def _default_config(self) -> Dict:
-        """Default configuration for broadcast standards validator"""
+        """Returns the default configuration for the broadcast standards
+        validator.
+
+        Returns:
+            A dictionary of default configuration parameters.
+        """
         return {
             'broadcast_standard': BroadcastStandard.REC709,
             'check_ire_levels': True,
@@ -775,7 +890,14 @@ class BroadcastStandardsValidator:
         }
     
     def generate_broadcast_compliance_report(self, results: Dict) -> str:
-        """Generate detailed broadcast compliance report"""
+        """Generates a detailed broadcast compliance report.
+
+        Args:
+            results: A dictionary of compliance analysis results.
+
+        Returns:
+            A string containing the broadcast compliance report.
+        """
         try:
             report = f"""
 # BROADCAST COMPLIANCE REPORT

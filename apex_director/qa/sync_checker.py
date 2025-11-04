@@ -16,7 +16,17 @@ from pathlib import Path
 
 @dataclass
 class SyncMetrics:
-    """Audio-video synchronization metrics"""
+    """Represents audio-video synchronization metrics.
+
+    Attributes:
+        frame_offset: The offset in frames between the audio and video.
+        time_offset_ms: The offset in milliseconds between the audio and video.
+        sync_score: The synchronization score.
+        has_desync: Whether a desynchronization was detected.
+        max_drift_ms: The maximum drift in milliseconds.
+        avg_drift_ms: The average drift in milliseconds.
+        sync_variance: The variance of the synchronization.
+    """
     frame_offset: int
     time_offset_ms: float
     sync_score: float
@@ -27,10 +37,9 @@ class SyncMetrics:
 
 
 class AudioSyncChecker:
-    """
-    Audio-Visual Synchronization Validator
-    
-    Provides frame-accurate timing verification:
+    """A class for checking audio-visual synchronization.
+
+    This class provides frame-accurate timing verification, including:
     - Audio-visual sync analysis
     - Frame offset detection
     - Sync drift measurement
@@ -38,7 +47,11 @@ class AudioSyncChecker:
     """
     
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize sync checker with configuration"""
+        """Initializes the AudioSyncChecker.
+
+        Args:
+            config: A dictionary of configuration parameters.
+        """
         self.config = config or self._default_config()
         self.logger = logging.getLogger('apex_director.qa.sync_checker')
         
@@ -61,15 +74,14 @@ class AudioSyncChecker:
         self.audio_available = self._check_audio_libraries()
         
     def validate_sync(self, video_path: str, sample_frames: List[np.ndarray]) -> Dict:
-        """
-        Validate audio-visual synchronization for entire video
-        
+        """Validates the audio-visual synchronization for an entire video.
+
         Args:
-            video_path: Path to video file
-            sample_frames: Sample frames from video
-            
+            video_path: The path to the video file.
+            sample_frames: A list of sample frames from the video.
+
         Returns:
-            Dictionary with sync validation results
+            A dictionary with the sync validation results.
         """
         self.logger.info(f"Validating audio sync for: {video_path}")
         
@@ -137,7 +149,14 @@ class AudioSyncChecker:
             }
     
     def _extract_audio_from_video(self, video_path: str) -> Optional[np.ndarray]:
-        """Extract audio data from video file"""
+        """Extracts audio data from a video file.
+
+        Args:
+            video_path: The path to the video file.
+
+        Returns:
+            The audio data as a NumPy array, or None if extraction fails.
+        """
         try:
             if not self.audio_available:
                 self.logger.warning("Audio libraries not available, using placeholder analysis")
@@ -180,7 +199,16 @@ class AudioSyncChecker:
             return None
     
     def _load_audio_file(self, audio_path: str) -> np.ndarray:
-        """Load audio file (placeholder implementation)"""
+        """Loads an audio file.
+
+        This is a placeholder implementation.
+
+        Args:
+            audio_path: The path to the audio file.
+
+        Returns:
+            The audio data as a NumPy array.
+        """
         # Placeholder implementation
         # In reality, this would use librosa, soundfile, or similar
         try:
@@ -209,7 +237,14 @@ class AudioSyncChecker:
             return self._generate_synthetic_audio(1000)  # 1 second fallback
     
     def _generate_synthetic_audio(self, length: int) -> np.ndarray:
-        """Generate synthetic audio for testing"""
+        """Generates synthetic audio for testing.
+
+        Args:
+            length: The length of the audio to generate.
+
+        Returns:
+            The synthetic audio as a NumPy array.
+        """
         # Create synthetic audio signal that varies with input
         t = np.linspace(0, length / 1000, length)  # Scale to milliseconds
         audio = np.sin(2 * np.pi * 440 * t) + 0.3 * np.sin(2 * np.pi * 880 * t)
@@ -218,7 +253,16 @@ class AudioSyncChecker:
     def _analyze_sync_comprehensive(self, audio_data: np.ndarray, 
                                   sample_frames: List[np.ndarray], 
                                   fps: float) -> Dict:
-        """Comprehensive sync analysis using multiple methods"""
+        """Performs a comprehensive sync analysis using multiple methods.
+
+        Args:
+            audio_data: The audio data.
+            sample_frames: A list of sample frames from the video.
+            fps: The frames per second of the video.
+
+        Returns:
+            A dictionary with the comprehensive sync analysis results.
+        """
         
         results = {}
         
@@ -262,7 +306,16 @@ class AudioSyncChecker:
     def _audio_visual_correlation(self, audio_data: np.ndarray, 
                                 sample_frames: List[np.ndarray], 
                                 fps: float) -> Dict:
-        """Analyze sync using audio-visual correlation"""
+        """Analyzes sync using audio-visual correlation.
+
+        Args:
+            audio_data: The audio data.
+            sample_frames: A list of sample frames from the video.
+            fps: The frames per second of the video.
+
+        Returns:
+            A dictionary with the audio-visual correlation analysis results.
+        """
         try:
             # Extract audio features for correlation
             audio_features = self._extract_audio_features(audio_data)
@@ -298,7 +351,16 @@ class AudioSyncChecker:
     def _onset_based_sync_analysis(self, audio_data: np.ndarray, 
                                  sample_frames: List[np.ndarray], 
                                  fps: float) -> Dict:
-        """Analyze sync using onset detection"""
+        """Analyzes sync using onset detection.
+
+        Args:
+            audio_data: The audio data.
+            sample_frames: A list of sample frames from the video.
+            fps: The frames per second of the video.
+
+        Returns:
+            A dictionary with the onset-based sync analysis results.
+        """
         try:
             # Detect audio onsets
             audio_onsets = self._detect_audio_onsets(audio_data)
@@ -335,7 +397,16 @@ class AudioSyncChecker:
     def _beat_based_sync_analysis(self, audio_data: np.ndarray, 
                                 sample_frames: List[np.ndarray], 
                                 fps: float) -> Dict:
-        """Analyze sync using beat/tempo detection"""
+        """Analyzes sync using beat/tempo detection.
+
+        Args:
+            audio_data: The audio data.
+            sample_frames: A list of sample frames from the video.
+            fps: The frames per second of the video.
+
+        Returns:
+            A dictionary with the beat-based sync analysis results.
+        """
         try:
             # Detect tempo and beat positions
             tempo, beat_times = self._detect_tempo_and_beats(audio_data)
@@ -376,7 +447,16 @@ class AudioSyncChecker:
     def _visual_motion_sync_analysis(self, audio_data: np.ndarray, 
                                    sample_frames: List[np.ndarray], 
                                    fps: float) -> Dict:
-        """Analyze sync using visual motion patterns"""
+        """Analyzes sync using visual motion patterns.
+
+        Args:
+            audio_data: The audio data.
+            sample_frames: A list of sample frames from the video.
+            fps: The frames per second of the video.
+
+        Returns:
+            A dictionary with the visual motion sync analysis results.
+        """
         try:
             # Calculate motion vectors between frames
             motion_vectors = self._calculate_motion_vectors(sample_frames)
@@ -414,7 +494,14 @@ class AudioSyncChecker:
             return {'time_offset_ms': 0, 'frame_offset': 0, 'error': str(e)}
     
     def _extract_audio_features(self, audio_data: np.ndarray) -> np.ndarray:
-        """Extract audio features for analysis"""
+        """Extracts audio features for analysis.
+
+        Args:
+            audio_data: The audio data.
+
+        Returns:
+            An array of audio features.
+        """
         try:
             # Simple spectral features
             # In reality, would use FFT and more sophisticated features
@@ -436,7 +523,14 @@ class AudioSyncChecker:
             return np.array([])
     
     def _extract_visual_features(self, sample_frames: List[np.ndarray]) -> np.ndarray:
-        """Extract visual features for analysis"""
+        """Extracts visual features for analysis.
+
+        Args:
+            sample_frames: A list of sample frames from the video.
+
+        Returns:
+            An array of visual features.
+        """
         try:
             features = []
             
@@ -461,7 +555,14 @@ class AudioSyncChecker:
             return np.array([])
     
     def _detect_audio_onsets(self, audio_data: np.ndarray) -> List[float]:
-        """Detect audio onset times"""
+        """Detects audio onset times.
+
+        Args:
+            audio_data: The audio data.
+
+        Returns:
+            A list of audio onset times.
+        """
         try:
             # Simple onset detection using energy-based method
             frame_length = int(0.025 * self.sample_rate)
@@ -488,7 +589,14 @@ class AudioSyncChecker:
             return []
     
     def _detect_visual_onsets(self, sample_frames: List[np.ndarray]) -> List[float]:
-        """Detect visual onset times (motion changes)"""
+        """Detects visual onset times (motion changes).
+
+        Args:
+            sample_frames: A list of sample frames from the video.
+
+        Returns:
+            A list of visual onset times.
+        """
         try:
             onset_times = []
             
@@ -511,7 +619,14 @@ class AudioSyncChecker:
             return []
     
     def _detect_tempo_and_beats(self, audio_data: np.ndarray) -> Tuple[float, List[float]]:
-        """Detect tempo and beat positions"""
+        """Detects tempo and beat positions.
+
+        Args:
+            audio_data: The audio data.
+
+        Returns:
+            A tuple containing the tempo in BPM and a list of beat times.
+        """
         try:
             # Simple tempo detection (placeholder implementation)
             # In reality, would use more sophisticated beat tracking
@@ -563,7 +678,14 @@ class AudioSyncChecker:
             return 120.0, []
     
     def _detect_visual_beats(self, sample_frames: List[np.ndarray]) -> List[float]:
-        """Detect visual beat transitions"""
+        """Detects visual beat transitions.
+
+        Args:
+            sample_frames: A list of sample frames from the video.
+
+        Returns:
+            A list of visual beat times.
+        """
         try:
             visual_beats = []
             
@@ -593,7 +715,14 @@ class AudioSyncChecker:
             return []
     
     def _calculate_motion_vectors(self, sample_frames: List[np.ndarray]) -> List[float]:
-        """Calculate motion vectors between frames"""
+        """Calculates motion vectors between frames.
+
+        Args:
+            sample_frames: A list of sample frames from the video.
+
+        Returns:
+            A list of motion vectors.
+        """
         try:
             motion_vectors = []
             
@@ -615,7 +744,14 @@ class AudioSyncChecker:
             return []
     
     def _calculate_audio_energy(self, audio_data: np.ndarray) -> List[float]:
-        """Calculate audio energy over time"""
+        """Calculates audio energy over time.
+
+        Args:
+            audio_data: The audio data.
+
+        Returns:
+            A list of audio energy values.
+        """
         try:
             frame_length = int(0.025 * self.sample_rate)  # 25ms frames
             hop_length = int(0.010 * self.sample_rate)    # 10ms hop
@@ -633,7 +769,14 @@ class AudioSyncChecker:
             return []
     
     def _combine_sync_measurements(self, measurements: List[Dict]) -> Dict:
-        """Combine multiple sync measurements into a single result"""
+        """Combines multiple sync measurements into a single result.
+
+        Args:
+            measurements: A list of sync measurement dictionaries.
+
+        Returns:
+            A dictionary with the combined sync measurement.
+        """
         try:
             valid_measurements = []
             
@@ -678,7 +821,14 @@ class AudioSyncChecker:
             return {'frame_offset': 0, 'time_offset_ms': 0.0}
     
     def _calculate_sync_confidence(self, sync_results: Dict) -> float:
-        """Calculate confidence score for sync analysis"""
+        """Calculates confidence score for sync analysis.
+
+        Args:
+            sync_results: The sync analysis results.
+
+        Returns:
+            The confidence score.
+        """
         try:
             confidence_factors = []
             
@@ -707,7 +857,14 @@ class AudioSyncChecker:
             return 0.5
     
     def _calculate_sync_score(self, sync_results: Dict) -> float:
-        """Calculate overall sync quality score"""
+        """Calculates overall sync quality score.
+
+        Args:
+            sync_results: The sync analysis results.
+
+        Returns:
+            The overall sync quality score.
+        """
         try:
             # Base score starts at 100
             score = 100.0
@@ -734,7 +891,14 @@ class AudioSyncChecker:
             return 0.0
     
     def _detect_sync_issues(self, sync_results: Dict) -> bool:
-        """Detect if sync issues are present"""
+        """Detects if sync issues are present.
+
+        Args:
+            sync_results: The sync analysis results.
+
+        Returns:
+            True if sync issues are detected, False otherwise.
+        """
         try:
             time_offset = abs(sync_results.get('time_offset_ms', 0))
             max_offset = sync_results.get('max_offset_ms', 0)
@@ -759,7 +923,14 @@ class AudioSyncChecker:
             return False
     
     def _generate_sync_recommendations(self, sync_results: Dict) -> List[str]:
-        """Generate recommendations based on sync analysis"""
+        """Generates recommendations based on sync analysis.
+
+        Args:
+            sync_results: The sync analysis results.
+
+        Returns:
+            A list of recommendations.
+        """
         recommendations = []
         
         try:
@@ -798,7 +969,11 @@ class AudioSyncChecker:
         return recommendations
     
     def _check_audio_libraries(self) -> bool:
-        """Check if audio processing libraries are available"""
+        """Checks if audio processing libraries are available.
+
+        Returns:
+            True if audio processing libraries are available, False otherwise.
+        """
         try:
             # Check for ffmpeg
             result = subprocess.run(['ffmpeg', '-version'], 
@@ -808,7 +983,11 @@ class AudioSyncChecker:
             return False
     
     def _default_config(self) -> Dict:
-        """Default configuration for sync checker"""
+        """Gets the default configuration for the sync checker.
+
+        Returns:
+            A dictionary of default configuration parameters.
+        """
         return {
             'max_acceptable_offset_ms': 40,
             'analysis_window_seconds': 10,

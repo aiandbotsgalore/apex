@@ -27,7 +27,22 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ProjectSession:
-    """Complete project session data"""
+    """Represents a complete project session.
+
+    Attributes:
+        session_id: The unique identifier for the session.
+        project_name: The name of the project.
+        created_at: The timestamp when the session was created.
+        current_stage: The current stage of the workflow.
+        processed_input: The processed input data for the session.
+        treatment: The visual treatment for the session.
+        storyboard: The storyboard for the session.
+        workflow_progress_id: The ID of the workflow progress tracker.
+        approval_workflow_id: The ID of the approval workflow.
+        package_id: The ID of the deliverable package.
+        metadata: A dictionary of additional metadata.
+        status: The current status of the session.
+    """
     session_id: str
     project_name: str
     created_at: datetime
@@ -47,9 +62,16 @@ class ProjectSession:
 
 
 class UIController:
-    """Main UI Controller coordinating all components"""
+    """The main UI Controller, responsible for coordinating all components.
+
+    This class provides a high-level API for managing the entire music video
+    generation workflow. It integrates all the individual components of the UI
+    system, such as the input validator, treatment generator, storyboard creator,
+    progress monitor, approval system, error handler, and deliverable packager.
+    """
     
     def __init__(self):
+        """Initializes the UIController."""
         # Initialize core components
         self.input_validator = InputValidator()
         self.treatment_generator = TreatmentGenerator()
@@ -115,15 +137,14 @@ class UIController:
     # Session Management
     
     async def create_project_session(self, project_name: str, user_metadata: Optional[Dict[str, Any]] = None) -> str:
-        """
-        Create a new project session
-        
+        """Creates a new project session.
+
         Args:
-            project_name: Name of the project
-            user_metadata: Optional user metadata
-            
+            project_name: The name of the project.
+            user_metadata: Optional user metadata.
+
         Returns:
-            Session ID
+            The ID of the newly created session.
         """
         try:
             session_id = str(uuid.uuid4())
@@ -178,7 +199,14 @@ class UIController:
         )
     
     async def get_session_status(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Get status of a project session"""
+        """Gets the status of a project session.
+
+        Args:
+            session_id: The ID of the session.
+
+        Returns:
+            A dictionary of session status information, or None if the session is not found.
+        """
         session = self.sessions.get(session_id)
         if not session:
             return None
@@ -210,15 +238,14 @@ class UIController:
     # Input Processing
     
     async def validate_and_process_input(self, session_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Validate and process user input
-        
+        """Validates and processes user input.
+
         Args:
-            session_id: Session ID
-            input_data: Raw input data
-            
+            session_id: The ID of the session.
+            input_data: The raw input data.
+
         Returns:
-            Validation results and processed input
+            A dictionary of validation results and processed input.
         """
         try:
             session = self.sessions[session_id]
@@ -279,15 +306,14 @@ class UIController:
     async def generate_creative_treatment(self, 
                                         session_id: str,
                                         custom_requirements: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Generate creative treatment for the project
-        
+        """Generates a creative treatment for the project.
+
         Args:
-            session_id: Session ID
-            custom_requirements: Optional custom requirements
-            
+            session_id: The ID of the session.
+            custom_requirements: Optional custom requirements.
+
         Returns:
-            Treatment details
+            A dictionary of treatment details.
         """
         try:
             session = self.sessions[session_id]
@@ -359,15 +385,14 @@ class UIController:
     # Storyboard Creation
     
     async def create_storyboard(self, session_id: str, custom_shots: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-        """
-        Create storyboard based on treatment
-        
+        """Creates a storyboard based on the treatment.
+
         Args:
-            session_id: Session ID
-            custom_shots: Optional custom shot specifications
-            
+            session_id: The ID of the session.
+            custom_shots: Optional custom shot specifications.
+
         Returns:
-            Storyboard details
+            A dictionary of storyboard details.
         """
         try:
             session = self.sessions[session_id]
@@ -452,15 +477,14 @@ class UIController:
     # Approval Workflow
     
     async def setup_approval_workflow(self, session_id: str, custom_gates: Optional[List[Dict[str, Any]]] = None) -> str:
-        """
-        Setup approval workflow for the project
-        
+        """Sets up an approval workflow for the project.
+
         Args:
-            session_id: Session ID
-            custom_gates: Optional custom gate configurations
-            
+            session_id: The ID of the session.
+            custom_gates: Optional custom gate configurations.
+
         Returns:
-            Approval workflow ID
+            The ID of the newly created approval workflow.
         """
         try:
             session = self.sessions[session_id]
@@ -488,7 +512,15 @@ class UIController:
             raise ValueError(f"Failed to setup approval workflow: {str(e)}")
     
     async def get_approval_status(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Get approval status for the session"""
+        """Gets the approval status for the session.
+
+        Args:
+            session_id: The ID of the session.
+
+        Returns:
+            A dictionary of approval status information, or None if no approval
+            workflow is associated with the session.
+        """
         session = self.sessions.get(session_id)
         if not session or not session.approval_workflow_id:
             return None
@@ -510,7 +542,15 @@ class UIController:
         })
     
     async def get_workflow_progress(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Get current workflow progress"""
+        """Gets the current workflow progress for a session.
+
+        Args:
+            session_id: The ID of the session.
+
+        Returns:
+            A dictionary of workflow progress information, or None if no workflow
+            is associated with the session.
+        """
         session = self.sessions.get(session_id)
         if not session or not session.workflow_progress_id:
             return None
@@ -520,15 +560,14 @@ class UIController:
     # Package Creation
     
     async def create_deliverable_package(self, session_id: str, template_name: str = 'client_delivery') -> str:
-        """
-        Create final deliverable package
-        
+        """Creates the final deliverable package.
+
         Args:
-            session_id: Session ID
-            template_name: Package template to use
-            
+            session_id: The ID of the session.
+            template_name: The name of the package template to use.
+
         Returns:
-            Package ID
+            The ID of the newly created package.
         """
         try:
             session = self.sessions[session_id]
@@ -591,13 +630,29 @@ class UIController:
             raise ValueError(f"Package creation failed: {str(e)}")
     
     async def get_package_info(self, package_id: str) -> Optional[Dict[str, Any]]:
-        """Get information about a deliverable package"""
+        """Gets information about a deliverable package.
+
+        Args:
+            package_id: The ID of the package.
+
+        Returns:
+            A dictionary of package information, or None if the package is not found.
+        """
         return self.deliverable_packager.get_package_info(package_id)
     
     # Error Handling
     
     async def handle_user_error(self, session_id: str, error_message: str, context: Optional[Dict[str, Any]] = None) -> str:
-        """Handle user-reported errors"""
+        """Handles a user-reported error.
+
+        Args:
+            session_id: The ID of the session in which the error occurred.
+            error_message: The error message reported by the user.
+            context: Optional context information about the error.
+
+        Returns:
+            The ID of the newly created error record.
+        """
         error_context = ErrorContext(
             component="user_interface",
             operation="user_reported",
@@ -623,7 +678,14 @@ class UIController:
     # Session Management
     
     async def pause_session(self, session_id: str) -> bool:
-        """Pause a project session"""
+        """Pauses a project session.
+
+        Args:
+            session_id: The ID of the session to pause.
+
+        Returns:
+            True if the session was successfully paused, False otherwise.
+        """
         session = self.sessions.get(session_id)
         if session:
             session.status = "paused"
@@ -632,7 +694,14 @@ class UIController:
         return False
     
     async def resume_session(self, session_id: str) -> bool:
-        """Resume a paused project session"""
+        """Resumes a paused project session.
+
+        Args:
+            session_id: The ID of the session to resume.
+
+        Returns:
+            True if the session was successfully resumed, False otherwise.
+        """
         session = self.sessions.get(session_id)
         if session and session.status == "paused":
             session.status = "active"
@@ -641,7 +710,14 @@ class UIController:
         return False
     
     async def cancel_session(self, session_id: str) -> bool:
-        """Cancel a project session"""
+        """Cancels a project session.
+
+        Args:
+            session_id: The ID of the session to cancel.
+
+        Returns:
+            True if the session was successfully cancelled, False otherwise.
+        """
         session = self.sessions.get(session_id)
         if session:
             session.status = "cancelled"
@@ -658,7 +734,12 @@ class UIController:
         return False
     
     def list_sessions(self) -> List[Dict[str, Any]]:
-        """List all project sessions"""
+        """Lists all project sessions.
+
+        Returns:
+            A list of dictionaries, where each dictionary contains summary
+            information about a session.
+        """
         return [
             {
                 'session_id': session.session_id,
@@ -674,7 +755,15 @@ class UIController:
         ]
     
     def get_session_details(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed session information"""
+        """Gets detailed information about a session.
+
+        Args:
+            session_id: The ID of the session.
+
+        Returns:
+            A dictionary of detailed session information, or None if the session
+            is not found.
+        """
         session = self.sessions.get(session_id)
         if not session:
             return None
@@ -716,7 +805,12 @@ class UIController:
     # Event Handling
     
     def add_event_handler(self, event_type: str, handler: Callable):
-        """Add event handler for UI events"""
+        """Adds an event handler for UI events.
+
+        Args:
+            event_type: The type of event to handle.
+            handler: The handler function.
+        """
         if event_type in self.event_handlers:
             self.event_handlers[event_type].append(handler)
             logger.info(f"Added event handler for {event_type}")
@@ -724,7 +818,12 @@ class UIController:
             logger.warning(f"Unknown event type: {event_type}")
     
     def _trigger_event(self, event_type: str, data: Any):
-        """Trigger UI events"""
+        """Triggers UI events.
+
+        Args:
+            event_type: The type of event to trigger.
+            data: The data to pass to the event handlers.
+        """
         handlers = self.event_handlers.get(event_type, [])
         for handler in handlers:
             try:
@@ -735,7 +834,11 @@ class UIController:
     # System Status
     
     def get_system_status(self) -> Dict[str, Any]:
-        """Get overall system status"""
+        """Gets the overall system status.
+
+        Returns:
+            A dictionary of system status information.
+        """
         return {
             'active_sessions': len([s for s in self.sessions.values() if s.status == 'active']),
             'paused_sessions': len([s for s in self.sessions.values() if s.status == 'paused']),
@@ -747,7 +850,15 @@ class UIController:
         }
     
     def export_session_report(self, session_id: str, file_path: str) -> bool:
-        """Export comprehensive session report"""
+        """Exports a comprehensive report for a session to a file.
+
+        Args:
+            session_id: The ID of the session to export.
+            file_path: The path to the file to export the report to.
+
+        Returns:
+            True if the report was successfully exported, False otherwise.
+        """
         try:
             session = self.sessions.get(session_id)
             if not session:
@@ -779,7 +890,7 @@ class UIController:
             return False
     
     def cleanup(self):
-        """Cleanup resources"""
+        """Cleans up resources used by the UIController."""
         try:
             # Stop progress monitoring
             self.progress_monitor.stop_monitoring()
@@ -799,7 +910,11 @@ _ui_controller: Optional[UIController] = None
 
 
 def get_ui_controller() -> UIController:
-    """Get the global UI Controller instance"""
+    """Gets the global UI Controller instance.
+
+    Returns:
+        The global UIController instance.
+    """
     global _ui_controller
     if _ui_controller is None:
         _ui_controller = UIController()
@@ -808,36 +923,80 @@ def get_ui_controller() -> UIController:
 
 # Convenience functions
 async def create_project_session(project_name: str, user_metadata: Optional[Dict[str, Any]] = None) -> str:
-    """Create a new project session"""
+    """Creates a new project session.
+
+    Args:
+        project_name: The name of the project.
+        user_metadata: Optional user metadata.
+
+    Returns:
+        The ID of the newly created session.
+    """
     controller = get_ui_controller()
     return await controller.create_project_session(project_name, user_metadata)
 
 
 async def validate_input(session_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Validate and process input"""
+    """Validates and processes user input.
+
+    Args:
+        session_id: The ID of the session.
+        input_data: The raw input data.
+
+    Returns:
+        A dictionary of validation results and processed input.
+    """
     controller = get_ui_controller()
     return await controller.validate_and_process_input(session_id, input_data)
 
 
 async def generate_treatment(session_id: str, custom_requirements: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Generate creative treatment"""
+    """Generates a creative treatment for the project.
+
+    Args:
+        session_id: The ID of the session.
+        custom_requirements: Optional custom requirements.
+
+    Returns:
+        A dictionary of treatment details.
+    """
     controller = get_ui_controller()
     return await controller.generate_creative_treatment(session_id, custom_requirements)
 
 
 async def create_storyboard(session_id: str, custom_shots: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-    """Create storyboard"""
+    """Creates a storyboard based on the treatment.
+
+    Args:
+        session_id: The ID of the session.
+        custom_shots: Optional custom shot specifications.
+
+    Returns:
+        A dictionary of storyboard details.
+    """
     controller = get_ui_controller()
     return await controller.create_storyboard(session_id, custom_shots)
 
 
 async def create_package(session_id: str, template_name: str = 'client_delivery') -> str:
-    """Create deliverable package"""
+    """Creates the final deliverable package.
+
+    Args:
+        session_id: The ID of the session.
+        template_name: The name of the package template to use.
+
+    Returns:
+        The ID of the newly created package.
+    """
     controller = get_ui_controller()
     return await controller.create_deliverable_package(session_id, template_name)
 
 
 def get_system_status() -> Dict[str, Any]:
-    """Get system status"""
+    """Gets the overall system status.
+
+    Returns:
+        A dictionary of system status information.
+    """
     controller = get_ui_controller()
     return controller.get_system_status()

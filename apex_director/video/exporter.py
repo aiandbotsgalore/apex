@@ -60,7 +60,49 @@ class ColorSpace(Enum):
 
 @dataclass
 class ExportSettings:
-    """Professional export settings"""
+    """Represents a set of professional export settings.
+
+    Attributes:
+        video_codec: The video codec to use.
+        audio_codec: The audio codec to use.
+        video_format: The video format to use.
+        resolution: The video resolution.
+        frame_rate: The video frame rate.
+        bitrate_video: The video bitrate in kbps.
+        bitrate_audio: The audio bitrate in kbps.
+        color_space: The color space to use.
+        chroma_subsampling: The chroma subsampling to use.
+        bit_depth: The bit depth of the video.
+        profile: The H.264 profile to use.
+        level: The H.264 level to use.
+        preset: The encoding preset to use.
+        tune: The encoding tune to use.
+        gop_size: The Group of Pictures (GOP) size.
+        b_frames: The number of B-frames.
+        reference_frames: The number of reference frames.
+        cabac: Whether to use Context-Adaptive Binary Arithmetic Coding (CABAC).
+        deinterlace: Whether to deinterlace the video.
+        interlaced: Whether the video is interlaced.
+        top_field_first: Whether the top field is first.
+        sample_rate: The audio sample rate.
+        channels: The number of audio channels.
+        audio_channels_layout: The audio channel layout.
+        crf: The Constant Rate Factor (CRF).
+        two_pass: Whether to use two-pass encoding.
+        lookahead: The VBV lookahead.
+        vbv_bufsize: The VBV buffer size.
+        closed_gop: Whether to use closed GOP.
+        strict_gop: Whether to use strict GOP.
+        timecode: Whether to include a timecode track.
+        burn_in_timecode: Whether to burn in the timecode.
+        loudness_normalize: Whether to normalize the loudness.
+        peak_normalize: Whether to normalize the peak volume.
+        title: The title of the video.
+        artist: The artist of the video.
+        album: The album of the video.
+        date: The date of the video.
+        comment: A comment for the video.
+    """
     video_codec: VideoCodec = VideoCodec.H264
     audio_codec: AudioCodec = AudioCodec.AAC
     video_format: VideoFormat = VideoFormat.MP4
@@ -123,7 +165,19 @@ class ExportSettings:
 
 @dataclass
 class FFmpegCommand:
-    """FFmpeg command builder for professional export"""
+    """A builder for creating professional FFmpeg commands.
+
+    This class provides a structured way to build complex FFmpeg commands
+    with separate lists for inputs, options, and filters.
+
+    Attributes:
+        inputs: A list of input files.
+        input_options: A list of input options.
+        filters: A list of filters to apply.
+        output_options: A list of output options.
+        output_file: The output file path.
+        overwrite: Whether to overwrite the output file if it exists.
+    """
     inputs: List[str] = field(default_factory=list)
     input_options: List[str] = field(default_factory=list)
     filters: List[str] = field(default_factory=list)
@@ -132,7 +186,11 @@ class FFmpegCommand:
     overwrite: bool = True
     
     def build_command(self) -> List[str]:
-        """Build FFmpeg command array"""
+        """Builds the FFmpeg command as a list of strings.
+
+        Returns:
+            The FFmpeg command as a list of strings.
+        """
         cmd = ["ffmpeg"]
         
         # Input options
@@ -160,9 +218,18 @@ class FFmpegCommand:
 
 
 class BroadcastExporter:
-    """Professional broadcast-quality video exporter"""
+    """A professional broadcast-quality video exporter.
+
+    This class provides functionality for exporting timelines to professional
+    video formats with precise FFmpeg specifications.
+    """
     
     def __init__(self, timeline: Timeline):
+        """Initializes the BroadcastExporter.
+
+        Args:
+            timeline: The timeline to be exported.
+        """
         self.timeline = timeline
         self.export_settings = ExportSettings()
         self.output_path = "output"
@@ -173,7 +240,15 @@ class BroadcastExporter:
         os.makedirs(self.temp_path, exist_ok=True)
     
     def export_video(self, output_filename: str, settings: Optional[ExportSettings] = None) -> Dict[str, Union[bool, str, float]]:
-        """Export video with professional settings"""
+        """Exports a video with professional settings.
+
+        Args:
+            output_filename: The name of the output file.
+            settings: Optional export settings to override the defaults.
+
+        Returns:
+            A dictionary containing the results of the export.
+        """
         if settings:
             self.export_settings = settings
         
@@ -218,7 +293,14 @@ class BroadcastExporter:
             }
     
     def _build_export_command(self, output_path: str) -> FFmpegCommand:
-        """Build comprehensive FFmpeg command for broadcast export"""
+        """Builds a comprehensive FFmpeg command for broadcast export.
+
+        Args:
+            output_path: The path to the output file.
+
+        Returns:
+            An FFmpegCommand object representing the export command.
+        """
         cmd = FFmpegCommand()
         
         # Input setup - in a real implementation, this would handle actual input files
@@ -234,7 +316,14 @@ class BroadcastExporter:
             return cmd
     
     def _build_single_pass_command(self, output_path: str) -> FFmpegCommand:
-        """Build single-pass export command"""
+        """Builds a single-pass export command.
+
+        Args:
+            output_path: The path to the output file.
+
+        Returns:
+            An FFmpegCommand object representing the single-pass export command.
+        """
         cmd = FFmpegCommand()
         
         # Video codec settings
@@ -336,7 +425,15 @@ class BroadcastExporter:
         return cmd
     
     def _build_pass_command(self, output_path: str, pass_number: int) -> FFmpegCommand:
-        """Build multi-pass export command"""
+        """Builds a multi-pass export command.
+
+        Args:
+            output_path: The path to the output file.
+            pass_number: The pass number (1 or 2).
+
+        Returns:
+            An FFmpegCommand object representing the multi-pass export command.
+        """
         cmd = self._build_single_pass_command(output_path)
         
         if pass_number == 1:
@@ -355,7 +452,11 @@ class BroadcastExporter:
         return cmd
     
     def _get_pixel_format(self) -> str:
-        """Get appropriate pixel format based on settings"""
+        """Gets the appropriate pixel format based on the export settings.
+
+        Returns:
+            The pixel format as a string.
+        """
         if self.export_settings.bit_depth == 10:
             if self.export_settings.video_codec == VideoCodec.H265:
                 return "yuv420p10le"
@@ -365,7 +466,15 @@ class BroadcastExporter:
             return "yuv420p"
     
     def export_pro_res(self, output_path: str, profile: str = "422") -> Dict[str, Union[bool, str]]:
-        """Export in ProRes format for professional workflows"""
+        """Exports a video in ProRes format for professional workflows.
+
+        Args:
+            output_path: The path to the output file.
+            profile: The ProRes profile to use.
+
+        Returns:
+            A dictionary containing the results of the export.
+        """
         settings = ExportSettings()
         settings.video_codec = VideoCodec.PRORES
         settings.profile = profile  # "proxy", "lt", "422", "4444"
@@ -383,7 +492,15 @@ class BroadcastExporter:
         return self._execute_ffmpeg_command(cmd, output_path)
     
     def export_dnxhd(self, output_path: str, profile: str = "120") -> Dict[str, Union[bool, str]]:
-        """Export in DNxHD format for Avid workflows"""
+        """Exports a video in DNxHD format for Avid workflows.
+
+        Args:
+            output_path: The path to the output file.
+            profile: The DNxHD profile to use.
+
+        Returns:
+            A dictionary containing the results of the export.
+        """
         settings = ExportSettings()
         settings.video_codec = VideoCodec.DNXHR
         settings.profile = profile  # "36", "120", "145", "220"
@@ -400,7 +517,15 @@ class BroadcastExporter:
         return self._execute_ffmpeg_command(cmd, output_path)
     
     def _execute_ffmpeg_command(self, cmd: FFmpegCommand, output_path: str) -> Dict[str, Union[bool, str]]:
-        """Execute FFmpeg command and return results"""
+        """Executes an FFmpeg command and returns the results.
+
+        Args:
+            cmd: The FFmpeg command to execute.
+            output_path: The path to the output file.
+
+        Returns:
+            A dictionary containing the results of the command execution.
+        """
         cmd.output_file = output_path
         
         try:
@@ -431,13 +556,21 @@ class BroadcastExporter:
 
 
 class QualityAnalyzer:
-    """Analyze exported video for quality metrics"""
+    """Analyzes exported video for quality metrics."""
     
     def __init__(self):
+        """Initializes the QualityAnalyzer."""
         self.ffprobe_path = "ffprobe"
     
     def analyze_video_quality(self, video_path: str) -> Dict[str, Union[float, int, bool]]:
-        """Analyze video quality metrics"""
+        """Analyzes the quality of a video file.
+
+        Args:
+            video_path: The path to the video file to analyze.
+
+        Returns:
+            A dictionary of quality metrics.
+        """
         if not os.path.exists(video_path):
             return {"error": "Video file not found"}
         
@@ -494,7 +627,14 @@ class QualityAnalyzer:
             return {"error": f"Analysis failed: {str(e)}"}
     
     def _check_broadcast_compliance(self, metrics: Dict) -> bool:
-        """Check if video meets broadcast standards"""
+        """Checks if the video meets broadcast standards based on its metrics.
+
+        Args:
+            metrics: A dictionary of video quality metrics.
+
+        Returns:
+            True if the video is broadcast compliant, False otherwise.
+        """
         compliance_checks = []
         
         # Frame rate check (broadcast standards)
@@ -526,15 +666,27 @@ class QualityAnalyzer:
 
 
 class ExportManager:
-    """Manage multiple export formats and presets"""
+    """Manages multiple export formats and presets."""
     
     def __init__(self, timeline: Timeline):
+        """Initializes the ExportManager.
+
+        Args:
+            timeline: The timeline to be exported.
+        """
         self.timeline = timeline
         self.exporter = BroadcastExporter(timeline)
         self.quality_analyzer = QualityAnalyzer()
     
     def export_multiple_formats(self, base_filename: str) -> Dict[str, Dict]:
-        """Export multiple formats from single timeline"""
+        """Exports a timeline to multiple formats.
+
+        Args:
+            base_filename: The base filename for the output files.
+
+        Returns:
+            A dictionary of export results for each format.
+        """
         results = {}
         
         # Broadcast formats
@@ -558,7 +710,11 @@ class ExportManager:
         return results
     
     def _get_broadcast_h264_settings(self) -> ExportSettings:
-        """Get H.264 settings for broadcast"""
+        """Gets the H.264 settings for broadcast.
+
+        Returns:
+            An ExportSettings object with H.264 broadcast settings.
+        """
         settings = ExportSettings()
         settings.video_codec = VideoCodec.H264
         settings.video_format = VideoFormat.MP4
@@ -574,7 +730,11 @@ class ExportManager:
         return settings
     
     def _get_broadcast_h265_settings(self) -> ExportSettings:
-        """Get H.265 settings for broadcast"""
+        """Gets the H.265 settings for broadcast.
+
+        Returns:
+            An ExportSettings object with H.265 broadcast settings.
+        """
         settings = ExportSettings()
         settings.video_codec = VideoCodec.H265
         settings.video_format = VideoFormat.MP4
@@ -588,7 +748,11 @@ class ExportManager:
         return settings
     
     def _get_prores_settings(self) -> ExportSettings:
-        """Get ProRes settings"""
+        """Gets the ProRes settings for broadcast.
+
+        Returns:
+            An ExportSettings object with ProRes broadcast settings.
+        """
         settings = ExportSettings()
         settings.video_codec = VideoCodec.PRORES
         settings.video_format = VideoFormat.MOV
@@ -599,7 +763,11 @@ class ExportManager:
         return settings
     
     def _get_dnxhd_settings(self) -> ExportSettings:
-        """Get DNxHD settings"""
+        """Gets the DNxHD settings for broadcast.
+
+        Returns:
+            An ExportSettings object with DNxHD broadcast settings.
+        """
         settings = ExportSettings()
         settings.video_codec = VideoCodec.DNXHR
         settings.video_format = VideoFormat.MOV
@@ -611,7 +779,14 @@ class ExportManager:
 
 # Utility functions for professional export
 def validate_export_settings(settings: ExportSettings) -> Dict[str, Union[bool, List[str]]]:
-    """Validate export settings for broadcast standards"""
+    """Validates export settings for broadcast standards.
+
+    Args:
+        settings: The export settings to validate.
+
+    Returns:
+        A dictionary containing the validation results.
+    """
     errors = []
     warnings = []
     
@@ -647,7 +822,11 @@ def validate_export_settings(settings: ExportSettings) -> Dict[str, Union[bool, 
 
 
 def create_preset_configs() -> Dict[str, ExportSettings]:
-    """Create preset configurations for common workflows"""
+    """Creates preset configurations for common workflows.
+
+    Returns:
+        A dictionary of preset export settings.
+    """
     presets = {}
     
     # Web delivery preset

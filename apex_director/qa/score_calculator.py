@@ -11,7 +11,7 @@ from enum import Enum
 
 
 class QualityMetric(Enum):
-    """Quality metrics categories"""
+    """Enumeration of quality metric categories."""
     VISUAL_CONSISTENCY = "visual_consistency"
     AUDIO_SYNC = "audio_sync"
     BROADCAST_COMPLIANCE = "broadcast_compliance"
@@ -23,7 +23,20 @@ class QualityMetric(Enum):
 
 @dataclass
 class QualityScoreBreakdown:
-    """Detailed quality score breakdown"""
+    """Represents a detailed breakdown of a quality score.
+
+    Attributes:
+        overall_score: The overall quality score.
+        component_scores: A dictionary of scores for each quality component.
+        weighted_scores: A dictionary of weighted scores for each quality
+            component.
+        penalties: A dictionary of penalties applied to the score.
+        bonuses: A dictionary of bonuses applied to the score.
+        confidence_level: The confidence level of the score.
+        score_trend: The trend of the score (improving, declining, or stable).
+        critical_issues: A list of critical issues found.
+        improvement_opportunities: A list of improvement opportunities.
+    """
     overall_score: float
     component_scores: Dict[str, float]
     weighted_scores: Dict[str, float]
@@ -36,10 +49,9 @@ class QualityScoreBreakdown:
 
 
 class QualityScoreCalculator:
-    """
-    Comprehensive Quality Score Calculator
-    
-    Provides sophisticated quality metrics:
+    """A class for calculating a comprehensive quality score for a video.
+
+    This class provides a sophisticated quality metrics system that includes:
     - Multi-dimensional quality scoring
     - Component-based analysis
     - Weighted scoring systems
@@ -48,7 +60,11 @@ class QualityScoreCalculator:
     """
     
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize quality score calculator"""
+        """Initializes the QualityScoreCalculator.
+
+        Args:
+            config: A dictionary of configuration parameters.
+        """
         self.config = config or self._default_config()
         self.logger = logging.getLogger('apex_director.qa.score_calculator')
         
@@ -99,14 +115,14 @@ class QualityScoreCalculator:
         self.validation_rules = self._initialize_validation_rules()
         
     def calculate_overall_score(self, qa_results: Dict) -> float:
-        """
-        Calculate overall quality score from QA results
-        
+        """Calculates the overall quality score from QA results.
+
         Args:
-            qa_results: Dictionary containing results from all QA components
-            
+            qa_results: A dictionary containing the results from all QA
+                components.
+
         Returns:
-            Overall quality score (0-100)
+            The overall quality score (0-100).
         """
         try:
             self.logger.info("Calculating overall quality score")
@@ -133,14 +149,15 @@ class QualityScoreCalculator:
             return 0.0
     
     def calculate_detailed_score_breakdown(self, qa_results: Dict) -> QualityScoreBreakdown:
-        """
-        Calculate detailed quality score breakdown
-        
+        """Calculates a detailed quality score breakdown.
+
         Args:
-            qa_results: Dictionary containing results from all QA components
-            
+            qa_results: A dictionary containing the results from all QA
+                components.
+
         Returns:
-            QualityScoreBreakdown with detailed analysis
+            A QualityScoreBreakdown object with a detailed analysis of the
+            quality score.
         """
         try:
             # Extract basic metrics
@@ -197,7 +214,15 @@ class QualityScoreCalculator:
             )
     
     def _extract_component_scores(self, qa_results: Dict) -> Dict[str, float]:
-        """Extract component scores from QA results"""
+        """Extracts component scores from QA results.
+
+        Args:
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            A dictionary of component scores.
+        """
         try:
             scores = {}
             
@@ -242,7 +267,15 @@ class QualityScoreCalculator:
             return {}
     
     def _calculate_technical_quality_score(self, qa_results: Dict) -> float:
-        """Calculate technical quality score"""
+        """Calculates the technical quality score.
+
+        Args:
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            The technical quality score.
+        """
         try:
             # Base technical score on broadcast compliance and artifact detection
             broadcast_score = qa_results.get('broadcast_compliance', {}).get('score', 0)
@@ -267,7 +300,15 @@ class QualityScoreCalculator:
             return 0.0
     
     def _calculate_content_quality_score(self, qa_results: Dict) -> float:
-        """Calculate content quality score"""
+        """Calculates the content quality score.
+
+        Args:
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            The content quality score.
+        """
         try:
             # Base content quality on detected artifacts and consistency
             artifact_score = qa_results.get('artifact_detection', {}).get('score', 0)
@@ -299,7 +340,15 @@ class QualityScoreCalculator:
             return 0.0
     
     def _calculate_delivery_readiness_score(self, qa_results: Dict) -> float:
-        """Calculate delivery readiness score"""
+        """Calculates the delivery readiness score.
+
+        Args:
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            The delivery readiness score.
+        """
         try:
             # Base readiness on meeting delivery standards
             broadcast_score = qa_results.get('broadcast_compliance', {}).get('score', 0)
@@ -343,7 +392,16 @@ class QualityScoreCalculator:
             return 0.0
     
     def _apply_quality_adjustments(self, component_scores: Dict[str, float], qa_results: Dict) -> Dict[str, float]:
-        """Apply quality adjustments to component scores"""
+        """Applies quality adjustments to component scores.
+
+        Args:
+            component_scores: A dictionary of component scores.
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            A dictionary of adjusted component scores.
+        """
         try:
             adjusted_scores = component_scores.copy()
             
@@ -368,7 +426,14 @@ class QualityScoreCalculator:
             return component_scores
     
     def _calculate_weighted_score(self, adjusted_scores: Dict[str, float]) -> float:
-        """Calculate weighted overall score"""
+        """Calculates the weighted overall score.
+
+        Args:
+            adjusted_scores: A dictionary of adjusted component scores.
+
+        Returns:
+            The weighted overall score.
+        """
         try:
             weighted_sum = 0
             total_weight = 0
@@ -388,7 +453,14 @@ class QualityScoreCalculator:
             return 0.0
     
     def _calculate_weighted_component_scores(self, adjusted_scores: Dict[str, float]) -> Dict[str, float]:
-        """Calculate weighted scores for each component"""
+        """Calculates the weighted scores for each component.
+
+        Args:
+            adjusted_scores: A dictionary of adjusted component scores.
+
+        Returns:
+            A dictionary of weighted component scores.
+        """
         try:
             weighted_scores = {}
             
@@ -403,7 +475,16 @@ class QualityScoreCalculator:
             return {}
     
     def _apply_quality_bonuses(self, base_score: float, qa_results: Dict) -> float:
-        """Apply quality bonuses for exceptional performance"""
+        """Applies quality bonuses for exceptional performance.
+
+        Args:
+            base_score: The base score to apply bonuses to.
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            The score with bonuses applied.
+        """
         try:
             bonus_score = base_score
             
@@ -432,7 +513,16 @@ class QualityScoreCalculator:
             return base_score
     
     def _calculate_penalties(self, component_scores: Dict[str, float], qa_results: Dict) -> Dict[str, float]:
-        """Calculate penalties for quality issues"""
+        """Calculates penalties for quality issues.
+
+        Args:
+            component_scores: A dictionary of component scores.
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            A dictionary of penalties.
+        """
         try:
             penalties = {}
             
@@ -463,7 +553,16 @@ class QualityScoreCalculator:
             return {}
     
     def _calculate_bonuses(self, component_scores: Dict[str, float], qa_results: Dict) -> Dict[str, float]:
-        """Calculate bonuses for exceptional performance"""
+        """Calculates bonuses for exceptional performance.
+
+        Args:
+            component_scores: A dictionary of component scores.
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            A dictionary of bonuses.
+        """
         try:
             bonuses = {}
             
@@ -493,7 +592,15 @@ class QualityScoreCalculator:
             return {}
     
     def _calculate_confidence_level(self, qa_results: Dict) -> float:
-        """Calculate confidence level in the quality assessment"""
+        """Calculates the confidence level in the quality assessment.
+
+        Args:
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            The confidence level of the quality assessment.
+        """
         try:
             confidence_factors = []
             
@@ -544,7 +651,11 @@ class QualityScoreCalculator:
             return 0.5
     
     def _analyze_score_trend(self) -> str:
-        """Analyze score trend over time"""
+        """Analyzes the score trend over time.
+
+        Returns:
+            The score trend (improving, declining, or stable).
+        """
         try:
             if len(self.score_history) < 3:
                 return "stable"
@@ -568,7 +679,16 @@ class QualityScoreCalculator:
             return "unknown"
     
     def _identify_critical_issues(self, component_scores: Dict[str, float], qa_results: Dict) -> List[str]:
-        """Identify critical quality issues"""
+        """Identifies critical quality issues.
+
+        Args:
+            component_scores: A dictionary of component scores.
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            A list of critical quality issues.
+        """
         try:
             critical_issues = []
             
@@ -604,7 +724,14 @@ class QualityScoreCalculator:
             return ["Issue analysis failed"]
     
     def _identify_improvement_opportunities(self, component_scores: Dict[str, float]) -> List[str]:
-        """Identify improvement opportunities"""
+        """Identifies improvement opportunities.
+
+        Args:
+            component_scores: A dictionary of component scores.
+
+        Returns:
+            A list of improvement opportunities.
+        """
         try:
             opportunities = []
             
@@ -643,7 +770,15 @@ class QualityScoreCalculator:
             return ["Improvement analysis failed"]
     
     def _is_broadcast_ready(self, qa_results: Dict) -> bool:
-        """Check if video is broadcast ready"""
+        """Checks if the video is broadcast ready.
+
+        Args:
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            True if the video is broadcast ready, False otherwise.
+        """
         try:
             # Check key broadcast requirements
             broadcast_score = qa_results.get('broadcast_compliance', {}).get('score', 0)
@@ -662,7 +797,18 @@ class QualityScoreCalculator:
             return False
     
     def _apply_validation_rule(self, rule: Dict, qa_results: Dict) -> float:
-        """Apply a validation rule and return penalty amount"""
+        """Applies a validation rule and returns the penalty amount.
+
+        This is a placeholder implementation.
+
+        Args:
+            rule: The validation rule to apply.
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            The penalty amount.
+        """
         try:
             # This would contain the logic for specific validation rules
             # For now, return 0 (no penalty)
@@ -673,7 +819,14 @@ class QualityScoreCalculator:
             return 0
     
     def _store_score_for_trend_analysis(self, overall_score: float, component_scores: Dict[str, float], qa_results: Dict):
-        """Store score for trend analysis"""
+        """Stores the score for trend analysis.
+
+        Args:
+            overall_score: The overall quality score.
+            component_scores: A dictionary of component scores.
+            qa_results: A dictionary containing the results from all QA
+                components.
+        """
         try:
             self.score_history.append({
                 'timestamp': str(np.datetime64('now')),
@@ -698,7 +851,11 @@ class QualityScoreCalculator:
             self.logger.error(f"Score storage for trend analysis failed: {e}")
     
     def _initialize_validation_rules(self) -> Dict:
-        """Initialize quality validation rules"""
+        """Initializes the quality validation rules.
+
+        Returns:
+            A dictionary of quality validation rules.
+        """
         return {
             'minimum_ire_compliance': {
                 'enabled': True,
@@ -727,7 +884,11 @@ class QualityScoreCalculator:
         }
     
     def get_quality_benchmark_scores(self) -> Dict[str, float]:
-        """Get scores against different quality benchmarks"""
+        """Gets the scores against different quality benchmarks.
+
+        Returns:
+            A dictionary of benchmark scores.
+        """
         try:
             current_overall = self.score_history[-1]['overall_score'] if self.score_history else 0
             
@@ -747,7 +908,15 @@ class QualityScoreCalculator:
             return {}
     
     def generate_quality_report(self, qa_results: Dict) -> str:
-        """Generate comprehensive quality report"""
+        """Generates a comprehensive quality report.
+
+        Args:
+            qa_results: A dictionary containing the results from all QA
+                components.
+
+        Returns:
+            A string containing the quality report.
+        """
         try:
             breakdown = self.calculate_detailed_score_breakdown(qa_results)
             benchmarks = self.get_quality_benchmark_scores()
@@ -789,7 +958,14 @@ Report generated by APEX DIRECTOR Quality Score Calculator
             return f"Quality report generation failed: {e}"
     
     def _get_quality_level(self, score: float) -> str:
-        """Get quality level description"""
+        """Gets a quality level description based on a score.
+
+        Args:
+            score: The score to get the quality level for.
+
+        Returns:
+            The quality level description.
+        """
         if score >= 95:
             return "Exceptional"
         elif score >= 85:
@@ -804,7 +980,14 @@ Report generated by APEX DIRECTOR Quality Score Calculator
             return "Poor"
     
     def _generate_quality_summary(self, breakdown: QualityScoreBreakdown) -> str:
-        """Generate quality assessment summary"""
+        """Generates a quality assessment summary.
+
+        Args:
+            breakdown: The detailed quality score breakdown.
+
+        Returns:
+            A string containing the quality assessment summary.
+        """
         try:
             level = self._get_quality_level(breakdown.overall_score)
             
@@ -836,7 +1019,11 @@ Report generated by APEX DIRECTOR Quality Score Calculator
             return "Quality assessment summary unavailable."
     
     def _default_config(self) -> Dict:
-        """Default configuration for quality score calculator"""
+        """Returns the default configuration for the quality score calculator.
+
+        Returns:
+            A dictionary of default configuration parameters.
+        """
         return {
             'weights': {
                 'visual_consistency': 0.25,
@@ -870,7 +1057,15 @@ Report generated by APEX DIRECTOR Quality Score Calculator
 # Additional utility functions for quality assessment
 
 def calculate_psnr(image1: np.ndarray, image2: np.ndarray) -> float:
-    """Calculate Peak Signal-to-Noise Ratio"""
+    """Calculates the Peak Signal-to-Noise Ratio (PSNR) between two images.
+
+    Args:
+        image1: The first image.
+        image2: The second image.
+
+    Returns:
+        The PSNR value.
+    """
     try:
         mse = np.mean((image1.astype(float) - image2.astype(float)) ** 2)
         if mse == 0:
@@ -881,7 +1076,17 @@ def calculate_psnr(image1: np.ndarray, image2: np.ndarray) -> float:
 
 
 def calculate_ssim(image1: np.ndarray, image2: np.ndarray) -> float:
-    """Calculate Structural Similarity Index (simplified)"""
+    """Calculates the Structural Similarity Index (SSIM) between two images.
+
+    This is a simplified implementation.
+
+    Args:
+        image1: The first image.
+        image2: The second image.
+
+    Returns:
+        The SSIM value.
+    """
     try:
         # Simplified SSIM calculation
         mu1 = cv2.GaussianBlur(image1.astype(float), (11, 11), 1.5)
@@ -905,7 +1110,17 @@ def calculate_ssim(image1: np.ndarray, image2: np.ndarray) -> float:
 
 
 def calculate_vmaf_score(reference: np.ndarray, test: np.ndarray) -> float:
-    """Calculate VMAF (Video Multi-method Assessment Fusion) score"""
+    """Calculates the VMAF (Video Multi-method Assessment Fusion) score.
+
+    This is a simplified implementation that uses SSIM and PSNR as proxies.
+
+    Args:
+        reference: The reference image.
+        test: The test image.
+
+    Returns:
+        The VMAF score.
+    """
     try:
         # Simplified VMAF calculation
         # In a real implementation, would use the actual VMAF library

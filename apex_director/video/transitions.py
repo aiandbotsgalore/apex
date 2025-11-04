@@ -30,7 +30,13 @@ class TransitionType(Enum):
 
 @dataclass
 class TransitionEffect:
-    """Professional transition effect with parameters"""
+    """Represents a professional transition effect with parameters.
+
+    Attributes:
+        type: The type of transition.
+        duration_frames: The duration of the transition in frames.
+        parameters: A dictionary of additional parameters for the transition.
+    """
     type: TransitionType
     duration_frames: int
     parameters: Dict[str, Union[int, float, str, Tuple[int, int]]] = None
@@ -59,9 +65,18 @@ class TransitionEffect:
 
 
 class TransitionEngine:
-    """Professional transition rendering engine"""
+    """A professional transition rendering engine.
+
+    This class provides functionality for applying various broadcast-quality
+    transitions with frame accuracy.
+    """
     
     def __init__(self, timeline: Timeline):
+        """Initializes the TransitionEngine.
+
+        Args:
+            timeline: The timeline to apply transitions to.
+        """
         self.timeline = timeline
         self.frame_width = timeline.resolution[0]
         self.frame_height = timeline.resolution[1]
@@ -70,13 +85,32 @@ class TransitionEngine:
         
     def apply_cut_transition(self, frame_a: np.ndarray, frame_b: np.ndarray, 
                            progress: float = 1.0) -> np.ndarray:
-        """Perfect frame cut with no transition"""
+        """Applies a perfect frame cut with no transition.
+
+        Args:
+            frame_a: The first frame.
+            frame_b: The second frame.
+            progress: The progress of the transition (ignored for cuts).
+
+        Returns:
+            The second frame.
+        """
         # Immediate cut at exact frame boundary
         return frame_b.copy()
     
     def apply_crossfade_transition(self, frame_a: np.ndarray, frame_b: np.ndarray, 
                                  progress: float, curve: str = "linear") -> np.ndarray:
-        """Professional crossfade with configurable curves"""
+        """Applies a professional crossfade with configurable curves.
+
+        Args:
+            frame_a: The first frame.
+            frame_b: The second frame.
+            progress: The progress of the transition.
+            curve: The fade curve to use.
+
+        Returns:
+            The transitioned frame.
+        """
         if progress <= 0:
             return frame_a.copy()
         elif progress >= 1:
@@ -92,7 +126,18 @@ class TransitionEngine:
     def apply_whip_pan_transition(self, frame_a: np.ndarray, frame_b: np.ndarray, 
                                 progress: float, pan_speed: float = 15.0, 
                                 blur_amount: int = 3) -> np.ndarray:
-        """Whip pan transition with motion blur"""
+        """Applies a whip pan transition with motion blur.
+
+        Args:
+            frame_a: The first frame.
+            frame_b: The second frame.
+            progress: The progress of the transition.
+            pan_speed: The speed of the pan.
+            blur_amount: The amount of motion blur to apply.
+
+        Returns:
+            The transitioned frame.
+        """
         if progress <= 0:
             return frame_a.copy()
         elif progress >= 1:
@@ -137,7 +182,17 @@ class TransitionEngine:
     
     def apply_match_dissolve_transition(self, frame_a: np.ndarray, frame_b: np.ndarray, 
                                       progress: float, tolerance: int = 10) -> np.ndarray:
-        """Match dissolve based on color similarity"""
+        """Applies a match dissolve transition based on color similarity.
+
+        Args:
+            frame_a: The first frame.
+            frame_b: The second frame.
+            progress: The progress of the transition.
+            tolerance: The color similarity tolerance.
+
+        Returns:
+            The transitioned frame.
+        """
         if progress <= 0:
             return frame_a.copy()
         elif progress >= 1:
@@ -167,7 +222,17 @@ class TransitionEngine:
     
     def apply_dip_transition(self, frame_a: np.ndarray, frame_b: np.ndarray, 
                            progress: float, to_color: str = "black") -> np.ndarray:
-        """Dip to black/white transition"""
+        """Applies a dip to black or white transition.
+
+        Args:
+            frame_a: The first frame.
+            frame_b: The second frame.
+            progress: The progress of the transition.
+            to_color: The color to dip to ("black" or "white").
+
+        Returns:
+            The transitioned frame.
+        """
         if progress <= 0:
             return frame_a.copy()
         elif progress >= 1:
@@ -194,7 +259,18 @@ class TransitionEngine:
     def apply_wipe_transition(self, frame_a: np.ndarray, frame_b: np.ndarray, 
                             progress: float, direction: str = "left", 
                             edge_feather: int = 0) -> np.ndarray:
-        """Professional wipe transition"""
+        """Applies a professional wipe transition.
+
+        Args:
+            frame_a: The first frame.
+            frame_b: The second frame.
+            progress: The progress of the transition.
+            direction: The direction of the wipe.
+            edge_feather: The amount of feather to apply to the edge of the wipe.
+
+        Returns:
+            The transitioned frame.
+        """
         if progress <= 0:
             return frame_a.copy()
         elif progress >= 1:
@@ -255,12 +331,24 @@ class TransitionEngine:
 
 
 class TransitionGenerator:
-    """Generates FFmpeg commands for professional transitions"""
+    """Generates FFmpeg commands for professional transitions."""
     
     @staticmethod
     def generate_ffmpeg_crossfade(input_a: str, input_b: str, output: str, 
                                 duration: float, offset: float, curve: str = "linear") -> str:
-        """Generate FFmpeg crossfade filter"""
+        """Generates an FFmpeg command for a crossfade transition.
+
+        Args:
+            input_a: The first input file.
+            input_b: The second input file.
+            output: The output file.
+            duration: The duration of the crossfade in seconds.
+            offset: The offset of the crossfade in seconds.
+            curve: The fade curve to use.
+
+        Returns:
+            The FFmpeg command as a string.
+        """
         curve_filter = {
             "linear": "fade=t=linear:st=0:d={}".format(duration),
             "ease_in": "fade=t=in:st=0:d={}".format(duration),
@@ -281,7 +369,18 @@ class TransitionGenerator:
     @staticmethod
     def generate_ffmpeg_whip_pan(input_a: str, input_b: str, output: str, 
                                duration: float, offset: float) -> str:
-        """Generate FFmpeg whip pan transition"""
+        """Generates an FFmpeg command for a whip pan transition.
+
+        Args:
+            input_a: The first input file.
+            input_b: The second input file.
+            output: The output file.
+            duration: The duration of the transition in seconds.
+            offset: The offset of the transition in seconds.
+
+        Returns:
+            The FFmpeg command as a string.
+        """
         return (
             f"ffmpeg -i {input_a} -i {input_b} "
             f"-filter_complex "
@@ -294,7 +393,19 @@ class TransitionGenerator:
     @staticmethod
     def generate_ffmpeg_wipe(input_a: str, input_b: str, output: str, 
                            duration: float, offset: float, direction: str = "left") -> str:
-        """Generate FFmpeg wipe transition"""
+        """Generates an FFmpeg command for a wipe transition.
+
+        Args:
+            input_a: The first input file.
+            input_b: The second input file.
+            output: The output file.
+            duration: The duration of the transition in seconds.
+            offset: The offset of the transition in seconds.
+            direction: The direction of the wipe.
+
+        Returns:
+            The FFmpeg command as a string.
+        """
         wipe_type = {
             "left": "wipeleft",
             "right": "wiperight",
@@ -313,9 +424,18 @@ class TransitionGenerator:
 
 
 class TransitionPreview:
-    """Real-time transition preview and adjustment"""
+    """Provides functionality for real-time transition preview and adjustment.
+
+    This class allows for the generation of preview frames for transitions,
+    as well as the real-time adjustment of transition parameters.
+    """
     
     def __init__(self, timeline: Timeline):
+        """Initializes the TransitionPreview.
+
+        Args:
+            timeline: The timeline to generate previews for.
+        """
         self.timeline = timeline
         self.preview_resolution = (1920, 1080)
         self.preview_fps = 30.0
@@ -323,7 +443,16 @@ class TransitionPreview:
     def generate_transition_preview(self, transition: Transition, 
                                   sample_frame_a: np.ndarray, 
                                   sample_frame_b: np.ndarray) -> List[np.ndarray]:
-        """Generate preview frames for transition"""
+        """Generates a sequence of preview frames for a given transition.
+
+        Args:
+            transition: The transition to generate a preview for.
+            sample_frame_a: A sample frame from the first clip.
+            sample_frame_b: A sample frame from the second clip.
+
+        Returns:
+            A list of frames representing the transition preview.
+        """
         frames = []
         transition_engine = TransitionEngine(self.timeline)
         
@@ -362,12 +491,24 @@ class TransitionPreview:
     
     def adjust_transition_parameters(self, transition: Transition, 
                                    parameter_updates: Dict[str, Union[int, float, str]]) -> None:
-        """Adjust transition parameters in real-time"""
+        """Adjusts the parameters of a transition in real-time.
+
+        Args:
+            transition: The transition to adjust.
+            parameter_updates: A dictionary of parameter updates.
+        """
         for key, value in parameter_updates.items():
             transition.parameters[key] = value
     
     def analyze_transition_impact(self, transition: Transition) -> Dict[str, float]:
-        """Analyze visual impact of transition"""
+        """Analyzes the visual impact of a transition.
+
+        Args:
+            transition: The transition to analyze.
+
+        Returns:
+            A dictionary of impact metrics.
+        """
         # This would implement metrics like:
         # - Cut detection confidence
         # - Color matching score
@@ -386,7 +527,15 @@ class TransitionPreview:
 
 # Utility functions for professional transition management
 def validate_transition_timing(timeline: Timeline, transition: Transition) -> Dict[str, Union[bool, List[str]]]:
-    """Validate transition timing for broadcast standards"""
+    """Validates the timing of a transition against broadcast standards.
+
+    Args:
+        timeline: The timeline containing the transition.
+        transition: The transition to validate.
+
+    Returns:
+        A dictionary containing the validation status, errors, and warnings.
+    """
     errors = []
     warnings = []
     
@@ -422,7 +571,15 @@ def validate_transition_timing(timeline: Timeline, transition: Transition) -> Di
 
 
 def auto_generate_transitions(timeline: Timeline, style: str = "professional") -> List[Transition]:
-    """Automatically generate transitions based on style and content analysis"""
+    """Automatically generates a list of transitions for a timeline.
+
+    Args:
+        timeline: The timeline to generate transitions for.
+        style: The style of transitions to generate.
+
+    Returns:
+        A list of generated transitions.
+    """
     transitions = []
     
     for i in range(len(timeline.clips) - 1):

@@ -11,37 +11,34 @@ warnings.filterwarnings('ignore')
 
 
 class BeatDetector:
-    """
-    Beat detection using multiple librosa algorithms for robust BPM and beat timing detection.
-    
-    Features:
-    - Multiple onset detection algorithms
-    - BPM estimation with confidence scoring
-    - Beat position grid extraction
-    - Tempo curve analysis
-    - Downbeat detection
+    """Detects beats and estimates tempo in an audio signal.
+
+    This class uses multiple algorithms from the librosa library to provide a
+    robust analysis of the beat structure of an audio file.
+
+    Attributes:
+        sample_rate: The sample rate to use for audio processing.
+        hop_length: The hop length for feature extraction.
     """
     
     def __init__(self, sample_rate: int = 44100, hop_length: int = 512):
-        """
-        Initialize beat detector.
-        
+        """Initializes the BeatDetector.
+
         Args:
-            sample_rate: Audio sample rate
-            hop_length: Analysis hop length
+            sample_rate: The sample rate to use for audio processing.
+            hop_length: The hop length for feature extraction.
         """
         self.sample_rate = sample_rate
         self.hop_length = hop_length
         
     def analyze(self, audio_data: np.ndarray) -> Dict[str, Any]:
-        """
-        Perform comprehensive beat analysis.
-        
+        """Performs a comprehensive beat analysis on the audio data.
+
         Args:
-            audio_data: Audio signal array
-            
+            audio_data: A NumPy array of the audio signal.
+
         Returns:
-            Dictionary containing beat analysis results
+            A dictionary containing the detailed beat analysis results.
         """
         try:
             # Basic validation
@@ -99,14 +96,13 @@ class BeatDetector:
             }
     
     def _librosa_beat_tracking(self, audio_data: np.ndarray) -> Dict[str, Any]:
-        """
-        Use librosa's built-in beat tracking algorithm.
-        
+        """Uses librosa's built-in beat tracking algorithm.
+
         Args:
-            audio_data: Audio signal
-            
+            audio_data: The audio signal.
+
         Returns:
-            Beat tracking results
+            A dictionary with the beat tracking results.
         """
         try:
             # Calculate tempo and beat times
@@ -145,14 +141,13 @@ class BeatDetector:
             }
     
     def _onset_analysis(self, audio_data: np.ndarray) -> Dict[str, Any]:
-        """
-        Analyze onset envelope for beat detection.
-        
+        """Analyzes the onset envelope of the audio signal.
+
         Args:
-            audio_data: Audio signal
-            
+            audio_data: The audio signal.
+
         Returns:
-            Onset analysis results
+            A dictionary containing the onset analysis results.
         """
         try:
             # Compute onset strength envelope
@@ -192,14 +187,15 @@ class BeatDetector:
             }
     
     def _tempo_estimation(self, audio_data: np.ndarray) -> Dict[str, Any]:
-        """
-        Estimate tempo using multiple methods.
-        
+        """Estimates the tempo using multiple methods.
+
+        This method uses both CQT-based and chroma-based tempo estimation.
+
         Args:
-            audio_data: Audio signal
-            
+            audio_data: The audio signal.
+
         Returns:
-            Tempo estimation results
+            A dictionary with the tempo estimation results.
         """
         try:
             # Method 1: CQT-based tempo estimation
@@ -242,15 +238,14 @@ class BeatDetector:
             }
     
     def _beat_strength_analysis(self, audio_data: np.ndarray, onset_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Analyze beat strength and periodicity.
-        
+        """Analyzes the strength and periodicity of the beats.
+
         Args:
-            audio_data: Audio signal
-            onset_results: Results from onset analysis
-            
+            audio_data: The audio signal.
+            onset_results: The results from the onset analysis.
+
         Returns:
-            Beat strength analysis results
+            A dictionary with the beat strength analysis results.
         """
         try:
             # Compute beat strength using spectral contrast
@@ -293,15 +288,14 @@ class BeatDetector:
             }
     
     def _downbeat_detection(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Detect downbeats (first beat of each bar).
-        
+        """Detects the downbeats in the audio.
+
         Args:
-            audio_data: Audio signal
-            beat_results: Results from beat tracking
-            
+            audio_data: The audio signal.
+            beat_results: The results from the beat tracking.
+
         Returns:
-            Downbeat detection results
+            A dictionary with the downbeat detection results.
         """
         try:
             # Simple downbeat detection using spectral features
@@ -348,14 +342,13 @@ class BeatDetector:
             }
     
     def _calculate_beat_regularity(self, beat_intervals: np.ndarray) -> float:
-        """
-        Calculate beat regularity score.
-        
+        """Calculates a score for the regularity of the beat intervals.
+
         Args:
-            beat_intervals: Array of time intervals between beats
-            
+            beat_intervals: A NumPy array of time intervals between beats.
+
         Returns:
-            Regularity score (0.0 to 1.0)
+            A regularity score between 0.0 and 1.0.
         """
         if len(beat_intervals) < 2:
             return 0.0
@@ -375,14 +368,15 @@ class BeatDetector:
         return float(confidence)
     
     def _calculate_periodicity(self, strength_values: np.ndarray) -> float:
-        """
-        Calculate periodicity in strength values using autocorrelation.
-        
+        """Calculates the periodicity of the beat strength values.
+
+        This is done using autocorrelation.
+
         Args:
-            strength_values: Beat strength values
-            
+            strength_values: A NumPy array of beat strength values.
+
         Returns:
-            Periodicity score (0.0 to 1.0)
+            A periodicity score between 0.0 and 1.0.
         """
         if len(strength_values) < 4:
             return 0.0
@@ -403,14 +397,13 @@ class BeatDetector:
         return float(max(0.0, min(1.0, peak_value)))
     
     def _calculate_confidence(self, results: Dict[str, Any]) -> float:
-        """
-        Calculate overall confidence for beat detection.
-        
+        """Calculates the overall confidence score for the beat detection.
+
         Args:
-            results: Beat analysis results
-            
+            results: The beat analysis results.
+
         Returns:
-            Confidence score (0.0 to 1.0)
+            A confidence score between 0.0 and 1.0.
         """
         confidence_factors = []
         
@@ -449,15 +442,14 @@ class BeatDetector:
 
 
 def estimate_bpm(audio_data: np.ndarray, sample_rate: int = 44100) -> float:
-    """
-    Convenience function to estimate BPM from audio data.
-    
+    """A convenience function to estimate the BPM from audio data.
+
     Args:
-        audio_data: Audio signal array
-        sample_rate: Audio sample rate
-        
+        audio_data: A NumPy array of the audio signal.
+        sample_rate: The sample rate of the audio.
+
     Returns:
-        Estimated BPM
+        The estimated BPM.
     """
     detector = BeatDetector(sample_rate=sample_rate)
     results = detector.analyze(audio_data)

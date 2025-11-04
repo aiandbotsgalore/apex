@@ -30,7 +30,16 @@ class MotionType(Enum):
 
 @dataclass
 class Keyframe:
-    """Motion keyframe with interpolation support"""
+    """Represents a motion keyframe with interpolation support.
+
+    Attributes:
+        time: The time of the keyframe in seconds.
+        position_x: The x-position of the camera.
+        position_y: The y-position of the camera.
+        zoom: The zoom level of the camera.
+        rotation: The rotation of the camera in degrees.
+        interpolation: The interpolation method to use to the next keyframe.
+    """
     time: float  # Seconds
     position_x: float = 0.0
     position_y: float = 0.0
@@ -41,7 +50,15 @@ class Keyframe:
 
 @dataclass
 class CameraMovement:
-    """Professional camera movement definition"""
+    """Represents a professional camera movement.
+
+    Attributes:
+        motion_type: The type of motion.
+        start_time: The start time of the movement in seconds.
+        duration: The duration of the movement in seconds.
+        keyframes: A list of keyframes defining the movement.
+        parameters: A dictionary of additional parameters for the movement.
+    """
     motion_type: MotionType
     start_time: float
     duration: float
@@ -59,7 +76,15 @@ class CameraMovement:
 
 @dataclass
 class ParallaxLayer:
-    """Parallax layer for pseudo-3D effect"""
+    """Represents a parallax layer for creating a pseudo-3D effect.
+
+    Attributes:
+        depth: The depth of the layer, from 0.0 (foreground) to 1.0 (background).
+        movement_factor: A factor controlling how much the layer moves.
+        blur_strength: The strength of the depth-of-field blur.
+        opacity: The opacity of the layer.
+        mask: An optional mask for the layer.
+    """
     depth: float = 0.0  # 0.0 (foreground) to 1.0 (background)
     movement_factor: float = 1.0  # How much this layer moves
     blur_strength: float = 0.0  # Depth of field blur
@@ -68,9 +93,18 @@ class ParallaxLayer:
 
 
 class MotionEngine:
-    """Professional motion effects engine"""
+    """A professional motion effects engine.
+
+    This class provides functionality for creating and applying various motion
+    effects, such as Ken Burns, parallax, and dolly zooms.
+    """
     
     def __init__(self, timeline: Timeline):
+        """Initializes the MotionEngine.
+
+        Args:
+            timeline: The timeline to apply motion effects to.
+        """
         self.timeline = timeline
         self.frame_width = timeline.resolution[0]
         self.frame_height = timeline.resolution[1]
@@ -86,18 +120,35 @@ class MotionEngine:
         self.motion_blur_enabled = True
     
     def add_camera_movement(self, movement: CameraMovement) -> None:
-        """Add camera movement to timeline"""
+        """Adds a camera movement to the timeline.
+
+        Args:
+            movement: The camera movement to add.
+        """
         self.camera_movements.append(movement)
         self.camera_movements.sort(key=lambda m: m.start_time)
     
     def add_parallax_layer(self, layer: ParallaxLayer) -> None:
-        """Add parallax layer for depth effect"""
+        """Adds a parallax layer for creating a depth effect.
+
+        Args:
+            layer: The parallax layer to add.
+        """
         self.parallax_layers.append(layer)
         self.parallax_layers.sort(key=lambda l: l.depth, reverse=True)
     
     def apply_ken_burns_effect(self, frame: np.ndarray, movement: CameraMovement, 
                              current_time: float) -> np.ndarray:
-        """Apply Ken Burns effect (pan and zoom)"""
+        """Applies a Ken Burns effect (pan and zoom) to a frame.
+
+        Args:
+            frame: The input frame.
+            movement: The camera movement to apply.
+            current_time: The current time in the movement.
+
+        Returns:
+            The frame with the Ken Burns effect applied.
+        """
         if movement.motion_type not in [MotionType.KEN_BURNS_ZOOM, 
                                        MotionType.KEN_BURNS_PAN, 
                                        MotionType.KEN_BURNS_COMBINED]:
@@ -116,7 +167,16 @@ class MotionEngine:
     
     def apply_parallax_effect(self, frame: np.ndarray, layers: List[ParallaxLayer], 
                             movement_vector: Tuple[float, float]) -> np.ndarray:
-        """Apply 2D/3D parallax effect"""
+        """Applies a 2D/3D parallax effect to a frame.
+
+        Args:
+            frame: The input frame.
+            layers: A list of parallax layers.
+            movement_vector: The movement vector for the parallax effect.
+
+        Returns:
+            The frame with the parallax effect applied.
+        """
         if not layers:
             return frame
         
@@ -144,7 +204,17 @@ class MotionEngine:
     
     def apply_dolly_zoom_effect(self, frame: np.ndarray, zoom_factor: float, 
                               current_time: float, speed: float = 1.0) -> np.ndarray:
-        """Apply dolly zoom (Vertigo effect)"""
+        """Applies a dolly zoom (Vertigo) effect to a frame.
+
+        Args:
+            frame: The input frame.
+            zoom_factor: The zoom factor to apply.
+            current_time: The current time in the effect.
+            speed: The speed of the effect.
+
+        Returns:
+            The frame with the dolly zoom effect applied.
+        """
         height, width = frame.shape[:2]
         center_x, center_y = width // 2, height // 2
         
@@ -175,7 +245,15 @@ class MotionEngine:
         return result
     
     def _apply_ken_burns_zoom(self, frame: np.ndarray, params: Dict[str, float]) -> np.ndarray:
-        """Apply Ken Burns zoom effect"""
+        """Applies the zoom component of the Ken Burns effect.
+
+        Args:
+            frame: The input frame.
+            params: A dictionary of motion parameters.
+
+        Returns:
+            The frame with the zoom effect applied.
+        """
         zoom = params.get("zoom", 1.0)
         center_x = params.get("position_x", 0.5) * self.frame_width
         center_y = params.get("position_y", 0.5) * self.frame_height
@@ -205,7 +283,15 @@ class MotionEngine:
         return result
     
     def _apply_ken_burns_pan(self, frame: np.ndarray, params: Dict[str, float]) -> np.ndarray:
-        """Apply Ken Burns pan effect"""
+        """Applies the pan component of the Ken Burns effect.
+
+        Args:
+            frame: The input frame.
+            params: A dictionary of motion parameters.
+
+        Returns:
+            The frame with the pan effect applied.
+        """
         offset_x = params.get("position_x", 0.0) * self.frame_width * 0.2
         offset_y = params.get("position_y", 0.0) * self.frame_height * 0.2
         
@@ -221,7 +307,15 @@ class MotionEngine:
         return result
     
     def _apply_ken_burns_combined(self, frame: np.ndarray, params: Dict[str, float]) -> np.ndarray:
-        """Apply combined Ken Burns pan and zoom"""
+        """Applies a combined pan and zoom Ken Burns effect.
+
+        Args:
+            frame: The input frame.
+            params: A dictionary of motion parameters.
+
+        Returns:
+            The frame with the combined effect applied.
+        """
         # First apply zoom
         zoomed = self._apply_ken_burns_zoom(frame, params)
         
@@ -232,7 +326,16 @@ class MotionEngine:
     
     def _calculate_parallax_offset(self, movement_vector: Tuple[float, float], 
                                   depth: float, movement_factor: float) -> Tuple[float, float]:
-        """Calculate parallax offset based on depth and movement"""
+        """Calculates the parallax offset for a layer.
+
+        Args:
+            movement_vector: The base movement vector.
+            depth: The depth of the layer.
+            movement_factor: The movement factor of the layer.
+
+        Returns:
+            The calculated parallax offset as a tuple (x, y).
+        """
         base_x, base_y = movement_vector
         
         # Foreground moves more than background
@@ -242,7 +345,15 @@ class MotionEngine:
         return (parallax_x, parallax_y)
     
     def _extract_layer_from_frame(self, frame: np.ndarray, layer: ParallaxLayer) -> np.ndarray:
-        """Extract content for parallax layer"""
+        """Extracts the content for a parallax layer from a frame.
+
+        Args:
+            frame: The input frame.
+            layer: The parallax layer to extract.
+
+        Returns:
+            The extracted layer content.
+        """
         if layer.mask is not None:
             # Apply custom mask
             mask_3ch = np.stack([layer.mask, layer.mask, layer.mask], axis=2)
@@ -253,7 +364,16 @@ class MotionEngine:
     
     def _apply_layer_movement(self, layer_frame: np.ndarray, offset: Tuple[float, float], 
                             blur_strength: float) -> np.ndarray:
-        """Apply movement to parallax layer"""
+        """Applies movement to a parallax layer.
+
+        Args:
+            layer_frame: The frame of the layer.
+            offset: The offset to apply.
+            blur_strength: The strength of the depth-of-field blur.
+
+        Returns:
+            The moved layer.
+        """
         height, width = layer_frame.shape[:2]
         offset_x, offset_y = offset
         
@@ -273,12 +393,29 @@ class MotionEngine:
         return moved_layer
     
     def _composite_layers(self, base: np.ndarray, overlay: np.ndarray) -> np.ndarray:
-        """Composite layers with proper blending"""
+        """Composites two layers together.
+
+        Args:
+            base: The base layer.
+            overlay: The overlay layer.
+
+        Returns:
+            The composited image.
+        """
         # Simple alpha composite
         return base + overlay
     
     def _apply_motion_blur(self, frame: np.ndarray, speed: float, current_time: float) -> np.ndarray:
-        """Apply motion blur effect"""
+        """Applies a motion blur effect to a frame.
+
+        Args:
+            frame: The input frame.
+            speed: The speed of the motion.
+            current_time: The current time in the effect.
+
+        Returns:
+            The frame with motion blur applied.
+        """
         # Calculate blur based on movement speed
         blur_amount = max(0, min(int(speed * 3), 15))  # Max 15 pixels blur
         
@@ -293,7 +430,15 @@ class MotionEngine:
         return result
     
     def _interpolate_movement(self, movement: CameraMovement, current_time: float) -> Dict[str, float]:
-        """Interpolate camera movement parameters"""
+        """Interpolates camera movement parameters between keyframes.
+
+        Args:
+            movement: The camera movement to interpolate.
+            current_time: The current time in the movement.
+
+        Returns:
+            A dictionary of interpolated motion parameters.
+        """
         # Find surrounding keyframes
         if len(movement.keyframes) < 2:
             return {
@@ -348,7 +493,15 @@ class MotionEngine:
         return result
     
     def create_parallax_layers(self, frame: np.ndarray, depth_map: Optional[np.ndarray] = None) -> List[ParallaxLayer]:
-        """Create parallax layers from depth map or image analysis"""
+        """Creates parallax layers from a depth map or by analyzing the image.
+
+        Args:
+            frame: The input frame.
+            depth_map: An optional depth map for creating the layers.
+
+        Returns:
+            A list of parallax layers.
+        """
         layers = []
         
         if depth_map is not None:
@@ -378,7 +531,14 @@ class MotionEngine:
         return layers
     
     def _analyze_image_for_layers(self, frame: np.ndarray) -> List[ParallaxLayer]:
-        """Automatically analyze image to create parallax layers"""
+        """Automatically analyzes an image to create parallax layers.
+
+        Args:
+            frame: The input frame.
+
+        Returns:
+            A list of generated parallax layers.
+        """
         layers = []
         
         # Convert to grayscale for analysis
@@ -423,14 +583,23 @@ class MotionEngine:
 
 
 class CameraTracking:
-    """Advanced camera tracking for motion effects"""
+    """Provides advanced camera tracking for motion effects."""
     
     def __init__(self):
+        """Initializes the CameraTracking."""
         self.tracked_features = []
         self.motion_history = []
     
     def detect_motion_in_sequence(self, frame_sequence: List[np.ndarray]) -> List[Dict[str, float]]:
-        """Detect motion between frames for automatic camera effects"""
+        """Detects motion between frames for automatic camera effects.
+
+        Args:
+            frame_sequence: A sequence of frames to analyze.
+
+        Returns:
+            A list of dictionaries, where each dictionary contains motion
+            information for a frame transition.
+        """
         motions = []
         
         for i in range(1, len(frame_sequence)):
@@ -481,16 +650,29 @@ class CameraTracking:
 
 
 class MotionPreview:
-    """Real-time motion effect preview"""
+    """Provides a real-time preview of motion effects."""
     
     def __init__(self, timeline: Timeline):
+        """Initializes the MotionPreview.
+
+        Args:
+            timeline: The timeline to generate the preview from.
+        """
         self.timeline = timeline
         self.preview_resolution = (1920, 1080)
         self.preview_fps = 30.0
         
     def generate_motion_preview(self, movement: CameraMovement, 
                               sample_frame: np.ndarray) -> List[np.ndarray]:
-        """Generate preview frames for motion effect"""
+        """Generates a sequence of preview frames for a motion effect.
+
+        Args:
+            movement: The camera movement to preview.
+            sample_frame: A sample frame to apply the effect to.
+
+        Returns:
+            A list of preview frames.
+        """
         frames = []
         motion_engine = MotionEngine(self.timeline)
         
@@ -525,14 +707,27 @@ class MotionPreview:
     
     def adjust_motion_parameters(self, movement: CameraMovement, 
                                parameter_updates: Dict[str, Union[float, int, str]]) -> None:
-        """Adjust motion parameters in real-time"""
+        """Adjusts motion parameters in real-time.
+
+        Args:
+            movement: The camera movement to adjust.
+            parameter_updates: A dictionary of parameter updates.
+        """
         for key, value in parameter_updates.items():
             movement.parameters[key] = value
 
 
 # Utility functions for professional motion effects
 def validate_motion_effect(movement: CameraMovement, timeline: Timeline) -> Dict[str, Union[bool, List[str]]]:
-    """Validate motion effect for broadcast standards"""
+    """Validates a motion effect for broadcast standards.
+
+    Args:
+        movement: The camera movement to validate.
+        timeline: The timeline the movement is applied to.
+
+    Returns:
+        A dictionary containing the validation results.
+    """
     errors = []
     warnings = []
     
@@ -585,7 +780,15 @@ def _calculate_motion_speed(movement: CameraMovement) -> float:
 
 
 def auto_generate_ken_burns(movement: CameraMovement, duration: float = 4.0) -> CameraMovement:
-    """Automatically generate Ken Burns effect"""
+    """Automatically generates a Ken Burns effect.
+
+    Args:
+        movement: The camera movement to configure.
+        duration: The duration of the effect.
+
+    Returns:
+        The configured CameraMovement object.
+    """
     movement.duration = duration
     
     # Create keyframes for typical Ken Burns

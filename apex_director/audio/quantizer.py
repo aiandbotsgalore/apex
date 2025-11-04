@@ -14,7 +14,16 @@ warnings.filterwarnings('ignore')
 
 @dataclass
 class FrameTiming:
-    """Frame timing information"""
+    """Represents the timing information for a single video frame.
+
+    Attributes:
+        frame_number: The index of the frame.
+        time_seconds: The timestamp of the frame in seconds.
+        beat_time: The timestamp of the nearest beat.
+        beat_phase: The phase of the frame within the beat (0.0 to 1.0).
+        section_id: The ID of the musical section the frame belongs to.
+        confidence: The confidence in the timing accuracy of this frame.
+    """
     frame_number: int
     time_seconds: float
     beat_time: Optional[float] = None
@@ -25,7 +34,15 @@ class FrameTiming:
 
 @dataclass
 class BeatGrid:
-    """Beat grid information"""
+    """Represents the beat grid of a piece of audio.
+
+    Attributes:
+        bpm: The estimated beats per minute.
+        beat_times: A list of timestamps for each detected beat.
+        beat_phases: A list of phases for each beat (0.0 to 1.0).
+        time_signature: The estimated time signature.
+        confidence: The confidence in the accuracy of the beat grid.
+    """
     bpm: float
     beat_times: List[float]
     beat_phases: List[float]  # Phase within beat (0.0 to 1.0)
@@ -34,24 +51,23 @@ class BeatGrid:
 
 
 class TimelineQuantizer:
-    """
-    Timeline quantization for frame-accurate synchronization.
-    
-    Features:
-    - Beat grid to frame conversion (configurable fps)
-    - Phase calculation for precise timing
-    - Section-aware quantization
-    - Error correction and smoothing
-    - Multiple output formats
+    """A class for quantizing a timeline to frame-accurate timings.
+
+    This is used for synchronizing video frames with an audio beat grid.
+
+    Attributes:
+        fps: The target frame rate.
+        frame_duration: The duration of a single frame in seconds.
+        beat_tolerance: The tolerance for aligning frames to beats, in
+            seconds.
     """
     
     def __init__(self, fps: float = 24.0, beat_tolerance: float = 0.05):
-        """
-        Initialize timeline quantizer.
-        
+        """Initializes the TimelineQuantizer.
+
         Args:
-            fps: Target frame rate for quantization
-            beat_tolerance: Tolerance for beat alignment (seconds)
+            fps: The target frame rate for quantization.
+            beat_tolerance: The tolerance for beat alignment, in seconds.
         """
         self.fps = fps
         self.frame_duration = 1.0 / fps
@@ -67,15 +83,14 @@ class TimelineQuantizer:
         }
         
     def quantize(self, beat_results: Dict[str, Any], spectral_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Quantize timeline to frame-accurate timing.
-        
+        """Quantizes the timeline to frame-accurate timings.
+
         Args:
-            beat_results: Results from beat detection
-            spectral_results: Results from spectral analysis
-            
+            beat_results: The results from the beat detection.
+            spectral_results: The results from the spectral analysis.
+
         Returns:
-            Dictionary containing quantized timeline information
+            A dictionary containing the quantized timeline information.
         """
         try:
             results = {}
@@ -126,14 +141,13 @@ class TimelineQuantizer:
             }
     
     def _extract_beat_grid(self, beat_results: Dict[str, Any]) -> BeatGrid:
-        """
-        Extract and validate beat grid information.
-        
+        """Extracts and validates beat grid information from the beat results.
+
         Args:
-            beat_results: Beat detection results
-            
+            beat_results: The results from the beat detection.
+
         Returns:
-            BeatGrid object
+            A BeatGrid object.
         """
         try:
             # Extract basic beat information
@@ -170,15 +184,14 @@ class TimelineQuantizer:
             )
     
     def _generate_beat_times(self, bpm: float, duration: float) -> List[float]:
-        """
-        Generate beat times from BPM and duration.
-        
+        """Generates a list of beat times from a BPM and duration.
+
         Args:
-            bpm: Beats per minute
-            duration: Total duration in seconds
-            
+            bpm: The beats per minute.
+            duration: The total duration in seconds.
+
         Returns:
-            List of beat times
+            A list of beat times.
         """
         try:
             beat_interval = 60.0 / bpm
@@ -194,14 +207,15 @@ class TimelineQuantizer:
             return []
     
     def _calculate_beat_phases(self, beat_times: List[float]) -> List[float]:
-        """
-        Calculate phase (position within beat) for each beat.
-        
+        """Calculates the phase for each beat.
+
+        The phase represents the position within the beat, from 0.0 to 1.0.
+
         Args:
-            beat_times: List of beat times
-            
+            beat_times: A list of beat times.
+
         Returns:
-            List of beat phases (0.0 to 1.0)
+            A list of beat phases.
         """
         try:
             if len(beat_times) < 2:
@@ -228,15 +242,14 @@ class TimelineQuantizer:
             return [0.0] * len(beat_times)
     
     def _generate_frame_timings(self, beat_grid: BeatGrid, spectral_results: Dict[str, Any]) -> List[FrameTiming]:
-        """
-        Generate frame timings based on beat grid and target fps.
-        
+        """Generates frame timings based on the beat grid and target FPS.
+
         Args:
-            beat_grid: Beat grid information
-            spectral_results: Spectral analysis results
-            
+            beat_grid: The beat grid information.
+            spectral_results: The results from the spectral analysis.
+
         Returns:
-            List of FrameTiming objects
+            A list of FrameTiming objects.
         """
         try:
             frame_timings = []
@@ -281,15 +294,14 @@ class TimelineQuantizer:
             return []
     
     def _estimate_duration(self, beat_grid: BeatGrid, spectral_results: Dict[str, Any]) -> float:
-        """
-        Estimate total duration for quantization.
-        
+        """Estimates the total duration of the audio for quantization.
+
         Args:
-            beat_grid: Beat grid information
-            spectral_results: Spectral analysis results
-            
+            beat_grid: The beat grid information.
+            spectral_results: The results from the spectral analysis.
+
         Returns:
-            Duration in seconds
+            The estimated duration in seconds.
         """
         try:
             # Try to get duration from various sources
@@ -312,15 +324,14 @@ class TimelineQuantizer:
             return 30.0
     
     def _find_nearest_beat(self, frame_time: float, beat_grid: BeatGrid) -> Dict[str, Any]:
-        """
-        Find nearest beat to a given time.
-        
+        """Finds the nearest beat to a given time.
+
         Args:
-            frame_time: Time in seconds
-            beat_grid: Beat grid information
-            
+            frame_time: The time in seconds.
+            beat_grid: The beat grid information.
+
         Returns:
-            Dictionary with beat information
+            A dictionary with information about the nearest beat.
         """
         try:
             if not beat_grid.beat_times:
@@ -348,15 +359,14 @@ class TimelineQuantizer:
             return {'beat_time': 0.0, 'beat_phase': 0.0, 'distance': 1.0}
     
     def _find_section_at_time(self, time: float, spectral_results: Dict[str, Any]) -> Optional[str]:
-        """
-        Find section ID at a specific time.
-        
+        """Finds the musical section at a specific time.
+
         Args:
-            time: Time in seconds
-            spectral_results: Spectral analysis results
-            
+            time: The time in seconds.
+            spectral_results: The results from the spectral analysis.
+
         Returns:
-            Section ID or None
+            The ID of the section, or None if not found.
         """
         try:
             # Check if section information is available in spectral results
@@ -377,16 +387,15 @@ class TimelineQuantizer:
     
     def _calculate_frame_confidence(self, frame_time: float, beat_info: Dict[str, Any], 
                                   beat_grid: BeatGrid) -> float:
-        """
-        Calculate confidence for frame timing.
-        
+        """Calculates the confidence score for a single frame's timing.
+
         Args:
-            frame_time: Frame time
-            beat_info: Beat information
-            beat_grid: Beat grid
-            
+            frame_time: The timestamp of the frame.
+            beat_info: Information about the nearest beat.
+            beat_grid: The beat grid.
+
         Returns:
-            Confidence score (0.0 to 1.0)
+            A confidence score between 0.0 and 1.0.
         """
         try:
             confidence = 1.0
@@ -405,15 +414,14 @@ class TimelineQuantizer:
             return 0.5
     
     def _calculate_sync_metrics(self, beat_grid: BeatGrid, frame_timings: List[FrameTiming]) -> Dict[str, Any]:
-        """
-        Calculate synchronization metrics.
-        
+        """Calculates metrics related to synchronization quality.
+
         Args:
-            beat_grid: Beat grid information
-            frame_timings: List of frame timings
-            
+            beat_grid: The beat grid information.
+            frame_timings: A list of frame timings.
+
         Returns:
-            Dictionary of synchronization metrics
+            A dictionary of synchronization metrics.
         """
         try:
             if not beat_grid.beat_times or not frame_timings:
@@ -468,15 +476,17 @@ class TimelineQuantizer:
             }
     
     def _quantize_features(self, spectral_results: Dict[str, Any], frame_timings: List[FrameTiming]) -> Dict[str, Any]:
-        """
-        Quantize spectral features to frame rate.
-        
+        """Quantizes spectral features to the frame rate.
+
+        This involves interpolating feature values to align with frame
+        timestamps.
+
         Args:
-            spectral_results: Spectral analysis results
-            frame_timings: List of frame timings
-            
+            spectral_results: The results from the spectral analysis.
+            frame_timings: A list of frame timings.
+
         Returns:
-            Dictionary of quantized features
+            A dictionary of quantized features.
         """
         try:
             quantized_features = {
@@ -520,16 +530,15 @@ class TimelineQuantizer:
     
     def _interpolate_feature(self, query_time: float, feature_times: List[float], 
                            feature_values: List[float]) -> float:
-        """
-        Interpolate feature value at query time.
-        
+        """Interpolates a feature value at a specific time.
+
         Args:
-            query_time: Time to interpolate at
-            feature_times: Feature time points
-            feature_values: Feature values
-            
+            query_time: The time to interpolate at.
+            feature_times: A list of timestamps for the feature values.
+            feature_values: A list of the feature values.
+
         Returns:
-            Interpolated feature value
+            The interpolated feature value.
         """
         try:
             if not feature_times or not feature_values or len(feature_times) != len(feature_values):
@@ -559,15 +568,14 @@ class TimelineQuantizer:
             return 0.0
     
     def _extract_color_values(self, time: float, spectral_results: Dict[str, Any]) -> Dict[str, float]:
-        """
-        Extract color values for visualization at specific time.
-        
+        """Extracts color values for visualization at a specific time.
+
         Args:
-            time: Time in seconds
-            spectral_results: Spectral analysis results
-            
+            time: The time in seconds.
+            spectral_results: The results from the spectral analysis.
+
         Returns:
-            Dictionary of color values
+            A dictionary of color values.
         """
         try:
             # Extract color features
@@ -599,14 +607,13 @@ class TimelineQuantizer:
             return {'brightness': 0.5, 'saturation': 0.5, 'value': 0.5}
     
     def _assess_sync_quality(self, sync_metrics: Dict[str, Any]) -> str:
-        """
-        Assess overall synchronization quality.
-        
+        """Assesses the overall synchronization quality.
+
         Args:
-            sync_metrics: Synchronization metrics
-            
+            sync_metrics: A dictionary of synchronization metrics.
+
         Returns:
-            Quality assessment string
+            A string assessing the quality (e.g., "excellent", "good").
         """
         try:
             alignment_rate = sync_metrics.get('alignment_rate', 0.0)
@@ -625,14 +632,13 @@ class TimelineQuantizer:
             return 'poor'
     
     def _calculate_quantization_confidence(self, results: Dict[str, Any]) -> float:
-        """
-        Calculate confidence score for timeline quantization.
-        
+        """Calculates the confidence score for the timeline quantization.
+
         Args:
-            results: Quantization results
-            
+            results: The quantization results.
+
         Returns:
-            Confidence score (0.0 to 1.0)
+            A confidence score between 0.0 and 1.0.
         """
         confidence_factors = []
         
@@ -670,15 +676,14 @@ class TimelineQuantizer:
             return 0.0
     
     def export_timeline(self, frame_timings: List[FrameTiming], format_type: str = 'json') -> str:
-        """
-        Export timeline to specified format.
-        
+        """Exports the timeline to a specified format.
+
         Args:
-            frame_timings: List of frame timings
-            format_type: Export format ('json', 'csv', 'srt')
-            
+            frame_timings: A list of FrameTiming objects.
+            format_type: The desired export format ('json', 'csv', or 'srt').
+
         Returns:
-            Exported timeline string
+            A string containing the exported timeline.
         """
         try:
             if format_type == 'json':
@@ -695,7 +700,14 @@ class TimelineQuantizer:
             return ""
     
     def _export_json(self, frame_timings: List[FrameTiming]) -> str:
-        """Export to JSON format."""
+        """Exports the timeline to JSON format.
+
+        Args:
+            frame_timings: A list of FrameTiming objects.
+
+        Returns:
+            A JSON string representing the timeline.
+        """
         import json
         
         timeline_data = []
@@ -712,7 +724,14 @@ class TimelineQuantizer:
         return json.dumps(timeline_data, indent=2)
     
     def _export_csv(self, frame_timings: List[FrameTiming]) -> str:
-        """Export to CSV format."""
+        """Exports the timeline to CSV format.
+
+        Args:
+            frame_timings: A list of FrameTiming objects.
+
+        Returns:
+            A CSV string representing the timeline.
+        """
         import csv
         import io
         
@@ -736,7 +755,14 @@ class TimelineQuantizer:
         return output.getvalue()
     
     def _export_srt(self, frame_timings: List[FrameTiming]) -> str:
-        """Export to SRT subtitle format."""
+        """Exports the timeline to SRT subtitle format.
+
+        Args:
+            frame_timings: A list of FrameTiming objects.
+
+        Returns:
+            An SRT formatted string.
+        """
         import datetime
         
         srt_content = []
@@ -762,7 +788,14 @@ class TimelineQuantizer:
         return "\n".join(srt_content)
     
     def _format_srt_time(self, time_delta: datetime.timedelta) -> str:
-        """Format timedelta as SRT time."""
+        """Formats a timedelta object into an SRT time string.
+
+        Args:
+            time_delta: The timedelta to format.
+
+        Returns:
+            An SRT formatted time string.
+        """
         total_seconds = time_delta.total_seconds()
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds % 3600) // 60)
@@ -773,15 +806,14 @@ class TimelineQuantizer:
 
 
 def quantize_timeline(beat_results: Dict[str, Any], fps: float = 24.0) -> Dict[str, Any]:
-    """
-    Convenience function to quantize timeline.
-    
+    """A convenience function to quantize a timeline.
+
     Args:
-        beat_results: Beat detection results
-        fps: Target frame rate
-        
+        beat_results: The results from the beat detection.
+        fps: The target frame rate.
+
     Returns:
-        Quantized timeline results
+        A dictionary containing the quantized timeline results.
     """
     quantizer = TimelineQuantizer(fps=fps)
     return quantizer.quantize(beat_results, {})

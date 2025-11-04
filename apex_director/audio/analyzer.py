@@ -18,26 +18,28 @@ from .quantizer import TimelineQuantizer
 
 
 class AudioAnalysisEngine:
-    """
-    Comprehensive audio analysis engine that orchestrates multiple analysis modules.
-    
-    Features:
-    - Beat detection and BPM analysis
-    - Harmonic analysis (key, chords)
-    - Spectral feature extraction
-    - Song structure detection
-    - Emotional valence analysis
-    - Timeline quantization
-    - LUFS loudness metering
+    """A comprehensive audio analysis engine.
+
+    This class orchestrates multiple analysis modules to perform a complete
+    analysis of an audio file, including beat detection, harmonic analysis,
+    spectral feature extraction, and more.
+
+    Attributes:
+        sample_rate: The sample rate to use for audio processing.
+        hop_length: The hop length for feature extraction.
+        beat_detector: An instance of the BeatDetector.
+        harmonic_analyzer: An instance of the HarmonicAnalyzer.
+        spectral_analyzer: An instance of the SpectralAnalyzer.
+        section_detector: An instance of the SectionDetector.
+        quantizer: An instance of the TimelineQuantizer.
     """
     
     def __init__(self, sample_rate: int = 44100, hop_length: int = 512):
-        """
-        Initialize the audio analysis engine.
-        
+        """Initializes the AudioAnalysisEngine.
+
         Args:
-            sample_rate: Audio sample rate (default: 44100 Hz)
-            hop_length: Analysis hop length (default: 512)
+            sample_rate: The sample rate to use for audio processing.
+            hop_length: The hop length for feature extraction.
         """
         self.sample_rate = sample_rate
         self.hop_length = hop_length
@@ -50,15 +52,14 @@ class AudioAnalysisEngine:
         self.quantizer = TimelineQuantizer(fps=24)  # 24fps target
         
     def analyze_audio(self, audio_path: str, audio_data: Optional[np.ndarray] = None) -> Dict[str, Any]:
-        """
-        Perform comprehensive analysis on audio file.
-        
+        """Performs a comprehensive analysis of an audio file.
+
         Args:
-            audio_path: Path to audio file
-            audio_data: Optional pre-loaded audio data
-            
+            audio_path: The path to the audio file.
+            audio_data: Optional pre-loaded audio data.
+
         Returns:
-            Dictionary containing all analysis results
+            A dictionary containing the full analysis results.
         """
         try:
             # Validate input
@@ -134,14 +135,15 @@ class AudioAnalysisEngine:
             }
     
     def _load_audio(self, audio_path: str) -> Optional[np.ndarray]:
-        """
-        Load audio file with proper error handling.
-        
+        """Loads an audio file and returns its data as a NumPy array.
+
+        This method includes error handling and a fallback mechanism.
+
         Args:
-            audio_path: Path to audio file
-            
+            audio_path: The path to the audio file.
+
         Returns:
-            Audio data as numpy array
+            A NumPy array containing the audio data, or None if loading fails.
         """
         try:
             import librosa
@@ -173,14 +175,16 @@ class AudioAnalysisEngine:
             return None
     
     def _calculate_overall_confidence(self, results: Dict[str, Any]) -> float:
-        """
-        Calculate overall confidence score from all analysis modules.
-        
+        """Calculates an overall confidence score for the analysis.
+
+        This score is a weighted average of the confidence scores from the
+        individual analysis modules.
+
         Args:
-            results: Analysis results dictionary
-            
+            results: The analysis results dictionary.
+
         Returns:
-            Overall confidence score (0.0 to 1.0)
+            An overall confidence score between 0.0 and 1.0.
         """
         confidence_scores = results.get('confidence_scores', {})
         
@@ -211,14 +215,13 @@ class AudioAnalysisEngine:
         return weighted_sum / total_weight
     
     def get_analysis_summary(self, results: Dict[str, Any]) -> str:
-        """
-        Generate human-readable analysis summary.
-        
+        """Generates a human-readable summary of the analysis results.
+
         Args:
-            results: Analysis results from analyze_audio()
-            
+            results: The analysis results from the `analyze_audio` method.
+
         Returns:
-            Formatted summary string
+            A formatted string containing the summary.
         """
         if 'error' in results:
             return f"Analysis failed: {results['error']}"
@@ -267,15 +270,18 @@ class AudioAnalysisEngine:
 
 
 def analyze_audio_file(audio_path: str, **kwargs) -> Dict[str, Any]:
-    """
-    Convenience function for analyzing a single audio file.
-    
+    """A convenience function for analyzing a single audio file.
+
+    This function creates an `AudioAnalysisEngine` instance and runs the
+    analysis.
+
     Args:
-        audio_path: Path to audio file
-        **kwargs: Additional parameters for AudioAnalysisEngine
-        
+        audio_path: The path to the audio file.
+        **kwargs: Additional keyword arguments to be passed to the
+            `AudioAnalysisEngine`.
+
     Returns:
-        Analysis results dictionary
+        A dictionary containing the analysis results.
     """
     engine = AudioAnalysisEngine(**kwargs)
     return engine.analyze_audio(audio_path)

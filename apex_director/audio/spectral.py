@@ -13,42 +13,37 @@ warnings.filterwarnings('ignore')
 
 
 class SpectralAnalyzer:
-    """
-    Spectral analysis for frequency domain features.
-    
-    Features:
-    - Spectral centroid (brightness)
-    - Spectral rolloff
-    - Spectral bandwidth
-    - Zero crossing rate
-    - MFCCs for timbre
-    - Spectral contrast
-    - RMS energy
-    - Spectral flux
+    """Performs spectral analysis on an audio signal.
+
+    This class extracts various frequency domain features that can be used
+    for tasks like color mapping and timbre analysis.
+
+    Attributes:
+        sample_rate: The sample rate to use for audio processing.
+        hop_length: The hop length for feature extraction.
+        frame_length: The frame size for the FFT.
     """
     
     def __init__(self, sample_rate: int = 44100, hop_length: int = 512):
-        """
-        Initialize spectral analyzer.
-        
+        """Initializes the SpectralAnalyzer.
+
         Args:
-            sample_rate: Audio sample rate
-            hop_length: Analysis hop length
+            sample_rate: The sample rate to use for audio processing.
+            hop_length: The hop length for feature extraction.
         """
         self.sample_rate = sample_rate
         self.hop_length = hop_length
         self.frame_length = 2048  # Default frame size
         
     def analyze(self, audio_data: np.ndarray, beat_results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Perform comprehensive spectral analysis.
-        
+        """Performs a comprehensive spectral analysis on the audio data.
+
         Args:
-            audio_data: Audio signal array
-            beat_results: Results from beat detection
-            
+            audio_data: The audio signal array.
+            beat_results: The results from the beat detection.
+
         Returns:
-            Dictionary containing spectral analysis results
+            A dictionary containing the spectral analysis results.
         """
         try:
             # Basic validation
@@ -140,15 +135,14 @@ class SpectralAnalyzer:
             }
     
     def _spectral_centroid(self, magnitude: np.ndarray, freqs: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate spectral centroid (brightness center of mass).
-        
+        """Calculates the spectral centroid (brightness).
+
         Args:
-            magnitude: STFT magnitude spectrum
-            freqs: Frequency bins
-            
+            magnitude: The STFT magnitude spectrum.
+            freqs: The frequency bins.
+
         Returns:
-            Spectral centroid results
+            A dictionary with the spectral centroid results.
         """
         try:
             centroids = []
@@ -191,15 +185,17 @@ class SpectralAnalyzer:
             }
     
     def _spectral_rolloff(self, magnitude: np.ndarray, freqs: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate spectral rolloff (frequency below which 85% of energy exists).
-        
+        """Calculates the spectral rolloff.
+
+        The spectral rolloff is the frequency below which a specified
+        percentage of the total spectral energy resides.
+
         Args:
-            magnitude: STFT magnitude spectrum
-            freqs: Frequency bins
-            
+            magnitude: The STFT magnitude spectrum.
+            freqs: The frequency bins.
+
         Returns:
-            Spectral rolloff results
+            A dictionary with the spectral rolloff results.
         """
         try:
             rolloffs = []
@@ -240,16 +236,18 @@ class SpectralAnalyzer:
     
     def _spectral_bandwidth(self, magnitude: np.ndarray, freqs: np.ndarray, 
                           centroid_times: List[float]) -> Dict[str, Any]:
-        """
-        Calculate spectral bandwidth (spread around centroid).
-        
+        """Calculates the spectral bandwidth.
+
+        The spectral bandwidth is the spread of the spectrum around its
+        centroid.
+
         Args:
-            magnitude: STFT magnitude spectrum
-            freqs: Frequency bins
-            centroid_times: Times corresponding to centroids
-            
+            magnitude: The STFT magnitude spectrum.
+            freqs: The frequency bins.
+            centroid_times: The timestamps corresponding to the centroids.
+
         Returns:
-            Spectral bandwidth results
+            A dictionary with the spectral bandwidth results.
         """
         try:
             bandwidths = []
@@ -284,15 +282,17 @@ class SpectralAnalyzer:
             }
     
     def _spectral_contrast(self, magnitude: np.ndarray, freqs: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate spectral contrast (difference between peaks and valleys).
-        
+        """Calculates the spectral contrast.
+
+        Spectral contrast is the difference between the peaks and valleys in
+        the spectrum.
+
         Args:
-            magnitude: STFT magnitude spectrum
-            freqs: Frequency bins
-            
+            magnitude: The STFT magnitude spectrum.
+            freqs: The frequency bins.
+
         Returns:
-            Spectral contrast results
+            A dictionary with the spectral contrast results.
         """
         try:
             # Use librosa's spectral contrast
@@ -324,14 +324,13 @@ class SpectralAnalyzer:
             }
     
     def _zero_crossing_rate(self, audio_data: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate zero crossing rate.
-        
+        """Calculates the zero-crossing rate of the audio signal.
+
         Args:
-            audio_data: Audio signal
-            
+            audio_data: The audio signal.
+
         Returns:
-            Zero crossing rate results
+            A dictionary with the zero-crossing rate results.
         """
         try:
             zcr = librosa.feature.zero_crossing_rate(
@@ -363,14 +362,14 @@ class SpectralAnalyzer:
             }
     
     def _mfcc_analysis(self, audio_data: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate MFCCs for timbre analysis.
-        
+        """Calculates Mel-Frequency Cepstral Coefficients (MFCCs) for timbre
+        analysis.
+
         Args:
-            audio_data: Audio signal
-            
+            audio_data: The audio signal.
+
         Returns:
-            MFCC analysis results
+            A dictionary with the MFCC analysis results.
         """
         try:
             mfccs = librosa.feature.mfcc(
@@ -404,14 +403,13 @@ class SpectralAnalyzer:
             }
     
     def _energy_analysis(self, magnitude: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate RMS energy.
-        
+        """Calculates the RMS energy of the audio.
+
         Args:
-            magnitude: STFT magnitude spectrum
-            
+            magnitude: The STFT magnitude spectrum.
+
         Returns:
-            Energy analysis results
+            A dictionary with the energy analysis results.
         """
         try:
             # Calculate RMS energy from magnitude
@@ -443,14 +441,15 @@ class SpectralAnalyzer:
             }
     
     def _spectral_flux(self, magnitude: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate spectral flux (rate of change of magnitude).
-        
+        """Calculates the spectral flux.
+
+        Spectral flux is the rate of change of the magnitude spectrum.
+
         Args:
-            magnitude: STFT magnitude spectrum
-            
+            magnitude: The STFT magnitude spectrum.
+
         Returns:
-            Spectral flux results
+            A dictionary with the spectral flux results.
         """
         try:
             # Calculate difference between consecutive frames
@@ -482,15 +481,16 @@ class SpectralAnalyzer:
             }
     
     def _spectral_flatness(self, magnitude: np.ndarray, freqs: np.ndarray) -> Dict[str, Any]:
-        """
-        Calculate spectral flatness (tonality vs noise).
-        
+        """Calculates the spectral flatness.
+
+        Spectral flatness is a measure of the tonality of a signal.
+
         Args:
-            magnitude: STFT magnitude spectrum
-            freqs: Frequency bins
-            
+            magnitude: The STFT magnitude spectrum.
+            freqs: The frequency bins.
+
         Returns:
-            Spectral flatness results
+            A dictionary with the spectral flatness results.
         """
         try:
             # Calculate geometric mean / arithmetic mean for each frame
@@ -527,14 +527,14 @@ class SpectralAnalyzer:
             }
     
     def _extract_color_features(self, results: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Extract features for color mapping.
-        
+        """Extracts features from the spectral analysis for color mapping.
+
         Args:
-            results: Spectral analysis results
-            
+            results: The spectral analysis results.
+
         Returns:
-            List of color features for visualization
+            A list of dictionaries, where each dictionary represents a color
+            feature.
         """
         try:
             color_features = []
@@ -601,14 +601,13 @@ class SpectralAnalyzer:
             return []
     
     def _calculate_spectral_confidence(self, results: Dict[str, Any]) -> float:
-        """
-        Calculate confidence score for spectral analysis.
-        
+        """Calculates the confidence score for the spectral analysis.
+
         Args:
-            results: Spectral analysis results
-            
+            results: The spectral analysis results.
+
         Returns:
-            Confidence score (0.0 to 1.0)
+            A confidence score between 0.0 and 1.0.
         """
         confidence_factors = []
         
@@ -657,15 +656,14 @@ class SpectralAnalyzer:
 
 
 def extract_spectral_features(audio_data: np.ndarray, sample_rate: int = 44100) -> Dict[str, Any]:
-    """
-    Convenience function to extract spectral features from audio data.
-    
+    """A convenience function to extract spectral features from audio data.
+
     Args:
-        audio_data: Audio signal array
-        sample_rate: Audio sample rate
-        
+        audio_data: The audio signal array.
+        sample_rate: The sample rate of the audio.
+
     Returns:
-        Spectral features dictionary
+        A dictionary of spectral features.
     """
     analyzer = SpectralAnalyzer(sample_rate=sample_rate)
     results = analyzer.analyze(audio_data, {})

@@ -19,7 +19,20 @@ from apex_director.ui import (
 from apex_director.ui.progress_monitor import WorkflowStage
 
 async def demo_complete_workflow():
-    """Demonstrate the complete APEX DIRECTOR UI workflow"""
+    """Demonstrates the complete APEX DIRECTOR UI workflow.
+
+    This function showcases the entire process of creating a music video project
+    from start to finish, including:
+    - Initializing the UI Controller
+    - Creating a project session
+    - Validating and processing input
+    - Generating a creative treatment
+    - Creating a storyboard
+    - Setting up an approval workflow
+    - Creating a deliverable package
+    - Checking workflow progress and system status
+    - Exporting a session report
+    """
     print("=" * 80)
     print("APEX DIRECTOR UI SYSTEM DEMO")
     print("=" * 80)
@@ -157,7 +170,14 @@ async def demo_complete_workflow():
 
 
 async def demo_error_handling():
-    """Demonstrate error handling capabilities"""
+    """Demonstrates the error handling capabilities of the system.
+
+    This function showcases how the ErrorHandler component can be used to:
+    - Detect and log different types of errors
+    - Record error context and severity
+    - Generate error statistics
+    - Export error reports
+    """
     print("\n" + "=" * 80)
     print("ERROR HANDLING DEMO")
     print("=" * 80)
@@ -221,7 +241,15 @@ async def demo_error_handling():
 
 
 async def demo_progress_monitoring():
-    """Demonstrate progress monitoring"""
+    """Demonstrates the progress monitoring capabilities of the system.
+
+    This function showcases how the ProgressMonitor component can be used to:
+    - Create and manage workflows
+    - Add and track tasks
+    - Simulate task execution and progress updates
+    - Get workflow summaries and statistics
+    - Export progress reports
+    """
     print("\n" + "=" * 80)
     print("PROGRESS MONITORING DEMO")
     print("=" * 80)
@@ -306,7 +334,15 @@ async def demo_progress_monitoring():
 
 
 async def demo_approval_workflow():
-    """Demonstrate approval workflow"""
+    """Demonstrates the approval workflow capabilities of the system.
+
+    This function showcases how the ApprovalGateSystem component can be used to:
+    - Create and manage approval workflows
+    - Check the status of workflows and gates
+    - Get pending gates
+    - Simulate the approval process
+    - Export workflow reports
+    """
     print("\n" + "=" * 80)
     print("APPROVAL WORKFLOW DEMO")
     print("=" * 80)
@@ -369,7 +405,14 @@ async def demo_approval_workflow():
 
 
 async def demo_deliverable_packaging():
-    """Demonstrate deliverable packaging"""
+    """Demonstrates the deliverable packaging capabilities of the system.
+
+    This function showcases how the DeliverablePackager component can be used to:
+    - List available package templates
+    - Create a client delivery package
+    - Get package information
+    - List all packages
+    """
     print("\n" + "=" * 80)
     print("DELIVERABLE PACKAGING DEMO")
     print("=" * 80)
@@ -446,7 +489,7 @@ async def demo_deliverable_packaging():
 
 
 async def main():
-    """Run all demo functions"""
+    """Runs all demo functions."""
     print("Starting APEX DIRECTOR UI System Demo Suite...")
     print("This demo will showcase all components of the UI and workflow management system.")
     
